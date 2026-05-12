@@ -29,6 +29,7 @@ class _AppWindowState extends ConsumerState<AppWindow> {
   void _initTray() {
     if (_trayManager != null) return;
     _trayManager = TrayManager(ref);
+    TrayManager.instance = _trayManager;
     _trayManager!.init();
   }
 

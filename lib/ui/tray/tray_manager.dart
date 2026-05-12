@@ -14,6 +14,9 @@ import '../../services/hotkey_service.dart';
 class TrayManager {
   TrayManager(this._ref);
 
+  /// Global instance for easy access from other widgets.
+  static TrayManager? instance;
+
   final WidgetRef _ref;
   final _systemTray = SystemTray();
   Timer? _menuTimer;
@@ -38,22 +41,22 @@ class TrayManager {
       }
     });
 
-    await _updateMenu();
+    await updateMenu();
 
     // Update menu every 10 seconds (structural changes)
     _menuTimer = Timer.periodic(
       const Duration(seconds: 10),
-      (_) => _updateMenu(),
+      (_) => updateMenu(),
     );
 
     // Update title every second (cheap — just text)
     _titleTimer = Timer.periodic(
       const Duration(seconds: 1),
-      (_) => _updateTitle(),
+      (_) => updateTitle(),
     );
   }
 
-  Future<void> _updateMenu() async {
+  Future<void> updateMenu() async {
     final activeEntry = _ref.read(activeTimerProvider).valueOrNull;
     final recentEntries =
         await _ref.read(recentTrackedIssuesProvider.future);
@@ -72,7 +75,7 @@ class TrayManager {
           final repo = _ref.read(timeTrackingRepositoryProvider);
           repo.stopTimer();
           _ref.invalidate(recentTrackedIssuesProvider);
-          _updateMenu();
+          updateMenu();
         },
       ));
     } else {
@@ -103,7 +106,7 @@ class TrayManager {
               teamColor: entry.teamColor,
             );
             _ref.invalidate(recentTrackedIssuesProvider);
-            _updateMenu();
+            updateMenu();
           },
         ));
       }
@@ -125,10 +128,10 @@ class TrayManager {
 
     await _systemTray.setContextMenu(menuItems);
 
-    await _updateTitle();
+    await updateTitle();
   }
 
-  Future<void> _updateTitle() async {
+  Future<void> updateTitle() async {
     final activeEntry = _ref.read(activeTimerProvider).valueOrNull;
     if (activeEntry != null) {
       final elapsed = DateTime.now().difference(activeEntry.startTime);

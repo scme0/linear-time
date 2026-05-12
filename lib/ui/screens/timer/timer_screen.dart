@@ -9,6 +9,7 @@ import '../../../providers/report_providers.dart';
 import '../../../data/database/app_database.dart';
 import '../../../core/theme/app_theme.dart';
 import '../history/daily/widgets/time_entry_dialog.dart';
+import '../../tray/tray_manager.dart';
 import 'widgets/active_timer_banner.dart';
 import 'widgets/issue_list.dart';
 import 'widgets/issue_search_bar.dart';
@@ -66,6 +67,12 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
       teamColor: issue.teamColor,
     );
     ref.invalidate(recentTrackedIssuesProvider);
+    _refreshTray();
+  }
+
+  void _refreshTray() {
+    TrayManager.instance?.updateMenu();
+    TrayManager.instance?.updateTitle();
   }
 
   void _onSearchSubmitted() {
@@ -89,6 +96,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
     final repo = ref.read(timeTrackingRepositoryProvider);
     repo.stopTimer();
     ref.invalidate(recentTrackedIssuesProvider);
+    _refreshTray();
   }
 
   Future<void> _onAddTime(CachedIssue issue) async {
