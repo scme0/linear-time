@@ -1,0 +1,25 @@
+macos/Runner/AppDelegate.swift
+  s_019582d6a6af2d::t_2ad7b2c59056cb 23-36
+lib/ui/screens/history/daily/widgets/time_entry_dialog.dart
+  s_019582d6a6af2d::t_61fc430d981042 10
+  s_019582d6a6af2d::t_781e2c1894789b 122-123,133-136
+lib/data/repositories/time_tracking_repository.dart
+  s_019582d6a6af2d::t_b300ddd351e64d 50-106
+  s_019582d6a6af2d::t_64e48949de4ecf 150,160-168
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "c95a57c788b0f12dcae07afa3b633be3e4e2ea2d",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
