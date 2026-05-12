@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart' show MethodChannel, PlatformException, Clipboard, ClipboardData;
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:path_provider/path_provider.dart';
@@ -15,6 +15,7 @@ import '../../../providers/database_providers.dart';
 import '../../../core/constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/csv_utils.dart';
+import '../../../services/hotkey_service.dart';
 import 'widgets/settings_section.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -389,6 +390,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   },
                 ),
               ),
+              _HotkeySettingRow(
+                brightness: brightness,
+              ),
             ],
           ),
 
@@ -405,18 +409,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         ? '${snapshot.data!.path}/linear_time.sqlite'
                         : 'Loading...',
                     control: snapshot.hasData
-                        ? MacosIconButton(
-                            icon: MacosIcon(
-                              CupertinoIcons.doc_on_clipboard,
-                              size: 14,
-                              color: AppColors.textSecondary(
-                                  MacosTheme.of(context).brightness),
-                            ),
+                        ? PushButton(
+                            controlSize: ControlSize.small,
                             onPressed: () {
                               Clipboard.setData(ClipboardData(
                                   text:
                                       '${snapshot.data!.path}/linear_time.sqlite'));
                             },
+                            child: const Text('Copy Path'),
                           )
                         : const SizedBox.shrink(),
                   );
@@ -729,6 +729,209 @@ class _DangerButtonState extends State<_DangerButton> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Hotkey recorder row for settings.
+class _HotkeySettingRow extends ConsumerStatefulWidget {
+  const _HotkeySettingRow({required this.brightness});
+
+  final Brightness brightness;
+
+  @override
+  ConsumerState<_HotkeySettingRow> createState() => _HotkeySettingRowState();
+}
+
+class _HotkeySettingRowState extends ConsumerState<_HotkeySettingRow> {
+  bool _recording = false;
+  String? _currentDisplay;
+  final _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrent();
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadCurrent() async {
+    final dao = ref.read(settingsDaoProvider);
+    final val = await dao.getValue(SettingsKeys.globalHotkey);
+    if (val != null && val.isNotEmpty && mounted) {
+      setState(() {
+        _currentDisplay = HotkeyCombo.fromString(val).toDisplayString();
+      });
+    }
+  }
+
+  void _startRecording() {
+    setState(() => _recording = true);
+    _focusNode.requestFocus();
+  }
+
+  Future<void> _clearHotkey() async {
+    await HotkeyService.clearHotkey();
+    final dao = ref.read(settingsDaoProvider);
+    await dao.deleteValue(SettingsKeys.globalHotkey);
+    setState(() {
+      _currentDisplay = null;
+      _recording = false;
+    });
+  }
+
+  Future<void> _onKeyEvent(KeyEvent event) async {
+    if (!_recording) return;
+    if (event is! KeyDownEvent) return;
+
+    // Need at least one modifier
+    final mods = HardwareKeyboard.instance.logicalKeysPressed;
+    int modFlags = 0;
+    bool hasModifier = false;
+    for (final key in mods) {
+      if (key == LogicalKeyboardKey.controlLeft ||
+          key == LogicalKeyboardKey.controlRight) {
+        modFlags |= MacModifier.control;
+        hasModifier = true;
+      }
+      if (key == LogicalKeyboardKey.shiftLeft ||
+          key == LogicalKeyboardKey.shiftRight) {
+        modFlags |= MacModifier.shift;
+        hasModifier = true;
+      }
+      if (key == LogicalKeyboardKey.altLeft ||
+          key == LogicalKeyboardKey.altRight) {
+        modFlags |= MacModifier.option;
+        hasModifier = true;
+      }
+      if (key == LogicalKeyboardKey.metaLeft ||
+          key == LogicalKeyboardKey.metaRight) {
+        modFlags |= MacModifier.command;
+        hasModifier = true;
+      }
+    }
+
+    if (!hasModifier) return;
+
+    // Ignore bare modifier presses
+    final physicalKey = event.physicalKey;
+    if (physicalKey == PhysicalKeyboardKey.controlLeft ||
+        physicalKey == PhysicalKeyboardKey.controlRight ||
+        physicalKey == PhysicalKeyboardKey.shiftLeft ||
+        physicalKey == PhysicalKeyboardKey.shiftRight ||
+        physicalKey == PhysicalKeyboardKey.altLeft ||
+        physicalKey == PhysicalKeyboardKey.altRight ||
+        physicalKey == PhysicalKeyboardKey.metaLeft ||
+        physicalKey == PhysicalKeyboardKey.metaRight) {
+      return;
+    }
+
+    // Map logical key to macOS keyCode (approximate via USB HID)
+    final keyCode = _logicalToMacKeyCode(event.logicalKey);
+    if (keyCode < 0) return;
+
+    final combo = HotkeyCombo(keyCode: keyCode, modifiers: modFlags);
+    await HotkeyService.setHotkey(
+        keyCode: combo.keyCode, modifiers: combo.modifiers);
+    final dao = ref.read(settingsDaoProvider);
+    await dao.setValue(SettingsKeys.globalHotkey, combo.toSettingsString());
+
+    setState(() {
+      _currentDisplay = combo.toDisplayString();
+      _recording = false;
+    });
+  }
+
+  int _logicalToMacKeyCode(LogicalKeyboardKey key) {
+    // Map common keys to macOS virtual key codes
+    final map = <LogicalKeyboardKey, int>{
+      LogicalKeyboardKey.keyA: 0, LogicalKeyboardKey.keyS: 1,
+      LogicalKeyboardKey.keyD: 2, LogicalKeyboardKey.keyF: 3,
+      LogicalKeyboardKey.keyH: 4, LogicalKeyboardKey.keyG: 5,
+      LogicalKeyboardKey.keyZ: 6, LogicalKeyboardKey.keyX: 7,
+      LogicalKeyboardKey.keyC: 8, LogicalKeyboardKey.keyV: 9,
+      LogicalKeyboardKey.keyB: 11, LogicalKeyboardKey.keyQ: 12,
+      LogicalKeyboardKey.keyW: 13, LogicalKeyboardKey.keyE: 14,
+      LogicalKeyboardKey.keyR: 15, LogicalKeyboardKey.keyY: 16,
+      LogicalKeyboardKey.keyT: 17, LogicalKeyboardKey.digit1: 18,
+      LogicalKeyboardKey.digit2: 19, LogicalKeyboardKey.digit3: 20,
+      LogicalKeyboardKey.digit4: 21, LogicalKeyboardKey.digit6: 22,
+      LogicalKeyboardKey.digit5: 23, LogicalKeyboardKey.digit9: 25,
+      LogicalKeyboardKey.digit7: 26, LogicalKeyboardKey.digit8: 28,
+      LogicalKeyboardKey.digit0: 29, LogicalKeyboardKey.keyO: 31,
+      LogicalKeyboardKey.keyU: 32, LogicalKeyboardKey.keyI: 34,
+      LogicalKeyboardKey.keyP: 35, LogicalKeyboardKey.keyL: 37,
+      LogicalKeyboardKey.keyJ: 38, LogicalKeyboardKey.keyK: 40,
+      LogicalKeyboardKey.keyN: 45, LogicalKeyboardKey.keyM: 46,
+      LogicalKeyboardKey.space: 49,
+    };
+    return map[key] ?? -1;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Global hotkey',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textPrimary(widget.brightness),
+                  ),
+                ),
+                Text(
+                  'Toggle timer from anywhere',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary(widget.brightness),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_currentDisplay != null && !_recording) ...[
+            Text(
+              _currentDisplay!,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textPrimary(widget.brightness),
+              ),
+            ),
+            const SizedBox(width: 8),
+            PushButton(
+              controlSize: ControlSize.small,
+              onPressed: _clearHotkey,
+              child: const Text('Clear'),
+            ),
+            const SizedBox(width: 4),
+          ],
+          KeyboardListener(
+            focusNode: _focusNode,
+            onKeyEvent: _onKeyEvent,
+            child: PushButton(
+              controlSize: ControlSize.small,
+              onPressed: _startRecording,
+              child: Text(_recording
+                  ? 'Press keys...'
+                  : _currentDisplay != null
+                      ? 'Change'
+                      : 'Record'),
+            ),
+          ),
+        ],
       ),
     );
   }

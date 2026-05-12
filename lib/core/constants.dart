@@ -38,4 +38,5 @@ abstract class SettingsKeys {
   static const timeDisplayFormat = 'time_display_format'; // "hms" or "decimal"
   static const minEntryDurationSeconds = 'min_entry_duration_seconds';
   static const themeMode = 'theme_mode'; // "system", "light", "dark"
+  static const globalHotkey = 'global_hotkey'; // e.g. "ctrl+shift+17"
 }

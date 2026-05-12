@@ -2,8 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
+import '../providers/database_providers.dart';
 import '../providers/issue_providers.dart';
+import '../providers/repository_providers.dart';
+import '../providers/timer_providers.dart';
+import '../core/constants.dart';
 import '../core/theme/app_theme.dart';
+import '../services/hotkey_service.dart';
 import 'screens/timer/timer_screen.dart';
 import 'screens/history/history_screen.dart';
 import 'screens/settings/settings_screen.dart';
@@ -17,11 +22,50 @@ class AppWindow extends ConsumerStatefulWidget {
 
 class _AppWindowState extends ConsumerState<AppWindow> {
   int _pageIndex = 0;
+  bool _hotkeyInitialized = false;
+
+  void _initHotkey() {
+    if (_hotkeyInitialized) return;
+    _hotkeyInitialized = true;
+
+    HotkeyService.init(onHotkeyPressed: () {
+      final activeTimer = ref.read(activeTimerProvider).valueOrNull;
+      final repo = ref.read(timeTrackingRepositoryProvider);
+      if (activeTimer != null) {
+        repo.stopTimer();
+      } else {
+        // Start timer on last tracked issue
+        ref.read(recentTrackedIssuesProvider.future).then((entries) {
+          if (entries.isNotEmpty) {
+            final last = entries.first;
+            repo.startTimer(
+              issueId: last.issueId,
+              issueIdentifier: last.issueIdentifier,
+              issueTitle: last.issueTitle,
+              teamName: last.teamName,
+              projectName: last.projectName,
+              teamColor: last.teamColor,
+            );
+          }
+        });
+      }
+    });
+
+    // Register saved hotkey
+    ref.read(settingsDaoProvider).getValue(SettingsKeys.globalHotkey).then((val) {
+      if (val != null && val.isNotEmpty) {
+        final combo = HotkeyCombo.fromString(val);
+        HotkeyService.setHotkey(
+            keyCode: combo.keyCode, modifiers: combo.modifiers);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     // Trigger sync on launch (no-op if not connected)
     ref.watch(syncIssuesProvider);
+    _initHotkey();
 
     final brightness = MacosTheme.of(context).brightness;
 
