@@ -157,7 +157,7 @@ class _IssueRowState extends State<IssueRow> {
                 ],
                 // Today's tracked time
                 SizedBox(
-                  width: 50,
+                  width: TimeFormat.columnWidth,
                   child: widget.todaySeconds > 0
                       ? Text(
                           Duration(seconds: widget.todaySeconds).formatted(TimeFormat.current),
