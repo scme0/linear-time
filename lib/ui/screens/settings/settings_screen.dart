@@ -410,7 +410,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         : 'Loading...',
                     control: snapshot.hasData
                         ? PushButton(
-                            controlSize: ControlSize.small,
+                            controlSize: ControlSize.regular,
                             onPressed: () {
                               Clipboard.setData(ClipboardData(
                                   text:
@@ -912,7 +912,7 @@ class _HotkeySettingRowState extends ConsumerState<_HotkeySettingRow> {
             ),
             const SizedBox(width: 8),
             PushButton(
-              controlSize: ControlSize.small,
+              controlSize: ControlSize.regular,
               onPressed: _clearHotkey,
               child: const Text('Clear'),
             ),
@@ -922,7 +922,7 @@ class _HotkeySettingRowState extends ConsumerState<_HotkeySettingRow> {
             focusNode: _focusNode,
             onKeyEvent: _onKeyEvent,
             child: PushButton(
-              controlSize: ControlSize.small,
+              controlSize: ControlSize.regular,
               onPressed: _recording
                   ? () => setState(() => _recording = false)
                   : _startRecording,
