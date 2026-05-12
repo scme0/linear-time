@@ -336,7 +336,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 SettingRow(
                   label: 'Idle delay',
                   control: MacosPopupButton<int>(
-                    value: settings.idleDelayMinutes,
+                    value: [5, 10, 15, 20, 30, 45, 60].contains(settings.idleDelayMinutes)
+                        ? settings.idleDelayMinutes : 15,
                     items: [5, 10, 15, 20, 30, 45, 60]
                         .map((v) => MacosPopupMenuItem(
                               value: v,
@@ -363,7 +364,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 SettingRow(
                   label: 'Reminder delay',
                   control: MacosPopupButton<int>(
-                    value: settings.forgottenTimerDelayMinutes,
+                    value: [10, 15, 30, 45, 60].contains(settings.forgottenTimerDelayMinutes)
+                        ? settings.forgottenTimerDelayMinutes : 30,
                     items: [10, 15, 30, 45, 60]
                         .map((v) => MacosPopupMenuItem(
                               value: v,
