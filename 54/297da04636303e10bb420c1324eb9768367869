@@ -1,0 +1,53 @@
+lib/core/extensions/duration_extensions.dart
+  s_019582d6a6af2d::t_63383cb423f388 28-35
+lib/ui/screens/history/monthly/monthly_view.dart
+  s_019582d6a6af2d::t_8c9dd89878116b 196,207
+  s_019582d6a6af2d::t_5d59c5f34eae4f 9
+lib/ui/screens/settings/settings_screen.dart
+  s_019582d6a6af2d::t_3603e0406062fd 233-235
+lib/ui/screens/timer/widgets/issue_row.dart
+  s_019582d6a6af2d::t_c17ebba317d238 163
+  s_019582d6a6af2d::t_01c1845ac44596 7
+lib/services/notification_service.dart
+  s_019582d6a6af2d::t_9ed380bb3d89ff 95,126
+  s_019582d6a6af2d::t_c5b864126abd7d 13
+lib/ui/screens/history/daily/daily_view.dart
+  s_019582d6a6af2d::t_90e874a995f258 12
+  s_019582d6a6af2d::t_c03766c1754495 176,419
+lib/core/time_format.dart
+  s_019582d6a6af2d::t_607facce5ede6a 1-4
+lib/ui/screens/history/weekly/weekly_view.dart
+  s_019582d6a6af2d::t_9c0461693dd06c 13
+  s_019582d6a6af2d::t_ddfafa2f48eb4f 138,194,208
+lib/ui/screens/timer/widgets/active_timer_banner.dart
+  s_019582d6a6af2d::t_01158de3e329e8 10
+  s_019582d6a6af2d::t_bca3e125c24215 159
+lib/ui/screens/history/monthly/widgets/day_cell.dart
+  s_019582d6a6af2d::t_5467418a9aa853 7
+  s_019582d6a6af2d::t_9a50f2e3380465 79,104
+lib/providers/settings_providers.dart
+  s_019582d6a6af2d::t_4ee53f7aeeff2e 44
+  s_019582d6a6af2d::t_ca2e904d1c0157 93
+lib/ui/app_window.dart
+  s_019582d6a6af2d::t_b832fe120afb4f 242-244
+  s_019582d6a6af2d::t_6db3d390176f01 11-12
+lib/ui/tray/tray_manager.dart
+  s_019582d6a6af2d::t_e3fb0c674af6fc 177,179
+  s_019582d6a6af2d::t_6c1959b6f0a3ed 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "54297da04636303e10bb420c1324eb9768367869",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
