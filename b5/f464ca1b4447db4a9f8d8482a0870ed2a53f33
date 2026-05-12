@@ -1,0 +1,29 @@
+lib/ui/tray/tray_manager.dart
+  s_019582d6a6af2d::t_2d680b9135066e 17-19
+  s_019582d6a6af2d::t_5d5ceb6a19db8e 59
+  s_019582d6a6af2d::t_f6a3d9955569c4 134
+  s_019582d6a6af2d::t_2d5e9a450f8c1b 55,131
+  s_019582d6a6af2d::t_6bc1a424a1de24 44,49,78,109
+lib/ui/app_window.dart
+  s_019582d6a6af2d::t_f423b20426714e 32
+lib/ui/screens/timer/timer_screen.dart
+  s_019582d6a6af2d::t_3cccfda2c8fbf5 99
+  s_019582d6a6af2d::t_508d55393bf3b1 12
+  s_019582d6a6af2d::t_c940daa56ba9ff 70-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "b5f464ca1b4447db4a9f8d8482a0870ed2a53f33",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
