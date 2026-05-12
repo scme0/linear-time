@@ -1,0 +1,19 @@
+lib/ui/screens/history/weekly/weekly_view.dart
+  s_019582d6a6af2d::t_a0c477fcbbcc82 254
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "bba45ea978b62fbb7eac9c7e20374792828f2d07",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
