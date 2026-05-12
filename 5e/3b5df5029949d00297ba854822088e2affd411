@@ -1,0 +1,134 @@
+macos/Flutter/Flutter-Debug.xcconfig
+  s_019582d6a6af2d::t_fc2682cc33fa27 1-2
+macos/Runner.xcworkspace/contents.xcworkspacedata
+  ai_agent 1-7
+macos/Runner/Configs/Release.xcconfig
+  ai_agent 1-2
+lib/data/database/tables/settings.dart
+  s_019582d6a6af2d::t_62fdab9b3fc2a3 1-9
+macos/Runner/Configs/Debug.xcconfig
+  ai_agent 1-2
+lib/data/database/daos/cached_issue_dao.dart
+  s_019582d6a6af2d::t_6e61130347fd1a 1-109
+lib/core/extensions/duration_extensions.dart
+  s_019582d6a6af2d::t_e56ecda4ff5034 1-35
+lib/ui/app_window.dart
+  s_019582d6a6af2d::t_9f0d0cf1b6f61d 1-63
+macos/Runner.xcodeproj/project.pbxproj
+  s_019582d6a6af2d::t_8cbbf017336b1d 1-705
+macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json
+  ai_agent 1-68
+macos/Runner/DebugProfile.entitlements
+  s_019582d6a6af2d::t_d652127f43deec 11-16
+lib/providers/timer_providers.dart
+  s_019582d6a6af2d::t_6034a79c726d02 1-36
+macos/Runner/Base.lproj/MainMenu.xib
+  ai_agent 1-343
+macos/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme
+  s_019582d6a6af2d::t_8cbbf017336b1d 1-99
+macos/Runner.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+  ai_agent 1-8
+lib/data/database/daos/cached_issue_dao.g.dart
+  s_019582d6a6af2d::t_855c1adc9a174d 1-8
+lib/data/api/graphql/queries.dart
+  s_019582d6a6af2d::t_293a2be60a7657 1-2,4-8,10,14-27,29-30,32-34,37-40,43,46-56,58-66,68,71-74,95,99-104,107,111-115,118
+  s_019582d6a6af2d::t_ae996a23c74065 3,9,11-13,28,31,35-36,41-42,44-45,57,67,69-70,75-94,96-98,105-106,108-110,116-117,119
+lib/providers/database_providers.dart
+  s_019582d6a6af2d::t_01608d08ba4d5a 1-25
+run
+  s_019582d6a6af2d::t_85574c35e58f9c 1-69
+lib/providers/api_providers.dart
+  s_019582d6a6af2d::t_1f21dce0b7a731 1-35
+lib/ui/screens/history/history_screen.dart
+  s_019582d6a6af2d::t_fd66d45b1095c2 1-25
+macos/Runner/Configs/AppInfo.xcconfig
+  s_019582d6a6af2d::t_8cbbf017336b1d 1-14
+macos/Podfile
+  ai_agent 1-42
+lib/data/repositories/issue_repository.dart
+  s_019582d6a6af2d::t_a243f1d2f5d83b 1-109
+macos/Runner/AppDelegate.swift
+  ai_agent 1-13
+macos/Runner/Release.entitlements
+  s_019582d6a6af2d::t_60ea9641167263 7-12
+macos/RunnerTests/RunnerTests.swift
+  s_019582d6a6af2d::t_8cbbf017336b1d 1-12
+pubspec.yaml
+  s_019582d6a6af2d::t_8cbbf017336b1d 1,5-12,15,41-44,49-51
+  s_019582d6a6af2d::t_2b609806643ab6 2-4,13-14,16-32,34-40
+  s_019582d6a6af2d::t_1d38f7eb775d7f 33
+  s_019582d6a6af2d::t_cdfbd14447171f 45-48
+analysis_options.yaml
+  s_019582d6a6af2d::t_8cbbf017336b1d 1-28
+lib/main.dart
+  s_019582d6a6af2d::t_8cbbf017336b1d 1,3,5,9
+  s_019582d6a6af2d::t_2b345ca781bd57 2,4,6-8
+lib/data/api/linear_api_client.dart
+  s_019582d6a6af2d::t_f8985c784d4a20 6-16,25-26,28-29,32-43,46-71,76,78-83,88,91-96,98-99,105-107,109-110,113-122,124-125
+  s_019582d6a6af2d::t_8a4fd43d77721e 1-5,17-24,27,30-31,44-45,72-75,77,84-87,89-90,97,100-104,108,111-112,123,126-127
+lib/app.dart
+  s_019582d6a6af2d::t_5688e2ee1f6aa2 1-21
+lib/providers/repository_providers.dart
+  s_019582d6a6af2d::t_55a56386db29b5 1-23
+lib/data/database/daos/time_entry_dao.g.dart
+  s_019582d6a6af2d::t_855c1adc9a174d 1-8
+lib/core/extensions/date_time_extensions.dart
+  s_019582d6a6af2d::t_509a64234f4f94 1-24
+lib/data/repositories/time_tracking_repository.dart
+  s_019582d6a6af2d::t_ad26ad424ad9e7 3-41,43-117,119,121-138,140-150
+  s_019582d6a6af2d::t_9b0024146bf355 42
+  s_019582d6a6af2d::t_5915654a87f079 1-2
+  s_019582d6a6af2d::t_73bebe243fa3d1 118,120,139
+macos/Runner/MainFlutterWindow.swift
+  ai_agent 1-15
+macos/Runner/Configs/Warnings.xcconfig
+  ai_agent 1-13
+lib/data/database/tables/cached_issues.dart
+  s_019582d6a6af2d::t_04c3c616eda980 1-21
+lib/data/database/tables/time_entries.dart
+  s_019582d6a6af2d::t_982fb3a7a1702f 1-15
+lib/data/database/daos/time_entry_dao.dart
+  s_019582d6a6af2d::t_c55c8e8ca97dcd 146-147,153-154
+  s_019582d6a6af2d::t_c8783b0c0d7518 1-145,148-152,155-185
+lib/data/database/app_database.g.dart
+  s_019582d6a6af2d::t_855c1adc9a174d 1-2553
+lib/data/database/app_database.dart
+  s_019582d6a6af2d::t_12492da9564395 1-26
+macos/Runner/Info.plist
+  ai_agent 1-32
+lib/providers/issue_providers.dart
+  s_019582d6a6af2d::t_cb8423a672d3d7 1-25
+macos/Flutter/Flutter-Release.xcconfig
+  s_019582d6a6af2d::t_fc2682cc33fa27 1-2
+lib/data/database/daos/settings_dao.g.dart
+  s_019582d6a6af2d::t_855c1adc9a174d 1-8
+macos/Runner.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+  ai_agent 1-8
+lib/ui/screens/settings/settings_screen.dart
+  s_019582d6a6af2d::t_fced4163e0d4c3 5
+  s_019582d6a6af2d::t_5b4ff5d6da0288 1-4,6-134
+macos/.gitignore
+  ai_agent 1-7
+lib/data/database/daos/settings_dao.dart
+  s_019582d6a6af2d::t_e005a499fdbb36 1-43
+lib/core/constants.dart
+  s_019582d6a6af2d::t_0db3251c9dcdda 1-41
+lib/ui/screens/timer/timer_screen.dart
+  s_019582d6a6af2d::t_75f855eb5b1de9 1-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "5e3b5df5029949d00297ba854822088e2affd411",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
