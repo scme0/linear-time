@@ -11,6 +11,7 @@ import '../../providers/settings_providers.dart';
 import '../../providers/database_providers.dart';
 import '../../core/constants.dart';
 import '../../core/extensions/duration_extensions.dart';
+import '../../core/time_format.dart';
 import '../../services/hotkey_service.dart';
 
 /// Manages the system tray icon and menu.
@@ -173,9 +174,9 @@ class TrayManager {
     if (activeEntry != null) {
       final elapsed = DateTime.now().difference(activeEntry.startTime);
       await _systemTray.setTitle(
-          '${activeEntry.issueIdentifier} ${elapsed.toHms()}');
+          '${activeEntry.issueIdentifier} ${elapsed.formatted(TimeFormat.current)}');
       await _systemTray.setToolTip(
-          'Linear Time — ${activeEntry.issueIdentifier} ${elapsed.toHms()}');
+          'Linear Time — ${activeEntry.issueIdentifier} ${elapsed.formatted(TimeFormat.current)}');
     } else {
       await _systemTray.setTitle('');
       await _systemTray.setToolTip('Linear Time');

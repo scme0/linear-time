@@ -6,6 +6,7 @@ import 'package:macos_ui/macos_ui.dart';
 import '../../../../providers/report_providers.dart';
 import '../../../../providers/settings_providers.dart';
 import '../../../../core/extensions/duration_extensions.dart';
+import '../../../../core/time_format.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'widgets/day_cell.dart';
 
@@ -192,7 +193,7 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '$label ${Duration(seconds: entry.value).toHumanReadable()}',
+                  '$label ${Duration(seconds: entry.value).formatted(TimeFormat.current)}',
                   style: TextStyle(
                     fontSize: 11,
                     color: AppColors.textSecondary(brightness),
@@ -203,7 +204,7 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
           }),
           // Total
           Text(
-            'Total: ${Duration(seconds: totalSeconds).toHumanReadable()}',
+            'Total: ${Duration(seconds: totalSeconds).formatted(TimeFormat.current)}',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,

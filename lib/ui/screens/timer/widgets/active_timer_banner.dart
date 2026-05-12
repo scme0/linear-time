@@ -7,6 +7,7 @@ import 'package:macos_ui/macos_ui.dart';
 import '../../../../data/database/app_database.dart';
 import '../../../../core/utils/open_in_linear.dart';
 import '../../../../core/extensions/duration_extensions.dart';
+import '../../../../core/time_format.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class ActiveTimerBanner extends StatelessWidget {
@@ -155,7 +156,7 @@ class ActiveTimerBanner extends StatelessWidget {
                     data: (seconds) {
                       if (seconds == 0) return const SizedBox.shrink();
                       return Text(
-                        'Today: ${Duration(seconds: seconds).toHumanReadable()}',
+                        'Today: ${Duration(seconds: seconds).formatted(TimeFormat.current)}',
                         style: TextStyle(
                           fontSize: 11,
                           color: AppColors.textSecondary(brightness),

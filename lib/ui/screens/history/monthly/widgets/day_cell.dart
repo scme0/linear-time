@@ -4,6 +4,7 @@ import 'package:macos_ui/macos_ui.dart';
 
 import '../../../../../providers/report_providers.dart';
 import '../../../../../core/extensions/duration_extensions.dart';
+import '../../../../../core/time_format.dart';
 import '../../../../../core/theme/app_theme.dart';
 
 class DayCell extends StatefulWidget {
@@ -75,7 +76,7 @@ class _DayCellState extends State<DayCell> {
                       if (hasData)
                         Text(
                           Duration(seconds: widget.data!.totalSeconds)
-                              .toHumanReadable(),
+                              .formatted(TimeFormat.current),
                           style: TextStyle(
                             fontSize: 9,
                             color: AppColors.textSecondary(brightness),
@@ -100,7 +101,7 @@ class _DayCellState extends State<DayCell> {
       ..sort((a, b) => b.value.compareTo(a.value));
     final lines = entries.map((e) {
       final label = data.issueLabels[e.key] ?? e.key;
-      final dur = Duration(seconds: e.value).toHumanReadable();
+      final dur = Duration(seconds: e.value).formatted(TimeFormat.current);
       return '$label: $dur';
     });
     return lines.join('\n');

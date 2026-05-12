@@ -10,6 +10,7 @@ import 'hotkey_service.dart';
 import '../providers/settings_providers.dart';
 import '../providers/repository_providers.dart';
 import '../core/extensions/duration_extensions.dart';
+import '../core/time_format.dart';
 
 /// Manages idle detection and forgotten timer notifications.
 class NotificationService {
@@ -91,7 +92,7 @@ class NotificationService {
         _idleNotificationSent = true;
         _idleStartTime = DateTime.now().subtract(Duration(seconds: idleSeconds));
 
-        final idleDur = Duration(seconds: idleSeconds).toHumanReadable();
+        final idleDur = Duration(seconds: idleSeconds).formatted(TimeFormat.current);
 
         if (settings.notificationStyle == 'overlay') {
           await _showOverlay(
@@ -122,7 +123,7 @@ class NotificationService {
     if (elapsed.inMinutes >= settings.forgottenTimerDelayMinutes) {
       _forgottenNotificationSent = true;
 
-      final dur = elapsed.toHumanReadable();
+      final dur = elapsed.formatted(TimeFormat.current);
 
       if (settings.notificationStyle == 'overlay') {
         _showOverlay(

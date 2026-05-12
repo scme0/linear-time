@@ -10,6 +10,7 @@ import '../../../../providers/report_providers.dart';
 import '../../../../providers/settings_providers.dart';
 import '../../../../core/extensions/date_time_extensions.dart';
 import '../../../../core/extensions/duration_extensions.dart';
+import '../../../../core/time_format.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../daily/widgets/time_entry_dialog.dart';
 
@@ -134,7 +135,7 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
                   right: 0,
                   child: Text(
                     Duration(seconds: summary.valueOrNull!.grandTotalSeconds)
-                        .toHumanReadable(),
+                        .formatted(TimeFormat.current),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -190,7 +191,7 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '${issue.identifier} ${Duration(seconds: issue.totalSeconds).toHumanReadable()}',
+                              '${issue.identifier} ${Duration(seconds: issue.totalSeconds).formatted(TimeFormat.current)}',
                               style: TextStyle(
                                 fontSize: 11,
                                 color: AppColors.textSecondary(brightness),
@@ -204,7 +205,7 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'Total: ${Duration(seconds: data.grandTotalSeconds).toHumanReadable()}',
+                                'Total: ${Duration(seconds: data.grandTotalSeconds).formatted(TimeFormat.current)}',
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,

@@ -8,6 +8,8 @@ import '../providers/issue_providers.dart';
 import '../providers/repository_providers.dart';
 import '../core/constants.dart';
 import '../core/theme/app_theme.dart';
+import '../core/time_format.dart';
+import '../providers/settings_providers.dart';
 import '../services/hotkey_service.dart';
 import '../services/notification_service.dart';
 import 'tray/tray_manager.dart';
@@ -237,6 +239,9 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
   Widget build(BuildContext context) {
     // Trigger sync on launch (no-op if not connected)
     ref.watch(syncIssuesProvider);
+    // Keep time format in sync
+    final settings = ref.watch(appSettingsProvider).valueOrNull;
+    if (settings != null) TimeFormat.current = settings.timeDisplayFormat;
     _initNotifications(); // Must be first — sets unified method channel handler
     _initHotkey();
     _initTray();

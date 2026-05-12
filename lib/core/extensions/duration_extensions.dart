@@ -24,12 +24,14 @@ extension DurationFormatting on Duration {
     if (m == 0) return '${h}h';
     return '${h}h ${m}m';
   }
-}
 
-extension IntDurationExtension on int {
-  /// Convert seconds to formatted duration string.
-  String toFormattedDuration({String format = 'hms'}) {
-    final d = Duration(seconds: this);
-    return format == 'decimal' ? d.toDecimalHours() : d.toHms();
+  /// Format using the user's preferred format.
+  /// [format]: 'hms', 'decimal', or 'human' (default).
+  String formatted(String format) {
+    return switch (format) {
+      'hms' => toHms(),
+      'decimal' => toDecimalHours(),
+      _ => toHumanReadable(),
+    };
   }
 }

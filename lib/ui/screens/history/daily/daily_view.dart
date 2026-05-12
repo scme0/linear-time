@@ -9,6 +9,7 @@ import '../../../../data/database/app_database.dart';
 import '../../../../providers/report_providers.dart';
 import '../../../../providers/database_providers.dart';
 import '../../../../core/extensions/duration_extensions.dart';
+import '../../../../core/time_format.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/open_in_linear.dart';
 import 'widgets/time_entry_dialog.dart';
@@ -172,7 +173,7 @@ class _DailyViewState extends ConsumerState<DailyView> {
                 Positioned(
                   right: 0,
                   child: Text(
-                    Duration(seconds: totalSeconds).toHumanReadable(),
+                    Duration(seconds: totalSeconds).formatted(TimeFormat.current),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -415,7 +416,7 @@ class _EntryCardState extends State<_EntryCard> {
                 ),
               // Duration
               Text(
-                duration.toHumanReadable(),
+                duration.formatted(TimeFormat.current),
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,

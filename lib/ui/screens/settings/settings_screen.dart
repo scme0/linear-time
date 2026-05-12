@@ -230,6 +230,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   value: settings.timeDisplayFormat,
                   items: const [
                     MacosPopupMenuItem(
+                      value: 'human',
+                      child: Text('Human (3h 45m)'),
+                    ),
+                    MacosPopupMenuItem(
                       value: 'hms',
                       child: Text('HH:MM:SS'),
                     ),

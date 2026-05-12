@@ -4,6 +4,7 @@ import 'package:macos_ui/macos_ui.dart';
 import '../../../../data/database/app_database.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/extensions/duration_extensions.dart';
+import '../../../../core/time_format.dart';
 import '../../../../core/utils/open_in_linear.dart';
 
 class IssueRow extends StatefulWidget {
@@ -159,7 +160,7 @@ class _IssueRowState extends State<IssueRow> {
                   width: 50,
                   child: widget.todaySeconds > 0
                       ? Text(
-                          Duration(seconds: widget.todaySeconds).toHumanReadable(),
+                          Duration(seconds: widget.todaySeconds).formatted(TimeFormat.current),
                           textAlign: TextAlign.right,
                           style: TextStyle(
                             fontSize: 12,
