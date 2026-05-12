@@ -47,7 +47,7 @@ class _AppWindowState extends ConsumerState<AppWindow> {
             'Linear Time',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          subtitle: Text('v0.1.0'),
+          subtitle: Text('v0.0.1'),
         ),
       ),
       child: IndexedStack(
