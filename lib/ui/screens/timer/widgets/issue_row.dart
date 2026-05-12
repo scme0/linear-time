@@ -72,7 +72,7 @@ class _IssueRowState extends State<IssueRow> {
             opacity: isDeleted ? 0.5 : 1.0,
             child: Row(
               children: [
-                // Issue color indicator (consistent across all views)
+                // Issue color indicator
                 Container(
                   width: 4,
                   height: 32,
@@ -107,10 +107,35 @@ class _IssueRowState extends State<IssueRow> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                // Issue title
+                // Hover buttons (left of name)
+                if (!isDeleted && _hovering) ...[
+                  if (widget.onAddTime != null)
+                    MacosIconButton(
+                      icon: MacosIcon(
+                        CupertinoIcons.plus_circle,
+                        size: 16,
+                        color: AppColors.textTertiary(brightness),
+                      ),
+                      onPressed: widget.onAddTime,
+                    ),
+                  MacosIconButton(
+                    icon: MacosIcon(
+                      CupertinoIcons.arrow_up_right_square,
+                      size: 14,
+                      color: AppColors.textTertiary(brightness),
+                    ),
+                    onPressed: () => openInLinear(
+                      url: widget.issue.url,
+                      identifier: widget.issue.identifier,
+                    ),
+                  ),
+                ],
+                const SizedBox(width: 4),
+                // Issue title (left-aligned, fills space, min 150px)
                 Expanded(
-                  child: Text(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 150),
+                    child: Text(
                     widget.issue.title,
                     style: TextStyle(
                       fontSize: 13,
@@ -121,40 +146,47 @@ class _IssueRowState extends State<IssueRow> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const SizedBox(width: 8),
-                // Status badge (fixed width for alignment)
-                SizedBox(
-                  width: 90,
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: _StatusBadge(
-                      status: widget.issue.status,
-                      statusType: widget.issue.statusType,
-                      brightness: brightness,
-                    ),
                   ),
                 ),
-                // Deleted indicator
-                if (isDeleted) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.danger.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Text(
-                      'Deleted',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: AppColors.danger,
-                        fontWeight: FontWeight.w500,
+                const SizedBox(width: 8),
+                // Project name (right-aligned, max width)
+                if (widget.issue.projectName != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 120),
+                      child: Text(
+                        widget.issue.projectName!,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary(brightness),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ),
-                ],
+                // Deleted indicator
+                if (isDeleted)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.danger.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'Deleted',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: AppColors.danger,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
                 // Today's tracked time
                 SizedBox(
                   width: TimeFormat.columnWidth,
@@ -170,46 +202,19 @@ class _IssueRowState extends State<IssueRow> {
                         )
                       : null,
                 ),
-                // Project name
-                if (widget.issue.projectName != null) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    widget.issue.projectName!,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textSecondary(brightness),
+                const SizedBox(width: 8),
+                // Status badge (rightmost fixed column)
+                SizedBox(
+                  width: 90,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: _StatusBadge(
+                      status: widget.issue.status,
+                      statusType: widget.issue.statusType,
+                      brightness: brightness,
                     ),
                   ),
-                ],
-                // Add time button
-                if (widget.onAddTime != null && !isDeleted && _hovering)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4),
-                    child: MacosIconButton(
-                      icon: MacosIcon(
-                        CupertinoIcons.plus_circle,
-                        size: 16,
-                        color: AppColors.textTertiary(brightness),
-                      ),
-                      onPressed: widget.onAddTime,
-                    ),
-                  ),
-                // Open in Linear
-                if (!isDeleted && _hovering)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 2),
-                    child: MacosIconButton(
-                      icon: MacosIcon(
-                        CupertinoIcons.arrow_up_right_square,
-                        size: 14,
-                        color: AppColors.textTertiary(brightness),
-                      ),
-                      onPressed: () => openInLinear(
-                        url: widget.issue.url,
-                        identifier: widget.issue.identifier,
-                      ),
-                    ),
-                  ),
+                ),
               ],
             ),
           ),
