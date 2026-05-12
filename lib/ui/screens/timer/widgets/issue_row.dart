@@ -93,44 +93,57 @@ class _IssueRowState extends State<IssueRow> {
                       shape: BoxShape.circle,
                     ),
                   ),
-                // Issue identifier
-                SizedBox(
-                  width: 80,
-                  child: Text(
-                    widget.issue.identifier,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                      color: AppColors.textPrimary(brightness),
-                      decoration:
-                          isDeleted ? TextDecoration.lineThrough : null,
+                // Issue identifier (clickable → opens in Linear)
+                GestureDetector(
+                  onTap: isDeleted
+                      ? null
+                      : () => openInLinear(
+                            url: widget.issue.url,
+                            identifier: widget.issue.identifier,
+                          ),
+                  child: MouseRegion(
+                    cursor: isDeleted
+                        ? SystemMouseCursors.forbidden
+                        : SystemMouseCursors.click,
+                    child: SizedBox(
+                      width: 80,
+                      child: Text(
+                        widget.issue.identifier,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: _hovering && !isDeleted
+                              ? AppColors.accent
+                              : AppColors.textPrimary(brightness),
+                          decoration: isDeleted
+                              ? TextDecoration.lineThrough
+                              : _hovering
+                                  ? TextDecoration.underline
+                                  : null,
+                          decorationColor: AppColors.accent,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-                // Hover buttons (left of name)
-                if (!isDeleted && _hovering) ...[
-                  if (widget.onAddTime != null)
-                    MacosIconButton(
-                      icon: MacosIcon(
-                        CupertinoIcons.plus_circle,
-                        size: 16,
-                        color: AppColors.textTertiary(brightness),
+                // Add time button (in gap between ID and name)
+                if (widget.onAddTime != null && !isDeleted && _hovering)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: GestureDetector(
+                      onTap: widget.onAddTime,
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: Icon(
+                          CupertinoIcons.plus_circle,
+                          size: 14,
+                          color: AppColors.textTertiary(brightness),
+                        ),
                       ),
-                      onPressed: widget.onAddTime,
-                    ),
-                  MacosIconButton(
-                    icon: MacosIcon(
-                      CupertinoIcons.arrow_up_right_square,
-                      size: 14,
-                      color: AppColors.textTertiary(brightness),
-                    ),
-                    onPressed: () => openInLinear(
-                      url: widget.issue.url,
-                      identifier: widget.issue.identifier,
                     ),
                   ),
-                ],
-                const SizedBox(width: 4),
+                if (!_hovering || isDeleted)
+                  const SizedBox(width: 4),
                 // Issue title (left-aligned, fills space, min 150px)
                 Expanded(
                   child: ConstrainedBox(
