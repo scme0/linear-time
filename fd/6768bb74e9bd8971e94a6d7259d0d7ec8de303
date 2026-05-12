@@ -1,0 +1,23 @@
+lib/providers/issue_providers.dart
+  s_019582d6a6af2d::t_38d1ef0ebd3caf 4
+  s_019582d6a6af2d::t_38c2e440cc0b43 27-46
+lib/ui/screens/timer/widgets/issue_search_bar.dart
+  s_019582d6a6af2d::t_f5daac52eb18a2 74-77
+  s_019582d6a6af2d::t_0bd8ffa633ba4d 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "fd6768bb74e9bd8971e94a6d7259d0d7ec8de303",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
