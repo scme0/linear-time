@@ -1,0 +1,28 @@
+lib/core/utils/csv_utils.dart
+  s_019582d6a6af2d::t_8e090df3c3b1ec 1-103
+lib/ui/screens/settings/settings_screen.dart
+  s_019582d6a6af2d::t_47ff87ea8f717f 395-406
+  s_019582d6a6af2d::t_8a7f870918d2c7 74-112
+  s_019582d6a6af2d::t_c67a1471226f08 1-2,6,16
+  s_019582d6a6af2d::t_5f5738a5f3cf33 412
+  s_019582d6a6af2d::t_b99215d1eefc86 421
+  s_019582d6a6af2d::t_0a270ef8a788ea 433-443
+lib/data/database/daos/time_entry_dao.dart
+  s_019582d6a6af2d::t_f545507f0bcfae 167-173
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "6fe7f2496a01341a6646215f272849732c180868",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
