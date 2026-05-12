@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
@@ -57,6 +58,14 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
     // Stop any timer left running from a previous session (crash/force quit)
     final repo = ref.read(timeTrackingRepositoryProvider);
     repo.stopTimer();
+
+    // Apply Show in Dock setting
+    ref.read(settingsDaoProvider).getValue(SettingsKeys.showInDock).then((val) {
+      if (val == 'false') {
+        const MethodChannel('com.lineartime/system')
+            .invokeMethod('setShowInDock', {'show': false});
+      }
+    });
   }
 
   void _stopTimerOnExit() {

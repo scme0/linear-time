@@ -40,6 +40,19 @@ class AppDelegate: FlutterAppDelegate {
         self?.mainFlutterWindow?.makeKeyAndOrderFront(nil)
         result(nil)
 
+      case "setShowInDock":
+        guard let args = call.arguments as? [String: Any],
+              let show = args["show"] as? Bool else {
+          result(FlutterError(code: "INVALID_ARGS", message: "Missing 'show' argument", details: nil))
+          return
+        }
+        if show {
+          NSApp.setActivationPolicy(.regular)
+        } else {
+          NSApp.setActivationPolicy(.accessory)
+        }
+        result(nil)
+
       default:
         result(FlutterMethodNotImplemented)
       }
