@@ -1,0 +1,41 @@
+lib/ui/screens/timer/timer_screen.dart
+  s_019582d6a6af2d::t_4ad664507b7e20 85-106,109,113-119
+  s_019582d6a6af2d::t_c7942d5386109b 172-175,177-180
+  s_019582d6a6af2d::t_c79ae9ae5385c6 36
+  s_019582d6a6af2d::t_d90e5a9196b5a0 193
+lib/ui/screens/timer/widgets/issue_list.dart
+  s_019582d6a6af2d::t_1a8a7ec6f57c09 159
+  s_019582d6a6af2d::t_b0f9964a0e9c0f 22
+  s_019582d6a6af2d::t_c78a94d96a7459 31
+lib/ui/screens/timer/widgets/issue_row.dart
+  s_019582d6a6af2d::t_ddb65a86075d41 17,22
+  s_019582d6a6af2d::t_3acc89860aac9a 54
+  s_019582d6a6af2d::t_56dcace538c4f5 63-68
+lib/ui/screens/timer/widgets/issue_search_bar.dart
+  s_019582d6a6af2d::t_8758215459fbfb 20-21
+  s_019582d6a6af2d::t_02a2a69cb074b3 31-32
+  s_019582d6a6af2d::t_3ed21718c002ea 156-180
+  s_019582d6a6af2d::t_3d4a9a01d1ff85 2
+lib/ui/app_window.dart
+  s_019582d6a6af2d::t_a87b84e5f0e2a4 190-191,198-200
+  s_019582d6a6af2d::t_1dd6261a01b892 279-282
+  s_019582d6a6af2d::t_a326bc514f871a 152-154
+  s_019582d6a6af2d::t_8d6a3537366118 192-197
+  s_019582d6a6af2d::t_96b3e6295cb3a2 16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "5c4b7bec5a7a9fe7fa953a8180f0d7d5d2c88f33",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
