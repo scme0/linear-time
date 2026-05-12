@@ -13,12 +13,14 @@ class DayCell extends StatefulWidget {
     this.data,
     required this.isToday,
     required this.onTap,
+    this.workDaySeconds = 8 * 3600,
   });
 
   final int day;
   final DayData? data;
   final bool isToday;
   final VoidCallback onTap;
+  final int workDaySeconds;
 
   @override
   State<DayCell> createState() => _DayCellState();
@@ -109,20 +111,38 @@ class _DayCellState extends State<DayCell> {
     final entries = data.issueSeconds.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
+    // Proportion of work day that was tracked
+    final trackedFraction =
+        (data.totalSeconds / widget.workDaySeconds).clamp(0.0, 1.0);
+    final emptyFraction = 1.0 - trackedFraction;
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(2),
       child: SizedBox(
         height: 6,
         child: Row(
-          children: entries.map((entry) {
-            final fraction = entry.value / data.totalSeconds;
-            return Flexible(
-              flex: (fraction * 100).round().clamp(1, 100),
-              child: Container(
-                color: AppColors.colorForIssue(entry.key),
+          children: [
+            // Issue color segments proportional to tracked time
+            ...entries.map((entry) {
+              final fraction =
+                  entry.value / widget.workDaySeconds;
+              return Flexible(
+                flex: (fraction * 1000).round().clamp(1, 1000),
+                child: Container(
+                  color: AppColors.colorForIssue(entry.key),
+                ),
+              );
+            }),
+            // Empty space for untracked portion
+            if (emptyFraction > 0.01)
+              Flexible(
+                flex: (emptyFraction * 1000).round().clamp(1, 1000),
+                child: Container(
+                  color: AppColors.border(
+                      MacosTheme.of(context).brightness),
+                ),
               ),
-            );
-          }).toList(),
+          ],
         ),
       ),
     );

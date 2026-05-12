@@ -15,10 +15,14 @@ class TimeEntryDialog extends ConsumerStatefulWidget {
     super.key,
     required this.date,
     this.existingEntry,
+    this.preselectedIssue,
+    this.prefilledStartHour,
   });
 
   final DateTime date;
   final TimeEntry? existingEntry;
+  final CachedIssue? preselectedIssue;
+  final int? prefilledStartHour;
 
   bool get isEditing => existingEntry != null;
 
@@ -48,11 +52,16 @@ class _TimeEntryDialogState extends ConsumerState<TimeEntryDialog> {
       _endMinute = _roundToFive(e.endTime?.minute ?? DateTime.now().minute);
     } else {
       final now = DateTime.now();
-      _startHour = now.hour;
+      _startHour = widget.prefilledStartHour ?? now.hour;
       _startMinute = 0;
-      _endHour = now.hour;
-      _endMinute = _roundToFive(now.minute);
+      _endHour = widget.prefilledStartHour != null
+          ? widget.prefilledStartHour! + 1
+          : now.hour;
+      _endMinute = widget.prefilledStartHour != null
+          ? 0
+          : _roundToFive(now.minute);
     }
+    _selectedIssue = widget.preselectedIssue;
   }
 
   DateTime get _startTime => DateTime(

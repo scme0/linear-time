@@ -13,11 +13,13 @@ class IssueRow extends ConsumerStatefulWidget {
     required this.issue,
     required this.isActive,
     required this.onTap,
+    this.onAddTime,
   });
 
   final CachedIssue issue;
   final bool isActive;
   final VoidCallback onTap;
+  final VoidCallback? onAddTime;
 
   @override
   ConsumerState<IssueRow> createState() => _IssueRowState();
@@ -171,6 +173,19 @@ class _IssueRowState extends ConsumerState<IssueRow> {
                     ),
                   ),
                 ],
+                // Add time button
+                if (widget.onAddTime != null && !isDeleted && _hovering)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: MacosIconButton(
+                      icon: MacosIcon(
+                        CupertinoIcons.plus_circle,
+                        size: 16,
+                        color: AppColors.textTertiary(brightness),
+                      ),
+                      onPressed: widget.onAddTime,
+                    ),
+                  ),
               ],
             ),
           ),

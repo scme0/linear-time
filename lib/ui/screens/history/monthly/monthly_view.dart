@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:macos_ui/macos_ui.dart';
 
 import '../../../../providers/report_providers.dart';
+import '../../../../providers/settings_providers.dart';
 import '../../../../core/extensions/duration_extensions.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'widgets/day_cell.dart';
@@ -48,10 +49,15 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
   Widget build(BuildContext context) {
     final brightness = MacosTheme.of(context).brightness;
     final calendarData = ref.watch(monthlyCalendarDataProvider(_currentMonth));
+    final settingsAsync = ref.watch(appSettingsProvider);
+    final settings = settingsAsync.valueOrNull ?? const AppSettings();
     final monthLabel = DateFormat('MMMM yyyy').format(_currentMonth);
     final totalSeconds = calendarData.valueOrNull?.values
             .fold<int>(0, (sum, d) => sum + d.totalSeconds) ??
         0;
+    final workDaySeconds =
+        (settings.officeEndHour - settings.officeStartHour) * 3600;
+
     return Column(
       children: [
         // Month navigator
@@ -90,21 +96,10 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
                     secondary: true,
                     onPressed: () {
                       final now = DateTime.now();
-                      setState(() => _currentMonth = DateTime(now.year, now.month));
+                      setState(
+                          () => _currentMonth = DateTime(now.year, now.month));
                     },
                     child: const Text('This Month'),
-                  ),
-                ),
-              if (totalSeconds > 0)
-                Positioned(
-                  right: 0,
-                  child: Text(
-                    Duration(seconds: totalSeconds).toHumanReadable(),
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary(brightness),
-                    ),
                   ),
                 ),
             ],
@@ -134,13 +129,16 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
         // Calendar grid
         Expanded(
           child: calendarData.when(
-            data: (dayMap) => _buildCalendarGrid(dayMap),
+            data: (dayMap) =>
+                _buildCalendarGrid(dayMap, workDaySeconds),
             loading: () => const Center(child: ProgressCircle()),
             error: (e, _) => Center(child: Text('Error: $e')),
           ),
         ),
+        // Legend
         calendarData.when(
-          data: (_) => const SizedBox.shrink(),
+          data: (dayMap) =>
+              _buildLegend(dayMap, totalSeconds, brightness),
           loading: () => const SizedBox.shrink(),
           error: (_, _) => const SizedBox.shrink(),
         ),
@@ -148,17 +146,85 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
     );
   }
 
-  Widget _buildCalendarGrid(Map<int, DayData> dayMap) {
+  Widget _buildLegend(
+      Map<int, DayData> dayMap, int totalSeconds, Brightness brightness) {
+    if (totalSeconds == 0) return const SizedBox.shrink();
+
+    // Aggregate issues across all days
+    final issueSeconds = <String, int>{};
+    final issueLabels = <String, String>{};
+    for (final day in dayMap.values) {
+      for (final entry in day.issueSeconds.entries) {
+        issueSeconds[entry.key] =
+            (issueSeconds[entry.key] ?? 0) + entry.value;
+        if (day.issueLabels.containsKey(entry.key)) {
+          issueLabels[entry.key] = day.issueLabels[entry.key]!;
+        }
+      }
+    }
+
+    final sorted = issueSeconds.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: AppColors.border(brightness), width: 0.5),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Wrap(
+        spacing: 16,
+        runSpacing: 4,
+        children: [
+          ...sorted.map((entry) {
+            final label = issueLabels[entry.key] ?? entry.key;
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: AppColors.colorForIssue(entry.key),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '$label ${Duration(seconds: entry.value).toHumanReadable()}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary(brightness),
+                  ),
+                ),
+              ],
+            );
+          }),
+          // Total
+          Text(
+            'Total: ${Duration(seconds: totalSeconds).toHumanReadable()}',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary(brightness),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCalendarGrid(Map<int, DayData> dayMap, int workDaySeconds) {
     final firstDay = DateTime(_currentMonth.year, _currentMonth.month, 1);
     final daysInMonth =
         DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
-    // Monday = 1, so offset is (weekday - 1)
     final startOffset = firstDay.weekday - 1;
     final totalCells = startOffset + daysInMonth;
     final rows = (totalCells / 7).ceil();
 
     return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
       child: Column(
         children: List.generate(rows, (row) {
           return Expanded(
@@ -179,6 +245,7 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
                     data: data,
                     isToday: isToday,
                     onTap: () => widget.onDaySelected(date),
+                    workDaySeconds: workDaySeconds,
                   ),
                 );
               }),

@@ -48,7 +48,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.only(top: 12, bottom: 8),
           child: MacosSegmentedControl(
             controller: _tabController,
             tabs: const [

@@ -11,6 +11,7 @@ import '../../../../providers/settings_providers.dart';
 import '../../../../core/extensions/date_time_extensions.dart';
 import '../../../../core/extensions/duration_extensions.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../daily/widgets/time_entry_dialog.dart';
 
 class WeeklyView extends ConsumerStatefulWidget {
   const WeeklyView({super.key});
@@ -33,6 +34,22 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
   }
 
   bool get _isCurrentWeek => _weekStart == DateTime.now().startOfWeek;
+
+  Future<void> _onTapEmpty(DateTime date, int hour) async {
+    final day = DateTime(date.year, date.month, date.day);
+    final result = await showMacosAlertDialog<bool>(
+      context: context,
+      builder: (context) => TimeEntryDialog(
+        date: day,
+        prefilledStartHour: hour,
+      ),
+    );
+    if (result == true) {
+      ref.invalidate(weeklyEntriesProvider(_weekStart));
+      ref.invalidate(weeklySummaryProvider(_weekStart));
+      ref.invalidate(dailyEntriesProvider(day));
+    }
+  }
 
   void _nextWeek() {
     setState(() => _weekStart = _weekStart.add(const Duration(days: 7)));
@@ -115,6 +132,7 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
             weekStart: _weekStart,
             settings: settings,
             brightness: brightness,
+            onTapEmpty: _onTapEmpty,
           ),
         ),
         // Issue legend + grand total
@@ -160,7 +178,22 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
                             ),
                           ],
                         );
-                      }).toList(),
+                      }).toList()
+                        ..add(
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Total: ${Duration(seconds: data.grandTotalSeconds).toHumanReadable()}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary(brightness),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                     ),
                   ),
                 ],
@@ -181,11 +214,13 @@ class _WeekTimeline extends ConsumerWidget {
     required this.weekStart,
     required this.settings,
     required this.brightness,
+    this.onTapEmpty,
   });
 
   final DateTime weekStart;
   final AppSettings settings;
   final Brightness brightness;
+  final void Function(DateTime date, int hour)? onTapEmpty;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -296,6 +331,9 @@ class _WeekTimeline extends ConsumerWidget {
                         maxHour: maxHour,
                         isToday: isToday,
                         brightness: brightness,
+                        onTapHour: onTapEmpty != null
+                            ? (hour) => onTapEmpty!(day, hour)
+                            : null,
                       ),
                     ),
                   ],
@@ -375,6 +413,7 @@ class _DayColumn extends StatelessWidget {
     required this.maxHour,
     required this.isToday,
     required this.brightness,
+    this.onTapHour,
   });
 
   final List<TimeEntry> entries;
@@ -382,6 +421,7 @@ class _DayColumn extends StatelessWidget {
   final int maxHour;
   final bool isToday;
   final Brightness brightness;
+  final ValueChanged<int>? onTapHour;
 
   @override
   Widget build(BuildContext context) {
@@ -391,7 +431,16 @@ class _DayColumn extends StatelessWidget {
       builder: (context, constraints) {
         final height = constraints.maxHeight;
 
-        return Container(
+        return GestureDetector(
+          onTapUp: onTapHour != null
+              ? (details) {
+                  final y = details.localPosition.dy;
+                  final hour =
+                      minHour + (y / height * (maxHour - minHour)).floor();
+                  onTapHour!(hour.clamp(minHour, maxHour - 1));
+                }
+              : null,
+          child: Container(
           decoration: BoxDecoration(
             color: AppColors.surface(brightness),
             borderRadius: BorderRadius.circular(4),
@@ -499,6 +548,7 @@ class _DayColumn extends StatelessWidget {
               ],
             ),
           ),
+        ),
         );
       },
     );

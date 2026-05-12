@@ -5,8 +5,10 @@ import 'package:macos_ui/macos_ui.dart';
 import '../../../providers/timer_providers.dart';
 import '../../../providers/issue_providers.dart';
 import '../../../providers/repository_providers.dart';
+import '../../../providers/report_providers.dart';
 import '../../../data/database/app_database.dart';
 import '../../../core/theme/app_theme.dart';
+import '../history/daily/widgets/time_entry_dialog.dart';
 import 'widgets/active_timer_banner.dart';
 import 'widgets/issue_list.dart';
 import 'widgets/issue_search_bar.dart';
@@ -40,6 +42,21 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
     final repo = ref.read(timeTrackingRepositoryProvider);
     repo.stopTimer();
     ref.invalidate(recentTrackedIssuesProvider);
+  }
+
+  Future<void> _onAddTime(CachedIssue issue) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final result = await showMacosAlertDialog<bool>(
+      context: context,
+      builder: (context) => TimeEntryDialog(
+        date: today,
+        preselectedIssue: issue,
+      ),
+    );
+    if (result == true) {
+      ref.invalidate(dailyEntriesProvider(today));
+    }
   }
 
   @override
@@ -79,6 +96,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
             filter: _filter,
             activeIssueId: activeTimer.valueOrNull?.issueId,
             onIssueSelected: _onIssueSelected,
+            onAddTime: _onAddTime,
           ),
         ),
       ],

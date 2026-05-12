@@ -16,12 +16,14 @@ class IssueList extends ConsumerStatefulWidget {
     required this.filter,
     required this.activeIssueId,
     required this.onIssueSelected,
+    this.onAddTime,
   });
 
   final String searchQuery;
   final IssueFilter filter;
   final String? activeIssueId;
   final ValueChanged<CachedIssue> onIssueSelected;
+  final ValueChanged<CachedIssue>? onAddTime;
 
   @override
   ConsumerState<IssueList> createState() => _IssueListState();
@@ -127,6 +129,9 @@ class _IssueListState extends ConsumerState<IssueList> {
               issue: issue,
               isActive: issue.issueId == widget.activeIssueId,
               onTap: () => widget.onIssueSelected(issue),
+              onAddTime: widget.onAddTime != null
+                  ? () => widget.onAddTime!(issue)
+                  : null,
             );
           },
         );
