@@ -85,9 +85,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       bool isConnected, AppSettings settings) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
           // ── Linear Connection ──
           _buildLinearSection(brightness, isConnected),
 
@@ -397,6 +400,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
         ],
+          ),
+        ),
       ),
     );
   }
