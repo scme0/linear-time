@@ -18,7 +18,10 @@ class LinearTimeApp extends ConsumerWidget {
       theme: MacosThemeData.light(),
       darkTheme: MacosThemeData.dark(),
       themeMode: themeMode,
-      home: const AppWindow(),
+      home: FocusScope(
+        skipTraversal: true,
+        child: const AppWindow(),
+      ),
       debugShowCheckedModeBanner: false,
     );
   }
