@@ -1,0 +1,20 @@
+lib/ui/screens/settings/settings_screen.dart
+  s_019582d6a6af2d::t_2dc0c56b80475b 88-93
+  s_019582d6a6af2d::t_d9450be7018b9f 403-404
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "8028d2055807fc5d5ce28c9d0a729626e883705e",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
