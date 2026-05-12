@@ -1,0 +1,33 @@
+lib/ui/app_window.dart
+  s_019582d6a6af2d::t_b0c5d008cae90d 6
+  s_019582d6a6af2d::t_d214860921741f 225
+  s_019582d6a6af2d::t_5635a123401204 16
+  s_019582d6a6af2d::t_df9cb0a7d529ab 38
+  s_019582d6a6af2d::t_be9f47de7949ff 112,123-130
+  s_019582d6a6af2d::t_45bcdfd7fd49b7 267
+  s_019582d6a6af2d::t_6561a5b3bebd78 197-203
+  s_019582d6a6af2d::t_975197e4e8336f 169-174
+lib/ui/screens/settings/settings_screen.dart
+  s_019582d6a6af2d::t_cf2dc67f244203 159-170
+lib/providers/issue_providers.dart
+  s_019582d6a6af2d::t_be60fb26d26db9 32-34,41-43
+  s_019582d6a6af2d::t_cb13275b346eed 7
+lib/services/sync_service.dart
+  s_019582d6a6af2d::t_b0883ad7e709ad 1-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "5fd8cb0618d683b11b21ef715ec841b61c2e915a",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
