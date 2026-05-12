@@ -95,6 +95,39 @@ query IssueByIdentifier($identifier: String!) {
 }
 ''';
 
+const String teamIssuesQuery = r'''
+query TeamIssues($teamId: String!, $after: String, $filter: IssueFilter) {
+  team(id: $teamId) {
+    issues(first: 50, after: $after, filter: $filter) {
+      nodes {
+        id
+        identifier
+        title
+        priority
+        url
+        state {
+          name
+          type
+        }
+        team {
+          id
+          name
+          color
+        }
+        project {
+          id
+          name
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}
+''';
+
 const String teamsQuery = r'''
 query Teams {
   teams {

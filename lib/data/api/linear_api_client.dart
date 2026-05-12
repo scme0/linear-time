@@ -100,6 +100,55 @@ class LinearApiClient {
     return nodes.first as Map<String, dynamic>;
   }
 
+  /// Fetch issues for a specific team.
+  Future<List<Map<String, dynamic>>> fetchTeamIssues({
+    required String teamId,
+    List<String>? excludeStatusTypes,
+  }) async {
+    final allIssues = <Map<String, dynamic>>[];
+    String? cursor;
+
+    do {
+      Map<String, dynamic>? filter;
+      if (excludeStatusTypes != null && excludeStatusTypes.isNotEmpty) {
+        filter = {
+          'state': {
+            'type': {'nin': excludeStatusTypes}
+          }
+        };
+      }
+
+      final result = await _client.query(
+        QueryOptions(
+          document: gql(teamIssuesQuery),
+          variables: {
+            'teamId': teamId,
+            if (cursor != null) 'after': cursor,
+            if (filter != null) 'filter': filter,
+          },
+          fetchPolicy: FetchPolicy.networkOnly,
+        ),
+      );
+
+      if (result.hasException) break;
+
+      final data = result.data?['team']?['issues'];
+      if (data == null) break;
+
+      final nodes = (data['nodes'] as List).cast<Map<String, dynamic>>();
+      allIssues.addAll(nodes);
+
+      final pageInfo = data['pageInfo'] as Map<String, dynamic>;
+      if (pageInfo['hasNextPage'] == true) {
+        cursor = pageInfo['endCursor'] as String?;
+      } else {
+        break;
+      }
+    } while (true);
+
+    return allIssues;
+  }
+
   /// Fetch all teams.
   Future<List<Map<String, dynamic>>> fetchTeams() async {
     final result = await _client.query(

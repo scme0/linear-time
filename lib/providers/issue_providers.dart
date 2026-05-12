@@ -25,6 +25,13 @@ final syncIssuesProvider = FutureProvider<void>((ref) async {
   await repo.syncAssignedIssues();
 });
 
+/// Trigger a full sync of all team issues from Linear.
+final syncAllIssuesProvider = FutureProvider<void>((ref) async {
+  final repo = ref.watch(issueRepositoryProvider);
+  if (repo == null) return;
+  await repo.syncAllTeamIssues();
+});
+
 /// Teams from Linear API (teams user is a member of).
 final teamsProvider = FutureProvider<List<({String id, String name})>>((ref) async {
   final client = ref.watch(linearApiClientProvider);

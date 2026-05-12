@@ -76,7 +76,10 @@ class _IssueListState extends ConsumerState<IssueList> {
     if (widget.filter.type == 'recentlyTracked') {
       return _buildRecentIssues();
     }
-    // Both myIssues and allIssues use the same list — allIssues just shows everything
+    // Trigger full team sync when "All Issues" selected
+    if (widget.filter.type == 'allIssues') {
+      ref.watch(syncAllIssuesProvider);
+    }
     return _buildAssignedIssues();
   }
 

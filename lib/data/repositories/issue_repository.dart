@@ -39,6 +39,25 @@ class IssueRepository {
     }
   }
 
+  /// Sync all issues from all user's teams into cache.
+  Future<void> syncAllTeamIssues({bool showCompleted = false}) async {
+    final excludeTypes =
+        showCompleted ? <String>[] : ['completed', 'cancelled'];
+
+    final teams = await apiClient.fetchTeams();
+    for (final team in teams) {
+      final teamId = team['id'] as String;
+      final apiIssues = await apiClient.fetchTeamIssues(
+        teamId: teamId,
+        excludeStatusTypes: excludeTypes.isEmpty ? null : excludeTypes,
+      );
+      if (apiIssues.isNotEmpty) {
+        final companions = apiIssues.map(_mapToCompanion).toList();
+        await cachedIssueDao.upsertIssues(companions);
+      }
+    }
+  }
+
   /// Fetch and cache a single issue by ID.
   Future<CachedIssue?> fetchAndCacheIssue(String issueId) async {
     final data = await apiClient.fetchIssueById(issueId);
