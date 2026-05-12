@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:graphql/client.dart';
 
 import 'graphql/queries.dart';
@@ -154,8 +155,12 @@ class LinearApiClient {
     final result = await _client.query(
       QueryOptions(document: gql(teamsQuery)),
     );
-    if (result.hasException) return [];
+    if (result.hasException) {
+      debugPrint('[Linear API] fetchTeams error: ${result.exception}');
+      return [];
+    }
     final nodes = result.data?['teams']?['nodes'] as List?;
+    debugPrint('[Linear API] fetchTeams: ${nodes?.length ?? 0} teams');
     return nodes?.cast<Map<String, dynamic>>() ?? [];
   }
 
@@ -164,8 +169,12 @@ class LinearApiClient {
     final result = await _client.query(
       QueryOptions(document: gql(projectsQuery)),
     );
-    if (result.hasException) return [];
+    if (result.hasException) {
+      debugPrint('[Linear API] fetchProjects error: ${result.exception}');
+      return [];
+    }
     final nodes = result.data?['projects']?['nodes'] as List?;
+    debugPrint('[Linear API] fetchProjects: ${nodes?.length ?? 0} projects');
     return nodes?.cast<Map<String, dynamic>>() ?? [];
   }
 }

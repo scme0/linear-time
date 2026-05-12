@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
@@ -71,18 +72,29 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
   }
 
   Future<void> _loadFilterData() async {
-    // Load teams and projects from Linear API
-    final teams = await ref.read(teamsProvider.future);
-    final projects = await ref.read(projectsProvider.future);
-    // Load statuses from cached issues (API doesn't have a status list endpoint)
-    final dao = ref.read(cachedIssueDaoProvider);
-    final statuses = await dao.getDistinctStatuses();
-    if (mounted) {
-      setState(() {
-        _teams = teams;
-        _projects = projects;
-        _statuses = statuses;
-      });
+    try {
+      // Load teams and projects from Linear API
+      final teams = await ref.read(teamsProvider.future);
+      final projects = await ref.read(projectsProvider.future);
+      // Load statuses from cached issues
+      final dao = ref.read(cachedIssueDaoProvider);
+      final statuses = await dao.getDistinctStatuses();
+      debugPrint('[Filters] Teams: ${teams.length}, Projects: ${projects.length}, Statuses: ${statuses.length}');
+      for (final t in teams) {
+        debugPrint('[Filters]   Team: ${t.name} (${t.id})');
+      }
+      for (final p in projects) {
+        debugPrint('[Filters]   Project: ${p.name} (${p.id})');
+      }
+      if (mounted) {
+        setState(() {
+          _teams = teams;
+          _projects = projects;
+          _statuses = statuses;
+        });
+      }
+    } catch (e) {
+      debugPrint('[Filters] Error loading filter data: $e');
     }
   }
 
