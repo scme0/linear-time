@@ -1,0 +1,23 @@
+lib/ui/screens/history/daily/widgets/time_entry_dialog.dart
+  s_019582d6a6af2d::t_5b0536b029899b 161-171
+  s_019582d6a6af2d::t_ef273be561e93b 172-173
+  s_019582d6a6af2d::t_206b4c64f9bcdc 364-378
+  s_019582d6a6af2d::t_1cde503489d2b3 37-39
+  s_019582d6a6af2d::t_0a343fb3fe8f63 46,48,54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "3a4901f95bcffb33302c221c31044ae685aea9a0",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
