@@ -51,13 +51,16 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
     }
   }
 
-  Future<void> _onTapEmpty(DateTime date, int hour) async {
+  Future<void> _onTapEmpty(DateTime date, int startMin, int endMin) async {
     final day = DateTime(date.year, date.month, date.day);
     final result = await showMacosAlertDialog<bool>(
       context: context,
       builder: (context) => TimeEntryDialog(
         date: day,
-        prefilledStartHour: hour,
+        prefilledStartHour: startMin ~/ 60,
+        prefilledStartMinute: startMin % 60,
+        prefilledEndHour: endMin ~/ 60,
+        prefilledEndMinute: endMin % 60,
       ),
     );
     if (result == true) {
@@ -238,7 +241,8 @@ class _WeekTimeline extends ConsumerWidget {
   final DateTime weekStart;
   final AppSettings settings;
   final Brightness brightness;
-  final void Function(DateTime date, int hour)? onTapEmpty;
+  /// Called with (date, startMinuteOfDay, endMinuteOfDay) when clicking empty space.
+  final void Function(DateTime date, int startMin, int endMin)? onTapEmpty;
   final void Function(DateTime date, TimeEntry entry)? onTapEntry;
 
   @override
@@ -350,8 +354,9 @@ class _WeekTimeline extends ConsumerWidget {
                         maxHour: maxHour,
                         isToday: isToday,
                         brightness: brightness,
-                        onTapHour: onTapEmpty != null
-                            ? (hour) => onTapEmpty!(day, hour)
+                        onTapSlot: onTapEmpty != null
+                            ? (startMin, endMin) =>
+                                onTapEmpty!(day, startMin, endMin)
                             : null,
                         onTapEntry: onTapEntry != null
                             ? (entry) => onTapEntry!(day, entry)
@@ -435,7 +440,7 @@ class _DayColumn extends StatefulWidget {
     required this.maxHour,
     required this.isToday,
     required this.brightness,
-    this.onTapHour,
+    this.onTapSlot,
     this.onTapEntry,
   });
 
@@ -444,7 +449,8 @@ class _DayColumn extends StatefulWidget {
   final int maxHour;
   final bool isToday;
   final Brightness brightness;
-  final ValueChanged<int>? onTapHour;
+  /// Called with (startMinuteOfDay, endMinuteOfDay) when clicking empty space.
+  final void Function(int startMin, int endMin)? onTapSlot;
   final ValueChanged<TimeEntry>? onTapEntry;
 
   @override
@@ -454,6 +460,7 @@ class _DayColumn extends StatefulWidget {
 class _DayColumnState extends State<_DayColumn> {
   double? _hoverY;
   double _columnHeight = 1;
+  TimeEntry? _hoveredEntry;
 
   int get _totalMinutes => (widget.maxHour - widget.minHour) * 60;
 
@@ -474,11 +481,17 @@ class _DayColumnState extends State<_DayColumn> {
     return null;
   }
 
-  int _hourAtY(double y) {
-    return (widget.minHour +
-            (y / _columnHeight * (widget.maxHour - widget.minHour)))
-        .floor()
-        .clamp(widget.minHour, widget.maxHour - 1);
+  static const _slotMinutes = 15;
+
+  /// Get the snapped slot (start, end) in minutes-of-day at a Y position.
+  (int startMin, int endMin) _slotAtY(double y) {
+    final minuteOffset =
+        (y / _columnHeight * _totalMinutes).round();
+    final snapped =
+        (minuteOffset ~/ _slotMinutes) * _slotMinutes;
+    final startMin = widget.minHour * 60 + snapped;
+    final endMin = startMin + _slotMinutes;
+    return (startMin, endMin);
   }
 
   @override
@@ -489,8 +502,14 @@ class _DayColumnState extends State<_DayColumn> {
         final height = _columnHeight;
 
         return MouseRegion(
-          onHover: (event) => setState(() => _hoverY = event.localPosition.dy),
-          onExit: (_) => setState(() => _hoverY = null),
+          onHover: (event) => setState(() {
+            _hoverY = event.localPosition.dy;
+            _hoveredEntry = _entryAtY(_hoverY!);
+          }),
+          onExit: (_) => setState(() {
+            _hoverY = null;
+            _hoveredEntry = null;
+          }),
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
             onTapUp: (details) {
@@ -499,8 +518,8 @@ class _DayColumnState extends State<_DayColumn> {
               if (entry != null) {
                 widget.onTapEntry?.call(entry);
               } else {
-                final hour = _hourAtY(y);
-                widget.onTapHour?.call(hour);
+                final slot = _slotAtY(y);
+                widget.onTapSlot?.call(slot.$1, slot.$2);
               }
             },
             child: Container(
@@ -549,6 +568,8 @@ class _DayColumnState extends State<_DayColumn> {
                       final bottom = (endMin / _totalMinutes * height)
                           .clamp(0.0, height);
                       final blockHeight = (bottom - top).clamp(2.0, height);
+                      final isHovered = _hoveredEntry?.id == entry.id;
+                      final baseColor = AppColors.colorForIssue(entry.issueId);
 
                       return Positioned(
                         top: top,
@@ -557,9 +578,16 @@ class _DayColumnState extends State<_DayColumn> {
                         height: blockHeight,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: AppColors.colorForIssue(entry.issueId)
-                                .withValues(alpha: 0.8),
+                            color: isHovered
+                                ? baseColor
+                                : baseColor.withValues(alpha: 0.8),
                             borderRadius: BorderRadius.circular(2),
+                            border: isHovered
+                                ? Border.all(
+                                    color: const Color(0xFFFFFFFF)
+                                        .withValues(alpha: 0.5),
+                                    width: 1)
+                                : null,
                           ),
                           alignment: Alignment.center,
                           padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -622,15 +650,12 @@ class _DayColumnState extends State<_DayColumn> {
   }
 
   Widget _buildHoverPreview(double height) {
-    // Show a 15-min ghost block at the hover position
-    const previewMinutes = 15;
     final hoverMin =
         (_hoverY! / height * _totalMinutes).round();
-    // Snap to 15-min grid
-    final snappedMin = (hoverMin ~/ previewMinutes) * previewMinutes;
+    final snappedMin = (hoverMin ~/ _slotMinutes) * _slotMinutes;
     final top = (snappedMin / _totalMinutes * height).clamp(0.0, height);
     final bottom =
-        ((snappedMin + previewMinutes) / _totalMinutes * height).clamp(0.0, height);
+        ((snappedMin + _slotMinutes) / _totalMinutes * height).clamp(0.0, height);
     final blockHeight = (bottom - top).clamp(2.0, height);
 
     return Positioned(

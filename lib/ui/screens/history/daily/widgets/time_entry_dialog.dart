@@ -17,12 +17,18 @@ class TimeEntryDialog extends ConsumerStatefulWidget {
     this.existingEntry,
     this.preselectedIssue,
     this.prefilledStartHour,
+    this.prefilledStartMinute,
+    this.prefilledEndHour,
+    this.prefilledEndMinute,
   });
 
   final DateTime date;
   final TimeEntry? existingEntry;
   final CachedIssue? preselectedIssue;
   final int? prefilledStartHour;
+  final int? prefilledStartMinute;
+  final int? prefilledEndHour;
+  final int? prefilledEndMinute;
 
   bool get isEditing => existingEntry != null;
 
@@ -53,13 +59,13 @@ class _TimeEntryDialogState extends ConsumerState<TimeEntryDialog> {
     } else {
       final now = DateTime.now();
       _startHour = widget.prefilledStartHour ?? now.hour;
-      _startMinute = 0;
-      _endHour = widget.prefilledStartHour != null
-          ? widget.prefilledStartHour! + 1
-          : now.hour;
-      _endMinute = widget.prefilledStartHour != null
-          ? 0
-          : _roundToFive(now.minute);
+      _startMinute = _roundToFive(widget.prefilledStartMinute ?? 0);
+      _endHour = widget.prefilledEndHour ??
+          (widget.prefilledStartHour != null
+              ? widget.prefilledStartHour! + 1
+              : now.hour);
+      _endMinute = _roundToFive(widget.prefilledEndMinute ??
+          (widget.prefilledStartHour != null ? 0 : now.minute));
     }
     _selectedIssue = widget.preselectedIssue;
   }
@@ -79,6 +85,13 @@ class _TimeEntryDialogState extends ConsumerState<TimeEntryDialog> {
         _endHour,
         _endMinute,
       );
+
+  Future<void> _delete() async {
+    if (!widget.isEditing) return;
+    final dao = ref.read(timeEntryDaoProvider);
+    await dao.deleteEntry(widget.existingEntry!.id);
+    if (mounted) Navigator.of(context).pop(true);
+  }
 
   Future<void> _save() async {
     if (_endTime.isBefore(_startTime) || _endTime.isAtSameMomentAs(_startTime)) {
@@ -243,6 +256,23 @@ class _TimeEntryDialogState extends ConsumerState<TimeEntryDialog> {
                 style: const TextStyle(
                   fontSize: 12,
                   color: AppColors.danger,
+                ),
+              ),
+            ),
+          if (widget.isEditing)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: GestureDetector(
+                onTap: _delete,
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: Text(
+                    'Delete this entry',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.danger,
+                    ),
+                  ),
                 ),
               ),
             ),
