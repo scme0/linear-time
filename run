@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# run -- project task runner for Linear Time
+#
+# Usage:  ./run <command>
+#
+# Commands:
+#   dev              Run the Flutter app on macOS (debug)
+#   build            Build the macOS release app
+#   codegen          Run build_runner code generation (Drift, Freezed)
+#   codegen-watch    Run build_runner in watch mode
+#   analyze          Run flutter analyze
+#   test             Run all tests
+#   clean            Delete build artefacts
+#   help             Show this message
+
+set -euo pipefail
+
+export PATH="/opt/homebrew/bin:$PATH"
+
+FLUTTER=flutter
+DART=dart
+
+cmd=${1:-help}
+shift || true
+
+case "$cmd" in
+
+  dev)
+    exec $FLUTTER run -d macos "$@"
+    ;;
+
+  build)
+    $FLUTTER build macos --release "$@"
+    echo "Built: build/macos/Build/Products/Release/linear_time.app"
+    ;;
+
+  codegen)
+    $DART run build_runner build --delete-conflicting-outputs "$@"
+    ;;
+
+  codegen-watch)
+    $DART run build_runner watch --delete-conflicting-outputs "$@"
+    ;;
+
+  analyze)
+    $FLUTTER analyze "$@"
+    ;;
+
+  test)
+    $FLUTTER test "$@"
+    ;;
+
+  clean)
+    $FLUTTER clean
+    rm -rf macos/Pods macos/.symlinks macos/Podfile.lock
+    echo "Cleaned."
+    ;;
+
+  help|--help|-h)
+    sed -n '2,/^$/p' "$0" | sed 's/^# \{0,1\}//'
+    ;;
+
+  *)
+    echo "Unknown command: $cmd"
+    echo "Run  ./run help  for usage."
+    exit 1
+    ;;
+
+esac

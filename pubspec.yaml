@@ -1,0 +1,51 @@
+name: linear_time
+description: "A local-first macOS time tracker integrated with Linear."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI
+  macos_ui: ^2.0.0
+
+  # Database
+  drift: ^2.22.0
+  drift_flutter: ^0.2.4
+  sqlite3_flutter_libs: ^0.5.0
+  path_provider: ^2.1.0
+
+  # Linear API
+  graphql: ^5.2.0
+  http: ^1.4.0
+
+  # Security
+  flutter_secure_storage: ^9.2.0
+
+  # State Management
+  flutter_riverpod: ^2.6.0
+
+  # System Tray
+  system_tray: any
+
+  # Utilities
+  intl: ^0.19.0
+  url_launcher: ^6.3.0
+  freezed_annotation: ^2.4.0
+  json_annotation: ^4.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  drift_dev: any
+  build_runner: any
+  freezed: any
+  json_serializable: any
+
+flutter:
+  uses-material-design: true
