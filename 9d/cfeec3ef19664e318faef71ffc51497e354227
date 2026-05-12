@@ -1,0 +1,21 @@
+macos/Runner/Release.entitlements
+  s_019582d6a6af2d::t_509b16c1698242 6
+macos/Runner/DebugProfile.entitlements
+  s_019582d6a6af2d::t_2a40234857a9f7 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "9dcfeec3ef19664e318faef71ffc51497e354227",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
