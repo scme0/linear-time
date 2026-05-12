@@ -130,14 +130,16 @@ class _IssueRowState extends State<IssueRow> {
                 SizedBox(
                   width: 24,
                   child: (widget.onAddTime != null && !isDeleted && _hovering)
-                      ? GestureDetector(
-                          onTap: widget.onAddTime,
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: Icon(
-                              CupertinoIcons.plus_circle,
-                              size: 14,
-                              color: AppColors.textTertiary(brightness),
+                      ? Center(
+                          child: GestureDetector(
+                            onTap: widget.onAddTime,
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: Icon(
+                                CupertinoIcons.plus_circle,
+                                size: 18,
+                                color: AppColors.textSecondary(brightness),
+                              ),
                             ),
                           ),
                         )
