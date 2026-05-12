@@ -7,6 +7,7 @@ import Carbon
 class AppDelegate: FlutterAppDelegate {
   private var channel: FlutterMethodChannel?
   private var globalMonitor: Any?
+  private var localMonitor: Any?
   private var registeredKeyCode: UInt16 = 0
   private var registeredModifiers: NSEvent.ModifierFlags = []
 
@@ -85,30 +86,60 @@ class AppDelegate: FlutterAppDelegate {
     registeredKeyCode = UInt16(keyCode)
     registeredModifiers = NSEvent.ModifierFlags(rawValue: UInt(modifiers))
 
+    // Request accessibility permission if needed
+    let trusted = AXIsProcessTrustedWithOptions(
+      [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
+    )
+
+    if !trusted {
+      NSLog("Linear Time: Accessibility permission not yet granted. Hotkey may not work until granted.")
+    }
+
+    // Monitor when app is NOT focused
     globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-      guard let self = self else { return }
+      self?.handleHotkeyEvent(event)
+    }
 
-      let matchesKey = event.keyCode == self.registeredKeyCode
-      // Check modifiers (mask to only care about cmd/ctrl/shift/option)
-      let relevantMask: NSEvent.ModifierFlags = [.command, .control, .shift, .option]
-      let eventMods = event.modifierFlags.intersection(relevantMask)
-      let targetMods = self.registeredModifiers.intersection(relevantMask)
-      let matchesMods = eventMods == targetMods
-
-      if matchesKey && matchesMods {
-        DispatchQueue.main.async {
-          self.channel?.invokeMethod("onGlobalHotkey", arguments: nil)
-        }
+    // Monitor when app IS focused
+    localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+      if self?.checkHotkeyMatch(event) == true {
+        self?.fireHotkey()
+        return nil  // consume the event
       }
+      return event
     }
 
     result(nil)
+  }
+
+  private func handleHotkeyEvent(_ event: NSEvent) {
+    if checkHotkeyMatch(event) {
+      fireHotkey()
+    }
+  }
+
+  private func checkHotkeyMatch(_ event: NSEvent) -> Bool {
+    let matchesKey = event.keyCode == registeredKeyCode
+    let relevantMask: NSEvent.ModifierFlags = [.command, .control, .shift, .option]
+    let eventMods = event.modifierFlags.intersection(relevantMask)
+    let targetMods = registeredModifiers.intersection(relevantMask)
+    return matchesKey && eventMods == targetMods
+  }
+
+  private func fireHotkey() {
+    DispatchQueue.main.async {
+      self.channel?.invokeMethod("onGlobalHotkey", arguments: nil)
+    }
   }
 
   private func clearGlobalHotkey() {
     if let monitor = globalMonitor {
       NSEvent.removeMonitor(monitor)
       globalMonitor = nil
+    }
+    if let monitor = localMonitor {
+      NSEvent.removeMonitor(monitor)
+      localMonitor = nil
     }
   }
 }
