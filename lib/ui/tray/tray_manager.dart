@@ -32,6 +32,8 @@ class TrayManager {
     _systemTray.registerSystemTrayEventHandler((eventName) {
       if (eventName == 'leftMouseUp') {
         HotkeyService.bringToFront();
+      } else if (eventName == 'rightMouseUp') {
+        _systemTray.popUpContextMenu();
       }
     });
 
