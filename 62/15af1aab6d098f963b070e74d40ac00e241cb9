@@ -1,0 +1,31 @@
+lib/ui/app_window.dart
+  s_019582d6a6af2d::t_31935a2cb6c225 94,96-97
+  s_019582d6a6af2d::t_260013c8cc74ae 95
+  s_019582d6a6af2d::t_acaa1d5ee2a451 24,31-35
+lib/ui/screens/timer/widgets/issue_search_bar.dart
+  s_019582d6a6af2d::t_32ed8a7f94e3d8 13-14,20-21,29-44,48,50,54-61,88,99
+lib/ui/screens/timer/timer_screen.dart
+  s_019582d6a6af2d::t_0eaac0b99f625f 17-19
+  s_019582d6a6af2d::t_d6218c6c2a1993 107-108
+  s_019582d6a6af2d::t_d80b923e2ff8c9 43-60
+macos/Runner/AppDelegate.swift
+  s_019582d6a6af2d::t_4d49ff72e565e4 37-41
+lib/services/hotkey_service.dart
+  s_019582d6a6af2d::t_3ba1bb09b4bad3 33-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "6215af1aab6d098f963b070e74d40ac00e241cb9",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
