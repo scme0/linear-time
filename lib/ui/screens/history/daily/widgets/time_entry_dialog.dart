@@ -34,21 +34,24 @@ class _TimeEntryDialogState extends ConsumerState<TimeEntryDialog> {
   CachedIssue? _selectedIssue;
   String? _error;
 
+  /// Round minute to nearest 5-min increment (for popup compatibility).
+  static int _roundToFive(int minute) => (minute / 5).round() * 5 % 60;
+
   @override
   void initState() {
     super.initState();
     if (widget.isEditing) {
       final e = widget.existingEntry!;
       _startHour = e.startTime.hour;
-      _startMinute = e.startTime.minute;
+      _startMinute = _roundToFive(e.startTime.minute);
       _endHour = e.endTime?.hour ?? DateTime.now().hour;
-      _endMinute = e.endTime?.minute ?? DateTime.now().minute;
+      _endMinute = _roundToFive(e.endTime?.minute ?? DateTime.now().minute);
     } else {
       final now = DateTime.now();
       _startHour = now.hour;
       _startMinute = 0;
       _endHour = now.hour;
-      _endMinute = now.minute;
+      _endMinute = _roundToFive(now.minute);
     }
   }
 
@@ -155,6 +158,19 @@ class _TimeEntryDialogState extends ConsumerState<TimeEntryDialog> {
               onChanged: (issue) =>
                   setState(() => _selectedIssue = issue),
             ),
+            if (_selectedIssue != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  _selectedIssue!.title,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary(brightness),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             const SizedBox(height: 12),
           ] else ...[
             Text(
@@ -345,28 +361,21 @@ class _IssueSelector extends ConsumerWidget {
             ),
           );
         }
-        return SizedBox(
-          width: double.infinity,
-          child: MacosPopupButton<String>(
-            value: selectedIssue?.issueId,
-            hint: const Text('Select issue...'),
-            items: issues
-                .map((issue) => MacosPopupMenuItem(
-                      value: issue.issueId,
-                      child: Text(
-                        '${issue.identifier} ${issue.title}',
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    ))
-                .toList(),
-            onChanged: (id) {
-              if (id != null) {
-                final issue = issues.firstWhere((i) => i.issueId == id);
-                onChanged(issue);
-              }
-            },
-          ),
+        return MacosPopupButton<String>(
+          value: selectedIssue?.issueId,
+          hint: const Text('Select issue...'),
+          items: issues
+              .map((issue) => MacosPopupMenuItem(
+                    value: issue.issueId,
+                    child: Text(issue.identifier),
+                  ))
+              .toList(),
+          onChanged: (id) {
+            if (id != null) {
+              final issue = issues.firstWhere((i) => i.issueId == id);
+              onChanged(issue);
+            }
+          },
         );
       },
       loading: () => const ProgressCircle(radius: 8),
