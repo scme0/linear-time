@@ -7,6 +7,7 @@ import '../providers/issue_providers.dart';
 import '../core/constants.dart';
 import '../core/theme/app_theme.dart';
 import '../services/hotkey_service.dart';
+import 'tray/tray_manager.dart';
 import 'screens/timer/timer_screen.dart';
 import 'screens/history/history_screen.dart';
 import 'screens/settings/settings_screen.dart';
@@ -23,6 +24,19 @@ class _AppWindowState extends ConsumerState<AppWindow> {
   bool _hotkeyInitialized = false;
   final _searchFocusNotifier = ValueNotifier<int>(0);
   final _hotkeyFilterNotifier = ValueNotifier<String?>('myIssues');
+  TrayManager? _trayManager;
+
+  void _initTray() {
+    if (_trayManager != null) return;
+    _trayManager = TrayManager(ref);
+    _trayManager!.init();
+  }
+
+  @override
+  void dispose() {
+    _trayManager?.dispose();
+    super.dispose();
+  }
 
   void _initHotkey() {
     if (_hotkeyInitialized) return;
@@ -57,6 +71,7 @@ class _AppWindowState extends ConsumerState<AppWindow> {
     // Trigger sync on launch (no-op if not connected)
     ref.watch(syncIssuesProvider);
     _initHotkey();
+    _initTray();
 
     final brightness = MacosTheme.of(context).brightness;
 
