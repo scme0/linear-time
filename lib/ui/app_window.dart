@@ -59,14 +59,11 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
     }
   }
 
-  bool _orphanCheckDone = false;
+  bool _startupDone = false;
 
-  void _stopOrphanedTimers() {
-    if (_orphanCheckDone) return;
-    _orphanCheckDone = true;
-    // Stop any timer left running from a previous session (crash/force quit)
-    final repo = ref.read(timeTrackingRepositoryProvider);
-    repo.stopTimer();
+  void _applyStartupSettings() {
+    if (_startupDone) return;
+    _startupDone = true;
 
     // Apply Show in Dock setting
     ref.read(settingsDaoProvider).getValue(SettingsKeys.showInDock).then((val) {
@@ -126,7 +123,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
     _initNotifications(); // Must be first — sets unified method channel handler
     _initHotkey();
     _initTray();
-    _stopOrphanedTimers();
+    _applyStartupSettings();
 
     final brightness = MacosTheme.of(context).brightness;
 
