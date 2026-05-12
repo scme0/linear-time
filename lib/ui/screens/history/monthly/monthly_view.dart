@@ -69,6 +69,16 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
                 icon: const MacosIcon(CupertinoIcons.chevron_right),
                 onPressed: _nextMonth,
               ),
+              const SizedBox(width: 12),
+              PushButton(
+                controlSize: ControlSize.small,
+                secondary: true,
+                onPressed: () {
+                  final now = DateTime.now();
+                  setState(() => _currentMonth = DateTime(now.year, now.month));
+                },
+                child: const Text('This Month'),
+              ),
             ],
           ),
         ),

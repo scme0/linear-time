@@ -345,24 +345,28 @@ class _IssueSelector extends ConsumerWidget {
             ),
           );
         }
-        return MacosPopupButton<String>(
-          value: selectedIssue?.issueId,
-          hint: const Text('Select issue...'),
-          items: issues
-              .map((issue) => MacosPopupMenuItem(
-                    value: issue.issueId,
-                    child: Text(
-                      '${issue.identifier} ${issue.title}',
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ))
-              .toList(),
-          onChanged: (id) {
-            if (id != null) {
-              final issue = issues.firstWhere((i) => i.issueId == id);
-              onChanged(issue);
-            }
-          },
+        return SizedBox(
+          width: double.infinity,
+          child: MacosPopupButton<String>(
+            value: selectedIssue?.issueId,
+            hint: const Text('Select issue...'),
+            items: issues
+                .map((issue) => MacosPopupMenuItem(
+                      value: issue.issueId,
+                      child: Text(
+                        '${issue.identifier} ${issue.title}',
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ))
+                .toList(),
+            onChanged: (id) {
+              if (id != null) {
+                final issue = issues.firstWhere((i) => i.issueId == id);
+                onChanged(issue);
+              }
+            },
+          ),
         );
       },
       loading: () => const ProgressCircle(radius: 8),

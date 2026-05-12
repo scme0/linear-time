@@ -74,6 +74,15 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
                 icon: const MacosIcon(CupertinoIcons.chevron_right),
                 onPressed: _nextWeek,
               ),
+              const SizedBox(width: 12),
+              PushButton(
+                controlSize: ControlSize.small,
+                secondary: true,
+                onPressed: () {
+                  setState(() => _weekStart = DateTime.now().startOfWeek);
+                },
+                child: const Text('This Week'),
+              ),
             ],
           ),
         ),
@@ -323,31 +332,36 @@ class _HourLabels extends StatelessWidget {
         // Account for the day header space at top
         const headerHeight = 34.0;
         final timelineHeight = constraints.maxHeight - headerHeight;
-        final hourHeight = timelineHeight / totalHours;
 
         return Column(
           children: [
             const SizedBox(height: headerHeight),
             Expanded(
-              child: Stack(
-                children: List.generate(totalHours + 1, (i) {
-                  final hour = minHour + i;
-                  if (hour > 23) return const SizedBox.shrink();
-                  return Positioned(
-                    top: i * hourHeight - 6,
-                    left: 0,
-                    right: 4,
-                    child: Text(
-                      '${hour.toString().padLeft(2, '0')}:00',
-                      textAlign: TextAlign.right,
-                      style: TextStyle(
-                        fontSize: 9,
-                        color: AppColors.textTertiary(brightness),
-                        fontFeatures: const [FontFeature.tabularFigures()],
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: List.generate(totalHours + 1, (i) {
+                    final hour = minHour + i;
+                    if (hour > 23) return const SizedBox.shrink();
+                    final adjustedHeight = timelineHeight - 12; // account for padding
+                    final y = i / totalHours * adjustedHeight;
+                    return Positioned(
+                      top: y - 5,
+                      left: 0,
+                      right: 4,
+                      child: Text(
+                        '${hour.toString().padLeft(2, '0')}:00',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: AppColors.textTertiary(brightness),
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
                       ),
-                    ),
-                  );
-                }),
+                    );
+                  }),
+                ),
               ),
             ),
           ],

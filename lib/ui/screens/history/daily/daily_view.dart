@@ -131,6 +131,17 @@ class _DailyViewState extends ConsumerState<DailyView> {
                 icon: const MacosIcon(CupertinoIcons.chevron_right),
                 onPressed: _nextDay,
               ),
+              const SizedBox(width: 12),
+              PushButton(
+                controlSize: ControlSize.small,
+                secondary: true,
+                onPressed: () {
+                  final now = DateTime.now();
+                  setState(() => _selectedDate =
+                      DateTime(now.year, now.month, now.day));
+                },
+                child: const Text('Today'),
+              ),
             ],
           ),
         ),
