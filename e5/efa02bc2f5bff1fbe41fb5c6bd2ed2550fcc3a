@@ -1,0 +1,49 @@
+lib/ui/screens/timer/timer_screen.dart
+  s_019582d6a6af2d::t_e7c01c6ae3744f 99
+  s_019582d6a6af2d::t_005e834c33c1cd 8,11
+  s_019582d6a6af2d::t_d717e64cec503e 47-61
+lib/ui/screens/history/monthly/widgets/day_cell.dart
+  s_019582d6a6af2d::t_0f444e65af7e60 16,23,114-118,124-143,145
+lib/ui/screens/timer/widgets/issue_row.dart
+  s_019582d6a6af2d::t_6b9f37fc480166 176-188
+  s_019582d6a6af2d::t_ac349738f89f64 16,22
+lib/ui/screens/timer/widgets/issue_list.dart
+  s_019582d6a6af2d::t_21a5f9a41f6265 132-134
+  s_019582d6a6af2d::t_08045c3bb3dde0 19,26
+lib/ui/screens/history/daily/widgets/time_entry_dialog.dart
+  s_019582d6a6af2d::t_cacc0a599d2aa4 18,24
+  s_019582d6a6af2d::t_aa270992b8206f 55,57-62
+  s_019582d6a6af2d::t_9480a57cf8bc30 64
+  s_019582d6a6af2d::t_0bf7967fd1a741 19,25
+lib/ui/screens/history/weekly/weekly_view.dart
+  s_019582d6a6af2d::t_e7be7e652652ee 434-443
+  s_019582d6a6af2d::t_df0c51d8f2658d 183-194
+  s_019582d6a6af2d::t_e4f4b4ef2bbb59 38-53
+  s_019582d6a6af2d::t_4f2665086b7e8d 551
+  s_019582d6a6af2d::t_4bd21a0eef94a6 334-336
+  s_019582d6a6af2d::t_00e8036f2f6ad1 14
+  s_019582d6a6af2d::t_b628fe267c6bae 217,223
+  s_019582d6a6af2d::t_6f0567493898f0 135
+  s_019582d6a6af2d::t_ab24fea412d445 416,424
+  s_019582d6a6af2d::t_6309c118c9b3fb 181-182,195-196
+lib/ui/screens/history/history_screen.dart
+  s_019582d6a6af2d::t_df510f4bddce8b 51
+lib/ui/screens/history/monthly/monthly_view.dart
+  s_019582d6a6af2d::t_e168ca5545af4e 7,52-53,58-60,99-100,132-133,138,140-141,149-218,227,248
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "e5efa02bc2f5bff1fbe41fb5c6bd2ed2550fcc3a",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
