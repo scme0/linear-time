@@ -26,54 +26,40 @@ class _AppWindowState extends ConsumerState<AppWindow> {
     final brightness = MacosTheme.of(context).brightness;
 
     return MacosWindow(
-      titleBar: const TitleBar(
-        height: 28,
-        title: Text('Linear Time'),
+      titleBar: TitleBar(
+        height: 36,
+        centerTitle: true,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _TabButton(
+              icon: CupertinoIcons.timer,
+              label: 'Timer',
+              isActive: _pageIndex == 0,
+              brightness: brightness,
+              onTap: () => setState(() => _pageIndex = 0),
+            ),
+            const SizedBox(width: 4),
+            _TabButton(
+              icon: CupertinoIcons.chart_bar_square,
+              label: 'History',
+              isActive: _pageIndex == 1,
+              brightness: brightness,
+              onTap: () => setState(() => _pageIndex = 1),
+            ),
+            const SizedBox(width: 4),
+            _TabButton(
+              icon: CupertinoIcons.gear_alt,
+              label: 'Settings',
+              isActive: _pageIndex == 2,
+              brightness: brightness,
+              onTap: () => setState(() => _pageIndex = 2),
+            ),
+          ],
+        ),
       ),
       child: Column(
         children: [
-          // Tab bar
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.surface(brightness),
-              border: Border(
-                bottom: BorderSide(
-                  color: AppColors.border(brightness),
-                  width: 0.5,
-                ),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _TabButton(
-                  icon: CupertinoIcons.timer,
-                  label: 'Timer',
-                  isActive: _pageIndex == 0,
-                  brightness: brightness,
-                  onTap: () => setState(() => _pageIndex = 0),
-                ),
-                const SizedBox(width: 4),
-                _TabButton(
-                  icon: CupertinoIcons.chart_bar_square,
-                  label: 'History',
-                  isActive: _pageIndex == 1,
-                  brightness: brightness,
-                  onTap: () => setState(() => _pageIndex = 1),
-                ),
-                const SizedBox(width: 4),
-                _TabButton(
-                  icon: CupertinoIcons.gear_alt,
-                  label: 'Settings',
-                  isActive: _pageIndex == 2,
-                  brightness: brightness,
-                  onTap: () => setState(() => _pageIndex = 2),
-                ),
-              ],
-            ),
-          ),
-          // Content
           Expanded(
             child: IndexedStack(
               index: _pageIndex,
