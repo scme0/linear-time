@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
@@ -32,18 +31,16 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
 
-  List<({String id, String name})> _teams = [];
-  List<({String id, String name})> _projects = [];
-  List<({String type, String name})> _statuses = [];
   String? _selectedTeamId;
   String? _selectedProjectId;
   String? _selectedStatusType;
+  List<({String type, String name})> _statuses = [];
 
   @override
   void initState() {
     super.initState();
     widget.focusNotifier?.addListener(_onFocusRequested);
-    _loadFilterData();
+    _loadStatuses();
   }
 
   @override
@@ -71,30 +68,11 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
     );
   }
 
-  Future<void> _loadFilterData() async {
-    try {
-      // Load teams and projects from Linear API
-      final teams = await ref.read(teamsProvider.future);
-      final projects = await ref.read(projectsProvider.future);
-      // Load statuses from cached issues
-      final dao = ref.read(cachedIssueDaoProvider);
-      final statuses = await dao.getDistinctStatuses();
-      debugPrint('[Filters] Teams: ${teams.length}, Projects: ${projects.length}, Statuses: ${statuses.length}');
-      for (final t in teams) {
-        debugPrint('[Filters]   Team: ${t.name} (${t.id})');
-      }
-      for (final p in projects) {
-        debugPrint('[Filters]   Project: ${p.name} (${p.id})');
-      }
-      if (mounted) {
-        setState(() {
-          _teams = teams;
-          _projects = projects;
-          _statuses = statuses;
-        });
-      }
-    } catch (e) {
-      debugPrint('[Filters] Error loading filter data: $e');
+  Future<void> _loadStatuses() async {
+    final dao = ref.read(cachedIssueDaoProvider);
+    final statuses = await dao.getDistinctStatuses();
+    if (mounted) {
+      setState(() => _statuses = statuses);
     }
   }
 
@@ -118,6 +96,8 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
   @override
   Widget build(BuildContext context) {
     final brightness = MacosTheme.of(context).brightness;
+    final teams = ref.watch(teamsProvider).valueOrNull ?? [];
+    final projects = ref.watch(projectsProvider).valueOrNull ?? [];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -162,7 +142,7 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
               ),
               // Sub-filters
               if (_showSubFilters) ...[
-                if (_teams.length > 1) ...[
+                if (teams.length > 1) ...[
                   const SizedBox(width: 8),
                   MacosPopupButton<String?>(
                     value: _selectedTeamId,
@@ -171,7 +151,7 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
                         value: null,
                         child: Text('All Teams'),
                       ),
-                      ..._teams.map((t) => MacosPopupMenuItem(
+                      ...teams.map((t) => MacosPopupMenuItem(
                             value: t.id,
                             child: Text(t.name),
                           )),
@@ -182,7 +162,7 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
                     },
                   ),
                 ],
-                if (_projects.isNotEmpty) ...[
+                if (projects.isNotEmpty) ...[
                   const SizedBox(width: 8),
                   MacosPopupButton<String?>(
                     value: _selectedProjectId,
@@ -191,7 +171,7 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
                         value: null,
                         child: Text('All Projects'),
                       ),
-                      ..._projects.map((p) => MacosPopupMenuItem(
+                      ...projects.map((p) => MacosPopupMenuItem(
                             value: p.id,
                             child: Text(p.name),
                           )),

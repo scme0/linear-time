@@ -129,12 +129,16 @@ query TeamIssues($teamId: String!, $after: String, $filter: IssueFilter) {
 ''';
 
 const String teamsQuery = r'''
-query Teams {
-  teams {
-    nodes {
-      id
-      name
-      color
+query MyTeams {
+  viewer {
+    teamMemberships {
+      nodes {
+        team {
+          id
+          name
+          color
+        }
+      }
     }
   }
 }

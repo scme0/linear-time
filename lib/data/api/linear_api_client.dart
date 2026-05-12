@@ -150,7 +150,7 @@ class LinearApiClient {
     return allIssues;
   }
 
-  /// Fetch all teams.
+  /// Fetch teams the current user is a member of.
   Future<List<Map<String, dynamic>>> fetchTeams() async {
     final result = await _client.query(
       QueryOptions(document: gql(teamsQuery)),
@@ -159,9 +159,14 @@ class LinearApiClient {
       debugPrint('[Linear API] fetchTeams error: ${result.exception}');
       return [];
     }
-    final nodes = result.data?['teams']?['nodes'] as List?;
-    debugPrint('[Linear API] fetchTeams: ${nodes?.length ?? 0} teams');
-    return nodes?.cast<Map<String, dynamic>>() ?? [];
+    final memberships =
+        result.data?['viewer']?['teamMemberships']?['nodes'] as List?;
+    if (memberships == null) return [];
+    final teams = memberships
+        .map((m) => m['team'] as Map<String, dynamic>)
+        .toList();
+    debugPrint('[Linear API] fetchTeams: ${teams.length} teams (user memberships)');
+    return teams;
   }
 
   /// Fetch all projects accessible to the user.
