@@ -608,6 +608,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       await db.timeEntryDao.deleteAll();
       await db.cachedIssueDao.clearAll();
       await db.settingsDao.clearAll();
+      // Also clear API key from Keychain
+      await setApiKey(ref, null);
       // Invalidate all providers so UI refreshes
       ref.invalidate(appSettingsProvider);
       ref.invalidate(assignedIssuesProvider);
@@ -616,6 +618,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ref.invalidate(syncIssuesProvider);
       ref.invalidate(activeTimerProvider);
       ref.invalidate(todayTotalsProvider);
+      ref.invalidate(apiKeyProvider);
+      ref.invalidate(issueRepositoryProvider);
     }
   }
 
