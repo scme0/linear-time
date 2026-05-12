@@ -124,13 +124,16 @@ class TrayManager {
 
     await _systemTray.setContextMenu(menuItems);
 
-    // Update tooltip
+    // Update menubar title + tooltip
     if (activeEntry != null) {
       final elapsed =
           DateTime.now().difference(activeEntry.startTime);
+      await _systemTray.setTitle(
+          '${activeEntry.issueIdentifier} ${elapsed.toHms()}');
       await _systemTray.setToolTip(
           'Linear Time — ${activeEntry.issueIdentifier} ${elapsed.toHms()}');
     } else {
+      await _systemTray.setTitle('');
       await _systemTray.setToolTip('Linear Time');
     }
   }
