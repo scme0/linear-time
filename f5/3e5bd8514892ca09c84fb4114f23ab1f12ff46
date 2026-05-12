@@ -1,0 +1,22 @@
+lib/ui/screens/history/daily/widgets/time_entry_dialog.dart
+  s_019582d6a6af2d::t_c83b61d93f2f66 152,154-157
+  s_019582d6a6af2d::t_2bf0935291dfd6 3
+lib/ui/app_window.dart
+  s_019582d6a6af2d::t_1d4ea812d7fb3b 146,152
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "f53e5bd8514892ca09c84fb4114f23ab1f12ff46",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
