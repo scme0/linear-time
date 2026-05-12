@@ -374,11 +374,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               SettingRow(
                 label: 'Clear all data',
                 description: 'Delete all time entries and cached issues',
-                control: PushButton(
-                  controlSize: ControlSize.regular,
-                  color: AppColors.danger,
+                control: _DangerButton(
+                  label: 'Clear Data',
                   onPressed: () => _confirmClearData(context),
-                  child: const Text('Clear Data'),
                 ),
               ),
             ],
@@ -598,6 +596,53 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             }),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DangerButton extends StatefulWidget {
+  const _DangerButton({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  State<_DangerButton> createState() => _DangerButtonState();
+}
+
+class _DangerButtonState extends State<_DangerButton> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit: (_) => setState(() => _hovering = false),
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: widget.onPressed,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: _hovering
+                ? AppColors.danger
+                : AppColors.danger.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: AppColors.danger.withValues(alpha: 0.3),
+              width: 0.5,
+            ),
+          ),
+          child: Text(
+            widget.label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: _hovering ? const Color(0xFFFFFFFF) : AppColors.danger,
+            ),
+          ),
+        ),
       ),
     );
   }
