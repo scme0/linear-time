@@ -159,12 +159,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           // Keyboard shortcuts hint
           Padding(
             padding: const EdgeInsets.only(bottom: 16),
-            child: Text(
-              'Keyboard shortcuts: ⌘/',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary(brightness),
-              ),
+            child: Row(
+              children: [
+                Text(
+                  'Keyboard shortcuts: ',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary(brightness),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface2(brightness),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: AppColors.border(brightness),
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Text(
+                    '⌘ + /',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: 'Menlo',
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textPrimary(brightness),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
 
