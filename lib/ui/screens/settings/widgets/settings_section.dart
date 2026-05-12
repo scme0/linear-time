@@ -24,16 +24,45 @@ class SettingsSection extends StatelessWidget {
         Text(
           title,
           style: TextStyle(
-            fontSize: 15,
+            fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary(brightness),
+            letterSpacing: 0.3,
+            color: AppColors.textSecondary(brightness),
           ),
         ),
-        const SizedBox(height: 10),
-        ...children,
-        const SizedBox(height: 24),
+        const SizedBox(height: 6),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface(brightness),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: AppColors.border(brightness),
+              width: 0.5,
+            ),
+          ),
+          child: Column(
+            children: _buildChildren(brightness),
+          ),
+        ),
+        const SizedBox(height: 20),
       ],
     );
+  }
+
+  List<Widget> _buildChildren(Brightness brightness) {
+    final result = <Widget>[];
+    for (var i = 0; i < children.length; i++) {
+      result.add(children[i]);
+      if (i < children.length - 1) {
+        // Divider between rows
+        result.add(Container(
+          height: 0.5,
+          margin: const EdgeInsets.only(left: 14),
+          color: AppColors.border(brightness),
+        ));
+      }
+    }
+    return result;
   }
 }
 
@@ -55,7 +84,7 @@ class SettingRow extends StatelessWidget {
     final brightness = MacosTheme.of(context).brightness;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
           Expanded(

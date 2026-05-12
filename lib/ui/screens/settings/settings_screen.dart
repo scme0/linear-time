@@ -236,7 +236,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 _buildOfficeDays(settings, brightness),
               ],
-              const SizedBox(height: 8),
               SettingRow(
                 label: 'Idle detection',
                 description: '"Are you still working?" after inactivity',
@@ -264,7 +263,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     },
                   ),
                 ),
-              const SizedBox(height: 8),
               SettingRow(
                 label: 'Forgotten timer',
                 description: '"Did you forget your timer?" when no timer running',
@@ -372,7 +370,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   child: const Text('Import CSV'),
                 ),
               ),
-              const SizedBox(height: 8),
               SettingRow(
                 label: 'Clear all data',
                 description: 'Delete all time entries and cached issues',
