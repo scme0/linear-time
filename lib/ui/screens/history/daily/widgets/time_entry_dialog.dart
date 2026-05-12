@@ -287,8 +287,7 @@ class _TimePicker extends StatelessWidget {
         const SizedBox(height: 4),
         Row(
           children: [
-            SizedBox(
-              width: 60,
+            Expanded(
               child: MacosPopupButton<int>(
                 value: hour,
                 items: List.generate(
@@ -313,8 +312,7 @@ class _TimePicker extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(
-              width: 60,
+            Expanded(
               child: MacosPopupButton<int>(
                 value: minute,
                 items: List.generate(

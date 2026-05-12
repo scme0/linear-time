@@ -93,6 +93,19 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
                     child: const Text('This Week'),
                   ),
                 ),
+              if ((summary.valueOrNull?.grandTotalSeconds ?? 0) > 0)
+                Positioned(
+                  right: 0,
+                  child: Text(
+                    Duration(seconds: summary.valueOrNull!.grandTotalSeconds)
+                        .toHumanReadable(),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary(brightness),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -148,33 +161,6 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
                           ],
                         );
                       }).toList(),
-                    ),
-                  ),
-                  // Grand total
-                  Padding(
-                    padding: const EdgeInsets.only(
-                        left: 16, right: 16, bottom: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          'Week total: ',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary(brightness),
-                          ),
-                        ),
-                        Text(
-                          Duration(seconds: data.grandTotalSeconds)
-                              .toHumanReadable(),
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary(brightness),
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ],
@@ -460,6 +446,20 @@ class _DayColumn extends StatelessWidget {
                             .withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(2),
                       ),
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      child: blockHeight >= 16
+                          ? Text(
+                              entry.issueIdentifier,
+                              style: const TextStyle(
+                                fontSize: 8,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFFFFFFFF),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.clip,
+                            )
+                          : null,
                     ),
                   );
                 }),

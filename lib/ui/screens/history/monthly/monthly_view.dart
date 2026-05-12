@@ -49,6 +49,9 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
     final brightness = MacosTheme.of(context).brightness;
     final calendarData = ref.watch(monthlyCalendarDataProvider(_currentMonth));
     final monthLabel = DateFormat('MMMM yyyy').format(_currentMonth);
+    final totalSeconds = calendarData.valueOrNull?.values
+            .fold<int>(0, (sum, d) => sum + d.totalSeconds) ??
+        0;
     return Column(
       children: [
         // Month navigator
@@ -92,6 +95,18 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
                     child: const Text('This Month'),
                   ),
                 ),
+              if (totalSeconds > 0)
+                Positioned(
+                  right: 0,
+                  child: Text(
+                    Duration(seconds: totalSeconds).toHumanReadable(),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary(brightness),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -124,23 +139,8 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
             error: (e, _) => Center(child: Text('Error: $e')),
           ),
         ),
-        // Month total
         calendarData.when(
-          data: (dayMap) {
-            final totalSeconds =
-                dayMap.values.fold<int>(0, (sum, d) => sum + d.totalSeconds);
-            if (totalSeconds == 0) return const SizedBox.shrink();
-            return Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'Month total: ${Duration(seconds: totalSeconds).toHumanReadable()}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            );
-          },
+          data: (_) => const SizedBox.shrink(),
           loading: () => const SizedBox.shrink(),
           error: (_, _) => const SizedBox.shrink(),
         ),

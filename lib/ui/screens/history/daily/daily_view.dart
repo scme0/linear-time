@@ -86,16 +86,33 @@ class _DailyViewState extends ConsumerState<DailyView> {
     }
   }
 
+  bool get _isToday {
+    final now = DateTime.now();
+    return _selectedDate.year == now.year &&
+        _selectedDate.month == now.month &&
+        _selectedDate.day == now.day;
+  }
+
   @override
   Widget build(BuildContext context) {
     final brightness = MacosTheme.of(context).brightness;
     final entries = ref.watch(dailyEntriesProvider(_selectedDate));
     final dateLabel = DateFormat('EEEE, MMMM d, yyyy').format(_selectedDate);
-    final isToday = _isToday(_selectedDate);
+
+    // Compute total for nav bar
+    final totalSeconds = entries.valueOrNull
+            ?.where((e) => e.endTime != null)
+            .fold<int>(
+                0,
+                (sum, e) =>
+                    sum +
+                    (e.durationSeconds ??
+                        e.endTime!.difference(e.startTime).inSeconds)) ??
+        0;
 
     return Column(
       children: [
-        // Date navigator
+        // Date navigator with total
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Stack(
@@ -118,7 +135,7 @@ class _DailyViewState extends ConsumerState<DailyView> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      if (isToday)
+                      if (_isToday)
                         const Text(
                           'Today',
                           style: TextStyle(
@@ -136,7 +153,7 @@ class _DailyViewState extends ConsumerState<DailyView> {
                   ),
                 ],
               ),
-              if (!isToday)
+              if (!_isToday)
                 Positioned(
                   left: 0,
                   child: PushButton(
@@ -150,10 +167,22 @@ class _DailyViewState extends ConsumerState<DailyView> {
                     child: const Text('Today'),
                   ),
                 ),
+              if (totalSeconds > 0)
+                Positioned(
+                  right: 0,
+                  child: Text(
+                    Duration(seconds: totalSeconds).toHumanReadable(),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary(brightness),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
-        // Entry list
+        // Entry list with Add Time at bottom
         Expanded(
           child: entries.when(
             data: (entryList) {
@@ -179,8 +208,49 @@ class _DailyViewState extends ConsumerState<DailyView> {
               }
               return ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: entryList.length,
+                itemCount: entryList.length + 1, // +1 for Add Time
                 itemBuilder: (context, index) {
+                  if (index == entryList.length) {
+                    // Add Time button as last list item
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: GestureDetector(
+                        onTap: _addManualEntry,
+                        child: MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 12),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: AppColors.border(brightness),
+                                width: 0.5,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(CupertinoIcons.plus,
+                                    size: 14,
+                                    color:
+                                        AppColors.textSecondary(brightness)),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Add Time',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color:
+                                        AppColors.textSecondary(brightness),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
                   final entry = entryList[index];
                   return _EntryCard(
                     entry: entry,
@@ -196,74 +266,8 @@ class _DailyViewState extends ConsumerState<DailyView> {
             error: (e, _) => Center(child: Text('Error: $e')),
           ),
         ),
-        // Bottom bar: Add button + day total
-        entries.when(
-          data: (entryList) {
-            final totalSeconds = entryList
-                .where((e) => e.endTime != null)
-                .fold<int>(
-                    0,
-                    (sum, e) =>
-                        sum +
-                        (e.durationSeconds ??
-                            e.endTime!.difference(e.startTime).inSeconds));
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                      color: AppColors.border(brightness), width: 0.5),
-                ),
-              ),
-              child: Row(
-                children: [
-                  PushButton(
-                    controlSize: ControlSize.regular,
-                    onPressed: _addManualEntry,
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(CupertinoIcons.plus, size: 12),
-                        SizedBox(width: 4),
-                        Text('Add Time'),
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                  if (totalSeconds > 0) ...[
-                    Text(
-                      'Day total: ',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary(brightness),
-                      ),
-                    ),
-                    Text(
-                      Duration(seconds: totalSeconds).toHumanReadable(),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary(brightness),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            );
-          },
-          loading: () => const SizedBox.shrink(),
-          error: (_, _) => const SizedBox.shrink(),
-        ),
       ],
     );
-  }
-
-  bool _isToday(DateTime date) {
-    final now = DateTime.now();
-    return date.year == now.year &&
-        date.month == now.month &&
-        date.day == now.day;
   }
 }
 
