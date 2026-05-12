@@ -1,0 +1,19 @@
+lib/ui/screens/settings/widgets/settings_section.dart
+  s_019582d6a6af2d::t_d6cc3ade9df48d 27,29-30,33-47,51-66,87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "b064d1c641954103312a77acc75e36559a770843",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
