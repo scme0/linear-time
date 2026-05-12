@@ -158,7 +158,7 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
     final rows = (totalCells / 7).ceil();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
       child: Column(
         children: List.generate(rows, (row) {
           return Expanded(
