@@ -6,6 +6,7 @@ import '../../../data/api/linear_api_client.dart';
 import '../../../providers/api_providers.dart';
 import '../../../providers/issue_providers.dart';
 import '../../../providers/repository_providers.dart';
+import '../../../core/theme/app_theme.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -39,7 +40,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       final viewer = await client.fetchViewer();
       if (viewer != null) {
         await setApiKey(ref, key);
-        // Trigger initial sync after connecting
         ref.invalidate(issueRepositoryProvider);
         ref.invalidate(syncIssuesProvider);
         setState(() {
@@ -56,7 +56,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _disconnect() async {
-    // Clear cached issues before disconnecting
     final repo = ref.read(issueRepositoryProvider);
     await repo?.clearCache();
     await setApiKey(ref, null);
@@ -68,75 +67,104 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final apiKey = ref.watch(apiKeyProvider);
     final isConnected = apiKey.valueOrNull != null;
+    final brightness = MacosTheme.of(context).brightness;
 
-    return MacosScaffold(
-      toolBar: ToolBar(
-        title: const Text('Settings'),
-        titleWidth: 150,
-      ),
-      children: [
-        ContentArea(
-          builder: (context, scrollController) {
-            return Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Linear Connection',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Linear Connection',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary(brightness),
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (isConnected) ...[
+            Row(
+              children: [
+                const Icon(CupertinoIcons.check_mark_circled_solid,
+                    color: AppColors.activeGreen, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  'Connected to Linear',
+                  style: TextStyle(
+                    color: AppColors.textPrimary(brightness),
                   ),
-                  const SizedBox(height: 12),
-                  if (isConnected) ...[
-                    const Row(
-                      children: [
-                        Icon(CupertinoIcons.check_mark_circled_solid,
-                            color: CupertinoColors.activeGreen),
-                        SizedBox(width: 8),
-                        Text('Connected to Linear'),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    PushButton(
-                      controlSize: ControlSize.regular,
-                      onPressed: _disconnect,
-                      child: const Text('Disconnect'),
-                    ),
-                  ] else ...[
-                    const Text('Enter your Linear API key to connect:'),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: 400,
-                      child: MacosTextField(
-                        controller: _apiKeyController,
-                        placeholder: 'lin_api_...',
-                        obscureText: true,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    PushButton(
-                      controlSize: ControlSize.regular,
-                      onPressed: _testing ? null : _testConnection,
-                      child: _testing
-                          ? const ProgressCircle(radius: 8)
-                          : const Text('Connect'),
-                    ),
-                  ],
-                  if (_testResult != null) ...[
-                    const SizedBox(height: 8),
-                    Text(_testResult!),
-                  ],
-                  const SizedBox(height: 32),
-                  const Text(
-                    'More settings coming soon...',
-                    style: TextStyle(color: CupertinoColors.secondaryLabel),
-                  ),
-                ],
+                ),
+              ],
+            ),
+            if (_testResult != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                _testResult!,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary(brightness),
+                ),
               ),
-            );
-          },
-        ),
-      ],
+            ],
+            const SizedBox(height: 12),
+            PushButton(
+              controlSize: ControlSize.regular,
+              onPressed: _disconnect,
+              child: const Text('Disconnect'),
+            ),
+          ] else ...[
+            Text(
+              'Enter your Linear API key to connect:',
+              style: TextStyle(
+                color: AppColors.textSecondary(brightness),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 400,
+              child: MacosTextField(
+                controller: _apiKeyController,
+                placeholder: 'lin_api_...',
+                obscureText: true,
+              ),
+            ),
+            const SizedBox(height: 12),
+            PushButton(
+              controlSize: ControlSize.regular,
+              onPressed: _testing ? null : _testConnection,
+              child: _testing
+                  ? const ProgressCircle(radius: 8)
+                  : const Text('Connect'),
+            ),
+            if (_testResult != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _testResult!,
+                style: TextStyle(
+                  color: _testResult!.startsWith('Connected')
+                      ? AppColors.activeGreen
+                      : AppColors.destructiveRed,
+                ),
+              ),
+            ],
+          ],
+          const SizedBox(height: 32),
+          Text(
+            'More settings coming soon...',
+            style: TextStyle(color: AppColors.textTertiary(brightness)),
+          ),
+          const Spacer(),
+          // Version at bottom
+          Text(
+            'Linear Time v0.0.1',
+            style: TextStyle(
+              fontSize: 11,
+              color: AppColors.textTertiary(brightness),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

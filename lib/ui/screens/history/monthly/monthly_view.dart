@@ -42,7 +42,6 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
   Widget build(BuildContext context) {
     final calendarData = ref.watch(monthlyCalendarDataProvider(_currentMonth));
     final monthLabel = DateFormat('MMMM yyyy').format(_currentMonth);
-
     return Column(
       children: [
         // Month navigator

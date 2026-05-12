@@ -12,6 +12,7 @@ dependencies:
 
   # UI
   macos_ui: ^2.0.0
+  cupertino_icons: ^1.0.8
 
   # Database
   drift: ^2.22.0

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
 import '../providers/issue_providers.dart';
+import '../core/theme/app_theme.dart';
 import 'screens/timer/timer_screen.dart';
 import 'screens/history/history_screen.dart';
 import 'screens/settings/settings_screen.dart';
@@ -22,44 +23,62 @@ class _AppWindowState extends ConsumerState<AppWindow> {
     // Trigger sync on launch (no-op if not connected)
     ref.watch(syncIssuesProvider);
 
+    final brightness = MacosTheme.of(context).brightness;
+
     return MacosWindow(
-      sidebar: Sidebar(
-        minWidth: 200,
-        builder: (context, scrollController) {
-          return SidebarItems(
-            currentIndex: _pageIndex,
-            onChanged: (index) => setState(() => _pageIndex = index),
-            items: const [
-              SidebarItem(
-                leading: MacosIcon(CupertinoIcons.timer),
-                label: Text('Timer'),
+      child: MacosScaffold(
+        toolBar: ToolBar(
+          title: const Text('Linear Time'),
+          titleWidth: 200,
+          actions: [
+            ToolBarIconButton(
+              label: 'Timer',
+              icon: MacosIcon(
+                CupertinoIcons.timer,
+                color: _pageIndex == 0
+                    ? AppColors.accentBlue
+                    : AppColors.textSecondary(brightness),
               ),
-              SidebarItem(
-                leading: MacosIcon(CupertinoIcons.chart_bar),
-                label: Text('History'),
+              showLabel: true,
+              onPressed: () => setState(() => _pageIndex = 0),
+            ),
+            ToolBarIconButton(
+              label: 'History',
+              icon: MacosIcon(
+                CupertinoIcons.chart_bar_square,
+                color: _pageIndex == 1
+                    ? AppColors.accentBlue
+                    : AppColors.textSecondary(brightness),
               ),
-              SidebarItem(
-                leading: MacosIcon(CupertinoIcons.settings),
-                label: Text('Settings'),
+              showLabel: true,
+              onPressed: () => setState(() => _pageIndex = 1),
+            ),
+            ToolBarIconButton(
+              label: 'Settings',
+              icon: MacosIcon(
+                CupertinoIcons.gear_alt,
+                color: _pageIndex == 2
+                    ? AppColors.accentBlue
+                    : AppColors.textSecondary(brightness),
               ),
-            ],
-          );
-        },
-        bottom: const MacosListTile(
-          leading: MacosIcon(CupertinoIcons.clock),
-          title: Text(
-            'Linear Time',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          subtitle: Text('v0.0.1'),
+              showLabel: true,
+              onPressed: () => setState(() => _pageIndex = 2),
+            ),
+          ],
         ),
-      ),
-      child: IndexedStack(
-        index: _pageIndex,
-        children: const [
-          TimerScreen(),
-          HistoryScreen(),
-          SettingsScreen(),
+        children: [
+          ContentArea(
+            builder: (context, scrollController) {
+              return IndexedStack(
+                index: _pageIndex,
+                children: const [
+                  TimerScreen(),
+                  HistoryScreen(),
+                  SettingsScreen(),
+                ],
+              );
+            },
+          ),
         ],
       ),
     );

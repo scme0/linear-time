@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show Divider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
@@ -7,6 +6,7 @@ import '../../../providers/timer_providers.dart';
 import '../../../providers/issue_providers.dart';
 import '../../../providers/repository_providers.dart';
 import '../../../data/database/app_database.dart';
+import '../../../core/theme/app_theme.dart';
 import 'widgets/active_timer_banner.dart';
 import 'widgets/issue_list.dart';
 import 'widgets/issue_search_bar.dart';
@@ -47,44 +47,39 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
     final activeTimer = ref.watch(activeTimerProvider);
     final elapsed = ref.watch(timerTickProvider);
     final todayTotal = ref.watch(todayTotalForActiveIssueProvider);
+    final brightness = MacosTheme.of(context).brightness;
 
-    return MacosScaffold(
-      toolBar: ToolBar(
-        title: const Text('Timer'),
-        titleWidth: 150,
-      ),
+    return Column(
       children: [
-        ContentArea(
-          builder: (context, scrollController) {
-            return Column(
-              children: [
-                // Active timer banner
-                ActiveTimerBanner(
-                  activeTimer: activeTimer,
-                  elapsed: elapsed,
-                  todayTotal: todayTotal,
-                  onStop: _onStopTimer,
-                ),
-                const Divider(height: 1),
-                // Search and filter bar
-                IssueSearchBar(
-                  filter: _filter,
-                  onFilterChanged: (f) => setState(() => _filter = f),
-                  onSearchChanged: (q) => setState(() => _searchQuery = q),
-                ),
-                const Divider(height: 1),
-                // Issue list
-                Expanded(
-                  child: IssueList(
-                    searchQuery: _searchQuery,
-                    filter: _filter,
-                    activeIssueId: activeTimer.valueOrNull?.issueId,
-                    onIssueSelected: _onIssueSelected,
-                  ),
-                ),
-              ],
-            );
-          },
+        // Active timer banner
+        ActiveTimerBanner(
+          activeTimer: activeTimer,
+          elapsed: elapsed,
+          todayTotal: todayTotal,
+          onStop: _onStopTimer,
+        ),
+        Container(
+          height: 1,
+          color: AppColors.border(brightness),
+        ),
+        // Search and filter bar
+        IssueSearchBar(
+          filter: _filter,
+          onFilterChanged: (f) => setState(() => _filter = f),
+          onSearchChanged: (q) => setState(() => _searchQuery = q),
+        ),
+        Container(
+          height: 1,
+          color: AppColors.border(brightness),
+        ),
+        // Issue list
+        Expanded(
+          child: IssueList(
+            searchQuery: _searchQuery,
+            filter: _filter,
+            activeIssueId: activeTimer.valueOrNull?.issueId,
+            onIssueSelected: _onIssueSelected,
+          ),
         ),
       ],
     );

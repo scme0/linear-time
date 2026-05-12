@@ -45,40 +45,28 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MacosScaffold(
-      toolBar: ToolBar(
-        title: const Text('History'),
-        titleWidth: 150,
-      ),
+    return Column(
       children: [
-        ContentArea(
-          builder: (context, scrollController) {
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: MacosSegmentedControl(
-                    controller: _tabController,
-                    tabs: const [
-                      MacosTab(label: 'Monthly'),
-                      MacosTab(label: 'Weekly'),
-                      MacosTab(label: 'Daily'),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: IndexedStack(
-                    index: _tabIndex,
-                    children: [
-                      MonthlyView(onDaySelected: _navigateToDay),
-                      const WeeklyView(),
-                      DailyView(initialDate: _selectedDay),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          },
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: MacosSegmentedControl(
+            controller: _tabController,
+            tabs: const [
+              MacosTab(label: 'Monthly'),
+              MacosTab(label: 'Weekly'),
+              MacosTab(label: 'Daily'),
+            ],
+          ),
+        ),
+        Expanded(
+          child: IndexedStack(
+            index: _tabIndex,
+            children: [
+              MonthlyView(onDaySelected: _navigateToDay),
+              const WeeklyView(),
+              DailyView(initialDate: _selectedDay),
+            ],
+          ),
         ),
       ],
     );

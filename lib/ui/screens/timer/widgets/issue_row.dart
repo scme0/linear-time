@@ -1,9 +1,13 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
 import '../../../../data/database/app_database.dart';
+import '../../../../providers/database_providers.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/extensions/duration_extensions.dart';
 
-class IssueRow extends StatefulWidget {
+class IssueRow extends ConsumerStatefulWidget {
   const IssueRow({
     super.key,
     required this.issue,
@@ -16,10 +20,10 @@ class IssueRow extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<IssueRow> createState() => _IssueRowState();
+  ConsumerState<IssueRow> createState() => _IssueRowState();
 }
 
-class _IssueRowState extends State<IssueRow> {
+class _IssueRowState extends ConsumerState<IssueRow> {
   bool _hovering = false;
 
   Color? _parseTeamColor() {
@@ -33,30 +37,36 @@ class _IssueRowState extends State<IssueRow> {
   @override
   Widget build(BuildContext context) {
     final brightness = MacosTheme.of(context).brightness;
-    final isDark = brightness == Brightness.dark;
     final teamColor = _parseTeamColor();
     final isDeleted = widget.issue.isDeleted;
+
+    // Fetch today's tracked time for this issue
+    final todayTotal = ref.watch(_issueTodayTotalProvider(widget.issue.issueId));
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
-      cursor: isDeleted ? SystemMouseCursors.forbidden : SystemMouseCursors.click,
+      cursor: isDeleted
+          ? SystemMouseCursors.forbidden
+          : SystemMouseCursors.click,
       child: GestureDetector(
         onTap: isDeleted ? null : (widget.isActive ? null : widget.onTap),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
           decoration: BoxDecoration(
             color: widget.isActive
-                ? (isDark ? const Color(0xFF1A2E1A) : const Color(0xFFE8F5E9))
+                ? AppColors.activeTimerBg(brightness)
                 : _hovering
-                    ? (isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF0F0F0))
+                    ? AppColors.hover(brightness)
                     : null,
-            border: Border(
-              bottom: BorderSide(
-                color: isDark ? const Color(0xFF333333) : const Color(0xFFE0E0E0),
-                width: 0.5,
-              ),
-            ),
+            borderRadius: BorderRadius.circular(8),
+            border: widget.isActive
+                ? Border.all(
+                    color: AppColors.activeGreen.withValues(alpha: 0.4),
+                    width: 1,
+                  )
+                : null,
           ),
           child: Opacity(
             opacity: isDeleted ? 0.5 : 1.0,
@@ -68,7 +78,7 @@ class _IssueRowState extends State<IssueRow> {
                   height: 32,
                   margin: const EdgeInsets.only(right: 12),
                   decoration: BoxDecoration(
-                    color: teamColor ?? CupertinoColors.systemGrey,
+                    color: teamColor ?? AppColors.textTertiary(brightness),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -79,7 +89,7 @@ class _IssueRowState extends State<IssueRow> {
                     height: 6,
                     margin: const EdgeInsets.only(right: 8),
                     decoration: const BoxDecoration(
-                      color: CupertinoColors.activeGreen,
+                      color: AppColors.activeGreen,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -91,7 +101,9 @@ class _IssueRowState extends State<IssueRow> {
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
-                      decoration: isDeleted ? TextDecoration.lineThrough : null,
+                      color: AppColors.textPrimary(brightness),
+                      decoration:
+                          isDeleted ? TextDecoration.lineThrough : null,
                     ),
                   ),
                 ),
@@ -102,7 +114,9 @@ class _IssueRowState extends State<IssueRow> {
                     widget.issue.title,
                     style: TextStyle(
                       fontSize: 13,
-                      decoration: isDeleted ? TextDecoration.lineThrough : null,
+                      color: AppColors.textPrimary(brightness),
+                      decoration:
+                          isDeleted ? TextDecoration.lineThrough : null,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -113,33 +127,55 @@ class _IssueRowState extends State<IssueRow> {
                 _StatusBadge(
                   status: widget.issue.status,
                   statusType: widget.issue.statusType,
+                  brightness: brightness,
                 ),
-                const SizedBox(width: 8),
                 // Deleted indicator
-                if (isDeleted)
+                if (isDeleted) ...[
+                  const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: CupertinoColors.destructiveRed.withValues(alpha: 0.15),
+                      color: AppColors.destructiveRed.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
                       'Deleted',
                       style: TextStyle(
                         fontSize: 10,
-                        color: CupertinoColors.destructiveRed,
+                        color: AppColors.destructiveRed,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-                // Project/Team info
+                ],
+                // Today's tracked time
+                todayTotal.when(
+                  data: (seconds) {
+                    if (seconds == 0) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Text(
+                        Duration(seconds: seconds).toHumanReadable(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textSecondary(brightness),
+                        ),
+                      ),
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
+                ),
+                // Project name
                 if (widget.issue.projectName != null) ...[
                   const SizedBox(width: 8),
                   Text(
                     widget.issue.projectName!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: CupertinoColors.secondaryLabel,
+                      color: AppColors.textSecondary(brightness),
                     ),
                   ),
                 ],
@@ -152,18 +188,30 @@ class _IssueRowState extends State<IssueRow> {
   }
 }
 
+/// Provider to get today's total for a specific issue.
+final _issueTodayTotalProvider =
+    FutureProvider.family<int, String>((ref, issueId) async {
+  final dao = ref.watch(timeEntryDaoProvider);
+  return dao.getTodayTotalForIssue(issueId);
+});
+
 class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.status, required this.statusType});
+  const _StatusBadge({
+    required this.status,
+    required this.statusType,
+    required this.brightness,
+  });
 
   final String status;
   final String statusType;
+  final Brightness brightness;
 
   Color get _color => switch (statusType) {
-        'started' => CupertinoColors.activeBlue,
-        'completed' => CupertinoColors.activeGreen,
-        'cancelled' => CupertinoColors.systemGrey,
-        'backlog' => CupertinoColors.systemGrey3,
-        _ => CupertinoColors.systemOrange, // unstarted
+        'started' => AppColors.statusStarted,
+        'completed' => AppColors.statusCompleted,
+        'cancelled' => AppColors.statusCancelled,
+        'backlog' => AppColors.statusBacklog,
+        _ => AppColors.statusUnstarted,
       };
 
   @override
@@ -171,7 +219,7 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: _color.withValues(alpha: 0.15),
+        color: _color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
