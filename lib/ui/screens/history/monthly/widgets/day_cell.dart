@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show Tooltip;
 import 'package:macos_ui/macos_ui.dart';
 
 import '../../../../../providers/report_providers.dart';
@@ -26,16 +27,9 @@ class DayCell extends StatefulWidget {
 class _DayCellState extends State<DayCell> {
   bool _hovering = false;
 
-  Color _parseHex(String hex, Brightness brightness) {
-    final clean = hex.replaceFirst('#', '');
-    if (clean.length != 6) return AppColors.textTertiary(brightness);
-    return Color(int.parse('FF$clean', radix: 16));
-  }
-
   @override
   Widget build(BuildContext context) {
     final brightness = MacosTheme.of(context).brightness;
-    final isDark = brightness == Brightness.dark;
     final hasData = widget.data != null && widget.data!.totalSeconds > 0;
 
     return MouseRegion(
@@ -44,62 +38,53 @@ class _DayCellState extends State<DayCell> {
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,
-        child: Container(
-          margin: const EdgeInsets.all(1),
-          decoration: BoxDecoration(
-            color: _hovering
-                ? AppColors.hover(brightness)
-                : (hasData
-                    ? (isDark
-                        ? const Color(0xFF1A2A1A)
-                        : const Color(0xFFF0F8F0))
-                    : null),
-            borderRadius: BorderRadius.circular(6),
-            border: widget.isToday
-                ? Border.all(
-                    color: AppColors.accent,
-                    width: 1.5,
-                  )
-                : Border.all(
-                    color: AppColors.border(brightness),
-                    width: 0.5,
-                  ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Day number and total
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${widget.day}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight:
-                            widget.isToday ? FontWeight.bold : FontWeight.w500,
-                        color: widget.isToday
-                            ? AppColors.accent
-                            : null,
-                      ),
-                    ),
-                    if (hasData)
+        child: Tooltip(
+          message: hasData ? _buildTooltipText() : '',
+          child: Container(
+            margin: const EdgeInsets.all(1),
+            decoration: BoxDecoration(
+              color: _hovering
+                  ? AppColors.hover(brightness)
+                  : (hasData ? AppColors.selected(brightness) : null),
+              borderRadius: BorderRadius.circular(6),
+              border: widget.isToday
+                  ? Border.all(color: AppColors.accent, width: 1.5)
+                  : Border.all(
+                      color: AppColors.border(brightness), width: 0.5),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
                       Text(
-                        Duration(seconds: widget.data!.totalSeconds)
-                            .toHumanReadable(),
+                        '${widget.day}',
                         style: TextStyle(
-                          fontSize: 9,
-                          color: AppColors.textSecondary(brightness),
+                          fontSize: 11,
+                          fontWeight: widget.isToday
+                              ? FontWeight.bold
+                              : FontWeight.w500,
+                          color: widget.isToday ? AppColors.accent : null,
                         ),
                       ),
-                  ],
-                ),
-                const Spacer(),
-                // Color stripes per project
-                if (hasData) _buildStripes(brightness),
-              ],
+                      if (hasData)
+                        Text(
+                          Duration(seconds: widget.data!.totalSeconds)
+                              .toHumanReadable(),
+                          style: TextStyle(
+                            fontSize: 9,
+                            color: AppColors.textSecondary(brightness),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const Spacer(),
+                  if (hasData) _buildStripes(),
+                ],
+              ),
             ),
           ),
         ),
@@ -107,9 +92,21 @@ class _DayCellState extends State<DayCell> {
     );
   }
 
-  Widget _buildStripes(Brightness brightness) {
+  String _buildTooltipText() {
     final data = widget.data!;
-    final entries = data.projectSeconds.entries.toList()
+    final entries = data.issueSeconds.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final lines = entries.map((e) {
+      final label = data.issueLabels[e.key] ?? e.key;
+      final dur = Duration(seconds: e.value).toHumanReadable();
+      return '$label: $dur';
+    });
+    return lines.join('\n');
+  }
+
+  Widget _buildStripes() {
+    final data = widget.data!;
+    final entries = data.issueSeconds.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
     return ClipRRect(
@@ -119,12 +116,11 @@ class _DayCellState extends State<DayCell> {
         child: Row(
           children: entries.map((entry) {
             final fraction = entry.value / data.totalSeconds;
-            final colorHex = data.projectColors[entry.key];
-            final color =
-                colorHex != null ? _parseHex(colorHex, brightness) : AppColors.textTertiary(brightness);
             return Flexible(
               flex: (fraction * 100).round().clamp(1, 100),
-              child: Container(color: color),
+              child: Container(
+                color: AppColors.colorForIssue(entry.key),
+              ),
             );
           }).toList(),
         ),

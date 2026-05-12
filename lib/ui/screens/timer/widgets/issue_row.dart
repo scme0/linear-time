@@ -26,18 +26,10 @@ class IssueRow extends ConsumerStatefulWidget {
 class _IssueRowState extends ConsumerState<IssueRow> {
   bool _hovering = false;
 
-  Color? _parseTeamColor() {
-    final hex = widget.issue.teamColor;
-    if (hex == null || hex.isEmpty) return null;
-    final clean = hex.replaceFirst('#', '');
-    if (clean.length != 6) return null;
-    return Color(int.parse('FF$clean', radix: 16));
-  }
 
   @override
   Widget build(BuildContext context) {
     final brightness = MacosTheme.of(context).brightness;
-    final teamColor = _parseTeamColor();
     final isDeleted = widget.issue.isDeleted;
 
     // Fetch today's tracked time for this issue
@@ -72,13 +64,13 @@ class _IssueRowState extends ConsumerState<IssueRow> {
             opacity: isDeleted ? 0.5 : 1.0,
             child: Row(
               children: [
-                // Team color indicator
+                // Issue color indicator (consistent across all views)
                 Container(
                   width: 4,
                   height: 32,
                   margin: const EdgeInsets.only(right: 12),
                   decoration: BoxDecoration(
-                    color: teamColor ?? AppColors.textTertiary(brightness),
+                    color: AppColors.colorForIssue(widget.issue.issueId),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),

@@ -195,18 +195,9 @@ class _EntryCard extends StatelessWidget {
   final TimeEntry entry;
   final VoidCallback onDelete;
 
-  Color? _parseTeamColor() {
-    final hex = entry.teamColor;
-    if (hex == null || hex.isEmpty) return null;
-    final clean = hex.replaceFirst('#', '');
-    if (clean.length != 6) return null;
-    return Color(int.parse('FF$clean', radix: 16));
-  }
-
   @override
   Widget build(BuildContext context) {
     final brightness = MacosTheme.of(context).brightness;
-    final teamColor = _parseTeamColor();
     final timeFormat = DateFormat('HH:mm');
     final isRunning = entry.endTime == null;
     final duration = isRunning
@@ -221,7 +212,7 @@ class _EntryCard extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           left: BorderSide(
-            color: teamColor ?? AppColors.textTertiary(brightness),
+            color: AppColors.colorForIssue(entry.issueId),
             width: 3,
           ),
           bottom: BorderSide(

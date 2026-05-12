@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:macos_ui/macos_ui.dart';
 
+import '../../../../core/theme/app_theme.dart';
 import '../timer_screen.dart';
 
 class IssueSearchBar extends StatefulWidget {
@@ -30,6 +31,8 @@ class _IssueSearchBarState extends State<IssueSearchBar> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = MacosTheme.of(context).brightness;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -53,6 +56,14 @@ class _IssueSearchBarState extends State<IssueSearchBar> {
             child: MacosTextField(
               controller: _searchController,
               placeholder: 'Search issues or paste ID/URL...',
+              placeholderStyle: TextStyle(
+                color: AppColors.textSecondary(brightness),
+                fontSize: 13,
+              ),
+              style: TextStyle(
+                color: AppColors.textPrimary(brightness),
+                fontSize: 13,
+              ),
               onChanged: (value) => widget.onSearchChanged(value),
             ),
           ),

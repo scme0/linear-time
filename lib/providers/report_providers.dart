@@ -24,7 +24,8 @@ final dailyEntriesProvider =
   return dao.getEntriesForDay(day);
 });
 
-/// Aggregate monthly data: per-day totals with project breakdown.
+/// Aggregate monthly data: per-day totals with issue breakdown.
+/// Keyed by issueId for consistent colors via AppColors.colorForIssue().
 final monthlyCalendarDataProvider =
     FutureProvider.family<Map<int, DayData>, DateTime>((ref, month) async {
   final entries = await ref.watch(monthlyEntriesProvider(month).future);
@@ -37,11 +38,11 @@ final monthlyCalendarDataProvider =
     final seconds = entry.durationSeconds ??
         entry.endTime!.difference(entry.startTime).inSeconds;
     data.totalSeconds += seconds;
-    final key = entry.projectName ?? entry.teamName ?? 'Other';
-    data.projectSeconds[key] = (data.projectSeconds[key] ?? 0) + seconds;
-    if (entry.teamColor != null) {
-      data.projectColors[key] = entry.teamColor!;
-    }
+
+    // Key by issueId for consistent color assignment
+    data.issueSeconds[entry.issueId] =
+        (data.issueSeconds[entry.issueId] ?? 0) + seconds;
+    data.issueLabels[entry.issueId] = entry.issueIdentifier;
   }
 
   return dayMap;
@@ -67,7 +68,6 @@ final weeklySummaryProvider =
         identifier: entry.issueIdentifier,
         title: entry.issueTitle,
         teamName: entry.teamName,
-        teamColor: entry.teamColor,
         projectName: entry.projectName,
       ),
     );
@@ -83,8 +83,10 @@ final weeklySummaryProvider =
 
 class DayData {
   int totalSeconds = 0;
-  final Map<String, int> projectSeconds = {};
-  final Map<String, String> projectColors = {};
+  /// Keyed by issueId — use AppColors.colorForIssue(issueId) for color.
+  final Map<String, int> issueSeconds = {};
+  /// issueId -> identifier label (e.g. "ENG-123") for tooltips.
+  final Map<String, String> issueLabels = {};
 }
 
 class IssueSummary {
@@ -93,7 +95,6 @@ class IssueSummary {
     required this.identifier,
     required this.title,
     this.teamName,
-    this.teamColor,
     this.projectName,
   });
 
@@ -101,7 +102,6 @@ class IssueSummary {
   final String identifier;
   final String title;
   final String? teamName;
-  final String? teamColor;
   final String? projectName;
   int totalSeconds = 0;
   int entryCount = 0;
