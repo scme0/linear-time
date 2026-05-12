@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart' show MethodChannel;
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
@@ -127,7 +127,66 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
 
     final brightness = MacosTheme.of(context).brightness;
 
-    return MacosWindow(
+    return Shortcuts(
+      shortcuts: {
+        // Cmd+1/2/3 to switch tabs
+        const SingleActivator(LogicalKeyboardKey.digit1, meta: true):
+            const _SwitchTabIntent(0),
+        const SingleActivator(LogicalKeyboardKey.digit2, meta: true):
+            const _SwitchTabIntent(1),
+        const SingleActivator(LogicalKeyboardKey.digit3, meta: true):
+            const _SwitchTabIntent(2),
+        // Cmd+, for Settings (macOS convention)
+        const SingleActivator(LogicalKeyboardKey.comma, meta: true):
+            const _SwitchTabIntent(2),
+        // Cmd+F to focus search
+        const SingleActivator(LogicalKeyboardKey.keyF, meta: true):
+            const _FocusSearchIntent(),
+        // Escape to clear search
+        const SingleActivator(LogicalKeyboardKey.escape):
+            const _EscapeIntent(),
+        // Cmd+S to stop timer
+        const SingleActivator(LogicalKeyboardKey.keyS, meta: true):
+            const _StopTimerIntent(),
+      },
+      child: Actions(
+        actions: {
+          _SwitchTabIntent: CallbackAction<_SwitchTabIntent>(
+            onInvoke: (intent) {
+              setState(() => _pageIndex = intent.tab);
+              return null;
+            },
+          ),
+          _FocusSearchIntent: CallbackAction<_FocusSearchIntent>(
+            onInvoke: (_) {
+              setState(() => _pageIndex = 0);
+              Future.delayed(const Duration(milliseconds: 50), () {
+                _searchFocusNotifier.value++;
+              });
+              return null;
+            },
+          ),
+          _EscapeIntent: CallbackAction<_EscapeIntent>(
+            onInvoke: (_) {
+              // Clear search focus — just switch focus away
+              FocusManager.instance.primaryFocus?.unfocus();
+              return null;
+            },
+          ),
+          _StopTimerIntent: CallbackAction<_StopTimerIntent>(
+            onInvoke: (_) {
+              final repo = ref.read(timeTrackingRepositoryProvider);
+              repo.stopTimer();
+              TrayManager.instance?.updateMenu();
+              TrayManager.instance?.updateTitle();
+              NotificationService.instance?.onTimerStateChanged();
+              return null;
+            },
+          ),
+        },
+        child: Focus(
+          autofocus: true,
+          child: MacosWindow(
       titleBar: TitleBar(
         height: 52,
         centerTitle: true,
@@ -177,8 +236,29 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
           ),
         ],
       ),
+    ),
+        ),
+      ),
     );
   }
+}
+
+// Intent classes for keyboard shortcuts
+class _SwitchTabIntent extends Intent {
+  const _SwitchTabIntent(this.tab);
+  final int tab;
+}
+
+class _FocusSearchIntent extends Intent {
+  const _FocusSearchIntent();
+}
+
+class _EscapeIntent extends Intent {
+  const _EscapeIntent();
+}
+
+class _StopTimerIntent extends Intent {
+  const _StopTimerIntent();
 }
 
 class _TabButton extends StatefulWidget {
