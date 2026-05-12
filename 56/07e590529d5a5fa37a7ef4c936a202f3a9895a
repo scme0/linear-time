@@ -1,0 +1,24 @@
+macos/Runner/OverlayWindow.swift
+  s_019582d6a6af2d::t_f96b42981a278c 105-108
+macos/Runner.xcodeproj/project.pbxproj
+  s_019582d6a6af2d::t_95b11b89af0f30 27
+  s_019582d6a6af2d::t_a5f149dcd90aae 181
+  s_019582d6a6af2d::t_b68e0f4b6f2cc8 444
+  s_019582d6a6af2d::t_bc9c5f132bcd04 74
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "5607e590529d5a5fa37a7ef4c936a202f3a9895a",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
