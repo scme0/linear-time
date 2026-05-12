@@ -195,9 +195,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           _buildLinearSection(brightness, isConnected),
 
-          // ── Sync ──
+          // ── Issues ──
           SettingsSection(
-            title: 'Sync',
+            title: 'Issues',
             children: [
               SettingRow(
                 label: 'Show completed issues',

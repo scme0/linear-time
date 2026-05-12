@@ -81,18 +81,21 @@ class _IssueListState extends ConsumerState<IssueList> {
     if (widget.mode == IssueFilterMode.recentlyTracked) {
       return _buildRecentIssues();
     }
-    if (widget.mode == IssueFilterMode.allIssues) {
+    final isSyncingAll = widget.mode == IssueFilterMode.allIssues;
+    if (isSyncingAll) {
       ref.watch(syncAllIssuesProvider);
     }
-    return _buildAssignedIssues();
+    return _buildAssignedIssues(isSyncingAll: isSyncingAll);
   }
 
-  Widget _buildAssignedIssues() {
+  Widget _buildAssignedIssues({bool isSyncingAll = false}) {
     final isAllIssues = widget.mode == IssueFilterMode.allIssues;
     final issuesAsync = isAllIssues
         ? ref.watch(allCachedIssuesProvider)
         : ref.watch(assignedIssuesProvider);
     final todayTotals = ref.watch(todayTotalsProvider).valueOrNull ?? {};
+    final syncState = isSyncingAll ? ref.watch(syncAllIssuesProvider) : null;
+    final isSyncing = syncState != null && syncState.isLoading;
 
     return issuesAsync.when(
       data: (issues) {
@@ -135,11 +138,28 @@ class _IssueListState extends ConsumerState<IssueList> {
           return _buildEmptyState();
         }
 
+        final extraItems = (_resolving ? 1 : 0) + (isSyncing ? 1 : 0);
         return ListView.builder(
           itemExtent: 52,
-          itemCount: filtered.length + (_resolving ? 1 : 0),
+          itemCount: filtered.length + extraItems,
           itemBuilder: (context, index) {
-            if (_resolving && index == 0) {
+            if (isSyncing && index == 0) {
+              return Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    const ProgressCircle(radius: 8),
+                    const SizedBox(width: 8),
+                    Text('Loading all issues...', style: TextStyle(
+                      color: AppColors.textSecondary(MacosTheme.of(context).brightness),
+                      fontSize: 13,
+                    )),
+                  ],
+                ),
+              );
+            }
+            final syncOffset = isSyncing ? 1 : 0;
+            if (_resolving && index == syncOffset) {
               return const Padding(
                 padding: EdgeInsets.all(12),
                 child: Row(
@@ -151,7 +171,7 @@ class _IssueListState extends ConsumerState<IssueList> {
                 ),
               );
             }
-            final adjustedIndex = _resolving ? index - 1 : index;
+            final adjustedIndex = index - syncOffset - (_resolving ? 1 : 0);
             final issue = filtered[adjustedIndex];
             return IssueRow(
               issue: issue,
