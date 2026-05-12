@@ -122,11 +122,17 @@ class _IssueRowState extends State<IssueRow> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                // Status badge
-                _StatusBadge(
-                  status: widget.issue.status,
-                  statusType: widget.issue.statusType,
-                  brightness: brightness,
+                // Status badge (fixed width for alignment)
+                SizedBox(
+                  width: 90,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: _StatusBadge(
+                      status: widget.issue.status,
+                      statusType: widget.issue.statusType,
+                      brightness: brightness,
+                    ),
+                  ),
                 ),
                 // Deleted indicator
                 if (isDeleted) ...[
@@ -149,18 +155,20 @@ class _IssueRowState extends State<IssueRow> {
                   ),
                 ],
                 // Today's tracked time
-                if (widget.todaySeconds > 0)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Text(
-                      Duration(seconds: widget.todaySeconds).toHumanReadable(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary(brightness),
-                      ),
-                    ),
-                  ),
+                SizedBox(
+                  width: 50,
+                  child: widget.todaySeconds > 0
+                      ? Text(
+                          Duration(seconds: widget.todaySeconds).toHumanReadable(),
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textSecondary(brightness),
+                          ),
+                        )
+                      : null,
+                ),
                 // Project name
                 if (widget.issue.projectName != null) ...[
                   const SizedBox(width: 8),
