@@ -72,27 +72,42 @@ class _IssueRowState extends State<IssueRow> {
             opacity: isDeleted ? 0.5 : 1.0,
             child: Row(
               children: [
-                // Issue color indicator
-                Container(
-                  width: 4,
+                // Issue color indicator + active dot overlaid
+                SizedBox(
+                  width: 16,
                   height: 32,
-                  margin: const EdgeInsets.only(right: 12),
-                  decoration: BoxDecoration(
-                    color: AppColors.colorForIssue(widget.issue.issueId),
-                    borderRadius: BorderRadius.circular(2),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Color line (right side)
+                      Positioned(
+                        right: 0,
+                        child: Container(
+                          width: 4,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: AppColors.colorForIssue(widget.issue.issueId),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      // Active green dot (left side, inside the row padding)
+                      if (widget.isActive)
+                        Positioned(
+                          left: 0,
+                          child: Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: AppColors.success,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-                // Active indicator
-                if (widget.isActive)
-                  Container(
-                    width: 6,
-                    height: 6,
-                    margin: const EdgeInsets.only(right: 8),
-                    decoration: const BoxDecoration(
-                      color: AppColors.success,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
+                const SizedBox(width: 4),
                 // Issue identifier (clickable → opens in Linear)
                 GestureDetector(
                   onTap: isDeleted
