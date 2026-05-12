@@ -26,6 +26,10 @@ class _AppWindowState extends ConsumerState<AppWindow> {
     final brightness = MacosTheme.of(context).brightness;
 
     return MacosWindow(
+      titleBar: const TitleBar(
+        height: 28,
+        title: Text('Linear Time'),
+      ),
       child: Column(
         children: [
           // Tab bar
