@@ -38,6 +38,68 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
     WidgetsBinding.instance.addObserver(this);
   }
 
+  void _showCheatsheet(BuildContext context, Brightness brightness) {
+    showMacosAlertDialog(
+      context: context,
+      builder: (ctx) => MacosAlertDialog(
+        appIcon: const Icon(CupertinoIcons.keyboard, size: 48),
+        title: const Text('Keyboard Shortcuts'),
+        message: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final entry in _shortcuts)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 100,
+                      child: Text(
+                        entry.$1,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Menlo',
+                          color: AppColors.textPrimary(brightness),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      entry.$2,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary(brightness),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        primaryButton: PushButton(
+          controlSize: ControlSize.large,
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: const Text('Done'),
+        ),
+      ),
+    );
+  }
+
+  static const _shortcuts = [
+    ('⌘ F', 'Focus search bar'),
+    ('↑ ↓', 'Navigate issue list'),
+    ('⏎', 'Select issue & start timer'),
+    ('⌘ S', 'Stop timer'),
+    ('⌘ N', 'New manual entry'),
+    ('⌘ M', 'My Issues'),
+    ('⌘ E', "Everyone's Issues"),
+    ('⌘ R', 'Recently Tracked'),
+    ('⌘ ,', 'Settings'),
+    ('⌘ /', 'This cheatsheet'),
+    ('Esc', 'Unfocus'),
+  ];
+
   void _initNotifications() {
     if (_notificationService != null) return;
     _notificationService = NotificationService(ref);
@@ -153,6 +215,9 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
         // Cmd+N for new manual entry
         const SingleActivator(LogicalKeyboardKey.keyN, meta: true):
             const _NewEntryIntent(),
+        // Cmd+/ for shortcut cheatsheet
+        const SingleActivator(LogicalKeyboardKey.slash, meta: true):
+            const _CheatsheetIntent(),
         // Cmd+M for My Issues
         const SingleActivator(LogicalKeyboardKey.keyM, meta: true):
             const _FilterModeIntent(IssueFilterMode.myIssues),
@@ -194,6 +259,12 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
               TrayManager.instance?.updateMenu();
               TrayManager.instance?.updateTitle();
               NotificationService.instance?.onTimerStateChanged();
+              return null;
+            },
+          ),
+          _CheatsheetIntent: CallbackAction<_CheatsheetIntent>(
+            onInvoke: (_) {
+              _showCheatsheet(context, brightness);
               return null;
             },
           ),
@@ -296,6 +367,10 @@ class _StopTimerIntent extends Intent {
 
 class _NewEntryIntent extends Intent {
   const _NewEntryIntent();
+}
+
+class _CheatsheetIntent extends Intent {
+  const _CheatsheetIntent();
 }
 
 class _FilterModeIntent extends Intent {
