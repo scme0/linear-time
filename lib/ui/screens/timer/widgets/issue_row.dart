@@ -188,20 +188,18 @@ class _IssueRowState extends State<IssueRow> {
                     ),
                   ),
                 // Today's tracked time
-                SizedBox(
-                  width: TimeFormat.columnWidth,
-                  child: widget.todaySeconds > 0
-                      ? Text(
-                          Duration(seconds: widget.todaySeconds).formatted(TimeFormat.current),
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textSecondary(brightness),
-                          ),
-                        )
-                      : null,
-                ),
+                if (widget.todaySeconds > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Text(
+                      Duration(seconds: widget.todaySeconds).formatted(TimeFormat.current),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textSecondary(brightness),
+                      ),
+                    ),
+                  ),
                 const SizedBox(width: 8),
                 // Status badge (rightmost fixed column)
                 SizedBox(
