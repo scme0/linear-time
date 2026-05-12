@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart' show MethodChannel, PlatformException, Clipboard, ClipboardData;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:path_provider/path_provider.dart';
@@ -109,6 +110,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   String? _exportResult;
+
+  static const _platform = MethodChannel('com.lineartime/system');
+
+  Future<void> _setLaunchAtLogin(bool enabled) async {
+    try {
+      await _platform.invokeMethod('setLaunchAtLogin', {'enabled': enabled});
+    } on PlatformException {
+      // SMAppService not available on older macOS
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -372,17 +383,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 label: 'Launch at login',
                 control: MacosSwitch(
                   value: settings.launchAtLogin,
-                  onChanged: (v) =>
-                      saveBool(ref, SettingsKeys.launchAtLogin, v),
-                ),
-              ),
-              SettingRow(
-                label: 'Show in Dock',
-                description: 'When off, app only appears in menubar',
-                control: MacosSwitch(
-                  value: settings.showInDock,
-                  onChanged: (v) =>
-                      saveBool(ref, SettingsKeys.showInDock, v),
+                  onChanged: (v) async {
+                    await saveBool(ref, SettingsKeys.launchAtLogin, v);
+                    await _setLaunchAtLogin(v);
+                  },
                 ),
               ),
             ],
@@ -400,7 +404,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     description: snapshot.hasData
                         ? '${snapshot.data!.path}/linear_time.sqlite'
                         : 'Loading...',
-                    control: const SizedBox.shrink(),
+                    control: snapshot.hasData
+                        ? MacosIconButton(
+                            icon: MacosIcon(
+                              CupertinoIcons.doc_on_clipboard,
+                              size: 14,
+                              color: AppColors.textSecondary(
+                                  MacosTheme.of(context).brightness),
+                            ),
+                            onPressed: () {
+                              Clipboard.setData(ClipboardData(
+                                  text:
+                                      '${snapshot.data!.path}/linear_time.sqlite'));
+                            },
+                          )
+                        : const SizedBox.shrink(),
                   );
                 },
               ),
