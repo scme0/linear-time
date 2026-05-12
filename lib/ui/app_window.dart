@@ -35,7 +35,9 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
 
   void _initTray() {
     if (_trayManager != null) return;
-    _trayManager = TrayManager(ref);
+    _trayManager = TrayManager(ref, onNavigate: (tab) {
+      setState(() => _pageIndex = tab);
+    });
     TrayManager.instance = _trayManager;
     _trayManager!.init();
   }

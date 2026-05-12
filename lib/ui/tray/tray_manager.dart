@@ -12,10 +12,13 @@ import '../../services/hotkey_service.dart';
 
 /// Manages the system tray icon and menu.
 class TrayManager {
-  TrayManager(this._ref);
+  TrayManager(this._ref, {this.onNavigate});
 
   /// Global instance for easy access from other widgets.
   static TrayManager? instance;
+
+  /// Callback to navigate to a specific tab (0=Timer, 1=History, 2=Settings).
+  final void Function(int tabIndex)? onNavigate;
 
   final WidgetRef _ref;
   final _systemTray = SystemTray();
@@ -116,7 +119,24 @@ class TrayManager {
     // Navigation
     menuItems.add(MenuItem(
       label: 'Choose Another Issue...',
-      onClicked: () => HotkeyService.bringToFront(),
+      onClicked: () {
+        HotkeyService.bringToFront();
+        onNavigate?.call(0);
+      },
+    ));
+    menuItems.add(MenuItem(
+      label: 'History',
+      onClicked: () {
+        HotkeyService.bringToFront();
+        onNavigate?.call(1);
+      },
+    ));
+    menuItems.add(MenuItem(
+      label: 'Settings',
+      onClicked: () {
+        HotkeyService.bringToFront();
+        onNavigate?.call(2);
+      },
     ));
     menuItems.add(MenuSeparator());
 
