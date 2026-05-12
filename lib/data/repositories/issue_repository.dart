@@ -46,8 +46,9 @@ class IssueRepository {
         excludeStatusTypes: excludeTypes.isEmpty ? null : excludeTypes,
       );
       if (apiIssues.isNotEmpty) {
+        // Don't set isAssigned — preserve existing value for already-assigned issues
         final companions = apiIssues
-            .map((d) => _mapToCompanion(d, isAssigned: false))
+            .map((d) => _mapToCompanion(d, preserveAssigned: true))
             .toList();
         await cachedIssueDao.upsertIssues(companions);
       }
@@ -100,7 +101,7 @@ class IssueRepository {
   Future<void> clearCache() => cachedIssueDao.clearAll();
 
   CachedIssuesCompanion _mapToCompanion(Map<String, dynamic> data,
-      {bool isAssigned = false}) {
+      {bool isAssigned = false, bool preserveAssigned = false}) {
     final team = data['team'] as Map<String, dynamic>?;
     final project = data['project'] as Map<String, dynamic>?;
     final state = data['state'] as Map<String, dynamic>?;
@@ -122,7 +123,7 @@ class IssueRepository {
       assigneeId: Value(assignee?['id'] as String?),
       assigneeName: Value(assignee?['name'] as String?),
       isDeleted: const Value(false),
-      isAssigned: Value(isAssigned),
+      isAssigned: preserveAssigned ? const Value.absent() : Value(isAssigned),
       lastSynced: Value(DateTime.now()),
     );
   }

@@ -70,12 +70,15 @@ class _SearchableDropdownState<T> extends State<SearchableDropdown<T>> {
   void _close() {
     _overlayEntry?.remove();
     _overlayEntry = null;
-    if (mounted) setState(() => _isOpen = false);
+    if (mounted) {
+      setState(() => _isOpen = false);
+    }
   }
 
   @override
   void dispose() {
-    _close();
+    _overlayEntry?.remove();
+    _overlayEntry = null;
     super.dispose();
   }
 
