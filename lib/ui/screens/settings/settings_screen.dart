@@ -4,6 +4,8 @@ import 'package:macos_ui/macos_ui.dart';
 
 import '../../../data/api/linear_api_client.dart';
 import '../../../providers/api_providers.dart';
+import '../../../providers/issue_providers.dart';
+import '../../../providers/repository_providers.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -37,6 +39,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       final viewer = await client.fetchViewer();
       if (viewer != null) {
         await setApiKey(ref, key);
+        // Trigger initial sync after connecting
+        ref.invalidate(issueRepositoryProvider);
+        ref.invalidate(syncIssuesProvider);
         setState(() {
           _testResult = 'Connected as ${viewer['name']} (${viewer['email']})';
         });
@@ -51,6 +56,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _disconnect() async {
+    // Clear cached issues before disconnecting
+    final repo = ref.read(issueRepositoryProvider);
+    await repo?.clearCache();
     await setApiKey(ref, null);
     _apiKeyController.clear();
     setState(() => _testResult = null);

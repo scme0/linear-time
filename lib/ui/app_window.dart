@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
+import '../providers/issue_providers.dart';
 import 'screens/timer/timer_screen.dart';
 import 'screens/history/history_screen.dart';
 import 'screens/settings/settings_screen.dart';
@@ -18,6 +19,9 @@ class _AppWindowState extends ConsumerState<AppWindow> {
 
   @override
   Widget build(BuildContext context) {
+    // Trigger sync on launch (no-op if not connected)
+    ref.watch(syncIssuesProvider);
+
     return MacosWindow(
       sidebar: Sidebar(
         minWidth: 200,
