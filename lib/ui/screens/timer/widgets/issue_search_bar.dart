@@ -1,10 +1,12 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../providers/database_providers.dart';
 import '../timer_screen.dart';
 
-class IssueSearchBar extends StatefulWidget {
+class IssueSearchBar extends ConsumerStatefulWidget {
   const IssueSearchBar({
     super.key,
     required this.filter,
@@ -21,17 +23,26 @@ class IssueSearchBar extends StatefulWidget {
   final ValueNotifier<int>? focusNotifier;
 
   @override
-  State<IssueSearchBar> createState() => _IssueSearchBarState();
+  ConsumerState<IssueSearchBar> createState() => _IssueSearchBarState();
 }
 
-class _IssueSearchBarState extends State<IssueSearchBar> {
+class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
+
+  // Filter dropdown data
+  List<({String id, String name})> _teams = [];
+  List<({String id, String name})> _projects = [];
+  List<({String type, String name})> _statuses = [];
+  String? _selectedTeamId;
+  String? _selectedProjectId;
+  String? _selectedStatusType;
 
   @override
   void initState() {
     super.initState();
     widget.focusNotifier?.addListener(_onFocusRequested);
+    _loadFilterData();
   }
 
   @override
@@ -59,48 +70,142 @@ class _IssueSearchBarState extends State<IssueSearchBar> {
     );
   }
 
+  Future<void> _loadFilterData() async {
+    final dao = ref.read(cachedIssueDaoProvider);
+    final teams = await dao.getDistinctTeams();
+    final projects = await dao.getDistinctProjects();
+    final statuses = await dao.getDistinctStatuses();
+    if (mounted) {
+      setState(() {
+        _teams = teams;
+        _projects = projects;
+        _statuses = statuses;
+      });
+    }
+  }
+
+  void _clearSubFilters() {
+    _selectedTeamId = null;
+    _selectedProjectId = null;
+    _selectedStatusType = null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final brightness = MacosTheme.of(context).brightness;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          // Filter selector
-          MacosPopupButton<IssueFilter>(
-            value: widget.filter,
-            items: IssueFilter.values
-                .map((f) => MacosPopupMenuItem(
-                      value: f,
-                      child: Text(f.label),
-                    ))
-                .toList(),
-            onChanged: (f) {
-              if (f != null) widget.onFilterChanged(f);
-            },
-          ),
-          const SizedBox(width: 12),
-          // Search field
-          Expanded(
-            child: MacosTextField(
-              controller: _searchController,
-              focusNode: _focusNode,
-              placeholder: 'Search issues or paste ID/URL...',
-              placeholderStyle: TextStyle(
-                color: AppColors.textSecondary(brightness),
-                fontSize: 13,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Main filter row
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              // Primary filter
+              MacosPopupButton<IssueFilter>(
+                value: widget.filter.type == 'recentlyTracked'
+                    ? IssueFilter.recentlyTracked
+                    : IssueFilter.myIssues,
+                items: IssueFilter.values
+                    .map((f) => MacosPopupMenuItem(
+                          value: f,
+                          child: Text(f.label),
+                        ))
+                    .toList(),
+                onChanged: (f) {
+                  if (f != null) {
+                    _clearSubFilters();
+                    widget.onFilterChanged(f);
+                  }
+                },
               ),
-              style: TextStyle(
-                color: AppColors.textPrimary(brightness),
-                fontSize: 13,
+              // Sub-filters (only for myIssues)
+              if (widget.filter == IssueFilter.myIssues) ...[
+                if (_teams.length > 1) ...[
+                  const SizedBox(width: 8),
+                  MacosPopupButton<String?>(
+                    value: _selectedTeamId,
+                    items: [
+                      const MacosPopupMenuItem(
+                        value: null,
+                        child: Text('All Teams'),
+                      ),
+                      ..._teams.map((t) => MacosPopupMenuItem(
+                            value: t.id,
+                            child: Text(t.name),
+                          )),
+                    ],
+                    onChanged: (v) {
+                      setState(() => _selectedTeamId = v);
+                      widget.onFilterChanged(IssueFilter.byTeam(v));
+                    },
+                  ),
+                ],
+                if (_projects.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  MacosPopupButton<String?>(
+                    value: _selectedProjectId,
+                    items: [
+                      const MacosPopupMenuItem(
+                        value: null,
+                        child: Text('All Projects'),
+                      ),
+                      ..._projects.map((p) => MacosPopupMenuItem(
+                            value: p.id,
+                            child: Text(p.name),
+                          )),
+                    ],
+                    onChanged: (v) {
+                      setState(() => _selectedProjectId = v);
+                      widget.onFilterChanged(IssueFilter.byProject(v));
+                    },
+                  ),
+                ],
+                if (_statuses.length > 1) ...[
+                  const SizedBox(width: 8),
+                  MacosPopupButton<String?>(
+                    value: _selectedStatusType,
+                    items: [
+                      const MacosPopupMenuItem(
+                        value: null,
+                        child: Text('All Statuses'),
+                      ),
+                      ..._statuses.map((s) => MacosPopupMenuItem(
+                            value: s.type,
+                            child: Text(s.name),
+                          )),
+                    ],
+                    onChanged: (v) {
+                      setState(() => _selectedStatusType = v);
+                      widget.onFilterChanged(IssueFilter.byStatus(v));
+                    },
+                  ),
+                ],
+              ],
+              const SizedBox(width: 12),
+              // Search field
+              Expanded(
+                child: MacosTextField(
+                  controller: _searchController,
+                  focusNode: _focusNode,
+                  placeholder: 'Search issues or paste ID/URL...',
+                  placeholderStyle: TextStyle(
+                    color: AppColors.textSecondary(brightness),
+                    fontSize: 13,
+                  ),
+                  style: TextStyle(
+                    color: AppColors.textPrimary(brightness),
+                    fontSize: 13,
+                  ),
+                  onChanged: (value) => widget.onSearchChanged(value),
+                  onSubmitted: (_) => widget.onSubmitted?.call(),
+                ),
               ),
-              onChanged: (value) => widget.onSearchChanged(value),
-              onSubmitted: (_) => widget.onSubmitted?.call(),
-            ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

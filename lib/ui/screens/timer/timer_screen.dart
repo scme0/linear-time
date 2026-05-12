@@ -126,10 +126,27 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   }
 }
 
-enum IssueFilter {
-  myIssues('My Issues'),
-  recentlyTracked('Recently Tracked');
-
-  const IssueFilter(this.label);
+class IssueFilter {
   final String label;
+  final String type; // 'myIssues', 'recentlyTracked', 'byTeam', 'byProject', 'byStatus'
+  final String? filterId;
+
+  const IssueFilter._(this.label, this.type, [this.filterId]);
+
+  static const myIssues = IssueFilter._('My Issues', 'myIssues');
+  static const recentlyTracked = IssueFilter._('Recently Tracked', 'recentlyTracked');
+  static IssueFilter byTeam(String? teamId) =>
+      IssueFilter._(teamId != null ? 'Team' : 'My Issues', teamId != null ? 'byTeam' : 'myIssues', teamId);
+  static IssueFilter byProject(String? projectId) =>
+      IssueFilter._(projectId != null ? 'Project' : 'My Issues', projectId != null ? 'byProject' : 'myIssues', projectId);
+  static IssueFilter byStatus(String? statusType) =>
+      IssueFilter._(statusType != null ? 'Status' : 'My Issues', statusType != null ? 'byStatus' : 'myIssues', statusType);
+
+  static const values = [myIssues, recentlyTracked];
+
+  @override
+  bool operator ==(Object other) =>
+      other is IssueFilter && other.type == type && other.filterId == filterId;
+  @override
+  int get hashCode => Object.hash(type, filterId);
 }

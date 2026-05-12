@@ -73,10 +73,10 @@ class _IssueListState extends ConsumerState<IssueList> {
 
   @override
   Widget build(BuildContext context) {
-    return switch (widget.filter) {
-      IssueFilter.myIssues => _buildAssignedIssues(),
-      IssueFilter.recentlyTracked => _buildRecentIssues(),
-    };
+    if (widget.filter.type == 'recentlyTracked') {
+      return _buildRecentIssues();
+    }
+    return _buildAssignedIssues();
   }
 
   Widget _buildAssignedIssues() {
@@ -86,10 +86,26 @@ class _IssueListState extends ConsumerState<IssueList> {
       data: (issues) {
         var filtered = issues;
 
+        // Apply sub-filters
+        final filter = widget.filter;
+        if (filter.type == 'byTeam' && filter.filterId != null) {
+          filtered = filtered
+              .where((i) => i.teamId == filter.filterId)
+              .toList();
+        } else if (filter.type == 'byProject' && filter.filterId != null) {
+          filtered = filtered
+              .where((i) => i.projectId == filter.filterId)
+              .toList();
+        } else if (filter.type == 'byStatus' && filter.filterId != null) {
+          filtered = filtered
+              .where((i) => i.statusType == filter.filterId)
+              .toList();
+        }
+
         // Apply search filter
         if (widget.searchQuery.isNotEmpty) {
           final q = widget.searchQuery.toLowerCase();
-          filtered = issues
+          filtered = filtered
               .where((i) =>
                   i.identifier.toLowerCase().contains(q) ||
                   i.title.toLowerCase().contains(q) ||
