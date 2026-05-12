@@ -416,11 +416,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         primaryButton: PushButton(
           controlSize: ControlSize.large,
+          color: AppColors.danger,
           onPressed: () => Navigator.of(context).pop(true),
-          child: const Text(
-            'Clear Data',
-            style: TextStyle(color: AppColors.danger),
-          ),
+          child: const Text('Clear Data'),
         ),
         secondaryButton: PushButton(
           controlSize: ControlSize.large,
