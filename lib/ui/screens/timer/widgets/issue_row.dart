@@ -63,7 +63,7 @@ class _IssueRowState extends ConsumerState<IssueRow> {
             borderRadius: BorderRadius.circular(8),
             border: widget.isActive
                 ? Border.all(
-                    color: AppColors.activeGreen.withValues(alpha: 0.4),
+                    color: AppColors.success.withValues(alpha: 0.4),
                     width: 1,
                   )
                 : null,
@@ -89,7 +89,7 @@ class _IssueRowState extends ConsumerState<IssueRow> {
                     height: 6,
                     margin: const EdgeInsets.only(right: 8),
                     decoration: const BoxDecoration(
-                      color: AppColors.activeGreen,
+                      color: AppColors.success,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -136,14 +136,14 @@ class _IssueRowState extends ConsumerState<IssueRow> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: AppColors.destructiveRed.withValues(alpha: 0.12),
+                      color: AppColors.danger.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
                       'Deleted',
                       style: TextStyle(
                         fontSize: 10,
-                        color: AppColors.destructiveRed,
+                        color: AppColors.danger,
                         fontWeight: FontWeight.w500,
                       ),
                     ),

@@ -185,7 +185,7 @@ class _WeekDayBars extends ConsumerWidget {
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: isToday
-                          ? AppColors.accentBlue
+                          ? AppColors.accent
                           : AppColors.textSecondary(brightness),
                     ),
                   ),
@@ -194,7 +194,7 @@ class _WeekDayBars extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 10,
                       color: isToday
-                          ? AppColors.accentBlue
+                          ? AppColors.accent
                           : AppColors.textTertiary(brightness),
                     ),
                   ),

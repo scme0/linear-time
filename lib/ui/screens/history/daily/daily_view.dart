@@ -9,6 +9,7 @@ import '../../../../data/database/app_database.dart';
 import '../../../../providers/report_providers.dart';
 import '../../../../providers/database_providers.dart';
 import '../../../../core/extensions/duration_extensions.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class DailyView extends ConsumerStatefulWidget {
   const DailyView({super.key, this.initialDate});
@@ -64,6 +65,7 @@ class _DailyViewState extends ConsumerState<DailyView> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = MacosTheme.of(context).brightness;
     final entries = ref.watch(dailyEntriesProvider(_selectedDate));
     final dateLabel = DateFormat('EEEE, MMMM d, yyyy').format(_selectedDate);
     final isToday = _isToday(_selectedDate);
@@ -91,11 +93,11 @@ class _DailyViewState extends ConsumerState<DailyView> {
                     ),
                   ),
                   if (isToday)
-                    const Text(
+                    Text(
                       'Today',
                       style: TextStyle(
                         fontSize: 11,
-                        color: CupertinoColors.activeBlue,
+                        color: AppColors.accent,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -114,10 +116,10 @@ class _DailyViewState extends ConsumerState<DailyView> {
           child: entries.when(
             data: (entryList) {
               if (entryList.isEmpty) {
-                return const Center(
+                return Center(
                   child: Text(
                     'No time tracked on this day',
-                    style: TextStyle(color: CupertinoColors.secondaryLabel),
+                    style: TextStyle(color: AppColors.textSecondary(brightness)),
                   ),
                 );
               }
@@ -204,7 +206,6 @@ class _EntryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final brightness = MacosTheme.of(context).brightness;
-    final isDark = brightness == Brightness.dark;
     final teamColor = _parseTeamColor();
     final timeFormat = DateFormat('HH:mm');
     final isRunning = entry.endTime == null;
@@ -220,11 +221,11 @@ class _EntryCard extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           left: BorderSide(
-            color: teamColor ?? CupertinoColors.systemGrey,
+            color: teamColor ?? AppColors.textTertiary(brightness),
             width: 3,
           ),
           bottom: BorderSide(
-            color: isDark ? const Color(0xFF333333) : const Color(0xFFE0E0E0),
+            color: AppColors.border(brightness),
             width: 0.5,
           ),
         ),
@@ -238,10 +239,10 @@ class _EntryCard extends StatelessWidget {
               isRunning
                   ? '${timeFormat.format(entry.startTime)} – now'
                   : '${timeFormat.format(entry.startTime)} – ${timeFormat.format(entry.endTime!)}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontFeatures: [FontFeature.tabularFigures()],
-                color: CupertinoColors.secondaryLabel,
+                color: AppColors.textSecondary(brightness),
               ),
             ),
           ),
@@ -271,14 +272,14 @@ class _EntryCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
-                color: CupertinoColors.systemOrange.withValues(alpha: 0.15),
+                color: AppColors.warning.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(3),
               ),
               child: const Text(
                 'Manual',
                 style: TextStyle(
                   fontSize: 9,
-                  color: CupertinoColors.systemOrange,
+                  color: AppColors.warning,
                 ),
               ),
             ),
@@ -289,7 +290,7 @@ class _EntryCard extends StatelessWidget {
               height: 6,
               margin: const EdgeInsets.only(right: 8),
               decoration: const BoxDecoration(
-                color: CupertinoColors.activeGreen,
+                color: AppColors.success,
                 shape: BoxShape.circle,
               ),
             ),
@@ -308,7 +309,7 @@ class _EntryCard extends StatelessWidget {
             icon: const MacosIcon(
               CupertinoIcons.trash,
               size: 14,
-              color: CupertinoColors.destructiveRed,
+              color: AppColors.danger,
             ),
             onPressed: onDelete,
           ),

@@ -68,7 +68,7 @@ class ActiveTimerBanner extends StatelessWidget {
             color: AppColors.activeTimerBg(brightness),
             border: Border(
               bottom: BorderSide(
-                color: AppColors.activeGreen.withValues(alpha: 0.3),
+                color: AppColors.success.withValues(alpha: 0.3),
                 width: 1.5,
               ),
             ),
@@ -80,7 +80,7 @@ class ActiveTimerBanner extends StatelessWidget {
                 width: 10,
                 height: 10,
                 decoration: const BoxDecoration(
-                  color: AppColors.activeGreen,
+                  color: AppColors.success,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -170,7 +170,7 @@ class ActiveTimerBanner extends StatelessWidget {
               // Stop button
               PushButton(
                 controlSize: ControlSize.large,
-                color: AppColors.destructiveRed,
+                color: AppColors.danger,
                 onPressed: onStop,
                 child: const Text('Stop'),
               ),

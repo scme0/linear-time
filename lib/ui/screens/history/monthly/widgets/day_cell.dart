@@ -3,6 +3,7 @@ import 'package:macos_ui/macos_ui.dart';
 
 import '../../../../../providers/report_providers.dart';
 import '../../../../../core/extensions/duration_extensions.dart';
+import '../../../../../core/theme/app_theme.dart';
 
 class DayCell extends StatefulWidget {
   const DayCell({
@@ -25,9 +26,9 @@ class DayCell extends StatefulWidget {
 class _DayCellState extends State<DayCell> {
   bool _hovering = false;
 
-  Color _parseHex(String hex) {
+  Color _parseHex(String hex, Brightness brightness) {
     final clean = hex.replaceFirst('#', '');
-    if (clean.length != 6) return CupertinoColors.systemGrey;
+    if (clean.length != 6) return AppColors.textTertiary(brightness);
     return Color(int.parse('FF$clean', radix: 16));
   }
 
@@ -47,7 +48,7 @@ class _DayCellState extends State<DayCell> {
           margin: const EdgeInsets.all(1),
           decoration: BoxDecoration(
             color: _hovering
-                ? (isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF0F0F0))
+                ? AppColors.hover(brightness)
                 : (hasData
                     ? (isDark
                         ? const Color(0xFF1A2A1A)
@@ -56,13 +57,11 @@ class _DayCellState extends State<DayCell> {
             borderRadius: BorderRadius.circular(6),
             border: widget.isToday
                 ? Border.all(
-                    color: CupertinoColors.activeBlue,
+                    color: AppColors.accent,
                     width: 1.5,
                   )
                 : Border.all(
-                    color: isDark
-                        ? const Color(0xFF333333)
-                        : const Color(0xFFE0E0E0),
+                    color: AppColors.border(brightness),
                     width: 0.5,
                   ),
           ),
@@ -82,7 +81,7 @@ class _DayCellState extends State<DayCell> {
                         fontWeight:
                             widget.isToday ? FontWeight.bold : FontWeight.w500,
                         color: widget.isToday
-                            ? CupertinoColors.activeBlue
+                            ? AppColors.accent
                             : null,
                       ),
                     ),
@@ -90,16 +89,16 @@ class _DayCellState extends State<DayCell> {
                       Text(
                         Duration(seconds: widget.data!.totalSeconds)
                             .toHumanReadable(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 9,
-                          color: CupertinoColors.secondaryLabel,
+                          color: AppColors.textSecondary(brightness),
                         ),
                       ),
                   ],
                 ),
                 const Spacer(),
                 // Color stripes per project
-                if (hasData) _buildStripes(),
+                if (hasData) _buildStripes(brightness),
               ],
             ),
           ),
@@ -108,7 +107,7 @@ class _DayCellState extends State<DayCell> {
     );
   }
 
-  Widget _buildStripes() {
+  Widget _buildStripes(Brightness brightness) {
     final data = widget.data!;
     final entries = data.projectSeconds.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
@@ -122,7 +121,7 @@ class _DayCellState extends State<DayCell> {
             final fraction = entry.value / data.totalSeconds;
             final colorHex = data.projectColors[entry.key];
             final color =
-                colorHex != null ? _parseHex(colorHex) : CupertinoColors.systemGrey;
+                colorHex != null ? _parseHex(colorHex, brightness) : AppColors.textTertiary(brightness);
             return Flexible(
               flex: (fraction * 100).round().clamp(1, 100),
               child: Container(color: color),

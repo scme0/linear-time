@@ -87,7 +87,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             Row(
               children: [
                 const Icon(CupertinoIcons.check_mark_circled_solid,
-                    color: AppColors.activeGreen, size: 18),
+                    color: AppColors.success, size: 18),
                 const SizedBox(width: 8),
                 Text(
                   'Connected to Linear',
@@ -143,8 +143,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 _testResult!,
                 style: TextStyle(
                   color: _testResult!.startsWith('Connected')
-                      ? AppColors.activeGreen
-                      : AppColors.destructiveRed,
+                      ? AppColors.success
+                      : AppColors.danger,
                 ),
               ),
             ],

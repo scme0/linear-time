@@ -36,7 +36,7 @@ class _AppWindowState extends ConsumerState<AppWindow> {
               icon: MacosIcon(
                 CupertinoIcons.timer,
                 color: _pageIndex == 0
-                    ? AppColors.accentBlue
+                    ? AppColors.accent
                     : AppColors.textSecondary(brightness),
               ),
               showLabel: true,
@@ -47,7 +47,7 @@ class _AppWindowState extends ConsumerState<AppWindow> {
               icon: MacosIcon(
                 CupertinoIcons.chart_bar_square,
                 color: _pageIndex == 1
-                    ? AppColors.accentBlue
+                    ? AppColors.accent
                     : AppColors.textSecondary(brightness),
               ),
               showLabel: true,
@@ -58,7 +58,7 @@ class _AppWindowState extends ConsumerState<AppWindow> {
               icon: MacosIcon(
                 CupertinoIcons.gear_alt,
                 color: _pageIndex == 2
-                    ? AppColors.accentBlue
+                    ? AppColors.accent
                     : AppColors.textSecondary(brightness),
               ),
               showLabel: true,

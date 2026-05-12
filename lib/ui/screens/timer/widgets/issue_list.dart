@@ -6,6 +6,7 @@ import '../../../../data/database/app_database.dart';
 import '../../../../providers/issue_providers.dart';
 import '../../../../providers/repository_providers.dart';
 import '../timer_screen.dart';
+import '../../../../core/theme/app_theme.dart';
 import 'issue_row.dart';
 
 class IssueList extends ConsumerStatefulWidget {
@@ -156,10 +157,11 @@ class _IssueListState extends ConsumerState<IssueList> {
     return recentAsync.when(
       data: (entries) {
         if (entries.isEmpty) {
-          return const Center(
+          final brightness = MacosTheme.of(context).brightness;
+          return Center(
             child: Text(
               'No recently tracked issues',
-              style: TextStyle(color: CupertinoColors.secondaryLabel),
+              style: TextStyle(color: AppColors.textSecondary(brightness)),
             ),
           );
         }
@@ -196,6 +198,7 @@ class _IssueListState extends ConsumerState<IssueList> {
 
   Widget _buildEmptyState() {
     final isConnected = ref.watch(issueRepositoryProvider) != null;
+    final brightness = MacosTheme.of(context).brightness;
 
     return Center(
       child: Column(
@@ -206,14 +209,14 @@ class _IssueListState extends ConsumerState<IssueList> {
                 ? CupertinoIcons.search
                 : CupertinoIcons.link,
             size: 32,
-            color: CupertinoColors.secondaryLabel,
+            color: AppColors.textSecondary(brightness),
           ),
           const SizedBox(height: 8),
           Text(
             isConnected
                 ? 'No matching issues'
                 : 'Connect to Linear in Settings to see your issues',
-            style: const TextStyle(color: CupertinoColors.secondaryLabel),
+            style: TextStyle(color: AppColors.textSecondary(brightness)),
           ),
         ],
       ),
@@ -247,7 +250,7 @@ class _RecentEntryRow extends StatelessWidget {
               : null,
           border: Border(
             bottom: BorderSide(
-              color: isDark ? const Color(0xFF333333) : const Color(0xFFE0E0E0),
+              color: AppColors.border(brightness),
               width: 0.5,
             ),
           ),
@@ -260,7 +263,7 @@ class _RecentEntryRow extends StatelessWidget {
                 height: 6,
                 margin: const EdgeInsets.only(right: 8),
                 decoration: const BoxDecoration(
-                  color: CupertinoColors.activeGreen,
+                  color: AppColors.success,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -283,9 +286,9 @@ class _RecentEntryRow extends StatelessWidget {
             if (entry.teamName != null)
               Text(
                 entry.teamName!,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: CupertinoColors.secondaryLabel,
+                  color: AppColors.textSecondary(brightness),
                 ),
               ),
           ],

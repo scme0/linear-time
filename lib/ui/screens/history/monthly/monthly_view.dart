@@ -5,6 +5,7 @@ import 'package:macos_ui/macos_ui.dart';
 
 import '../../../../providers/report_providers.dart';
 import '../../../../core/extensions/duration_extensions.dart';
+import '../../../../core/theme/app_theme.dart';
 import 'widgets/day_cell.dart';
 
 class MonthlyView extends ConsumerStatefulWidget {
@@ -40,6 +41,7 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = MacosTheme.of(context).brightness;
     final calendarData = ref.watch(monthlyCalendarDataProvider(_currentMonth));
     final monthLabel = DateFormat('MMMM yyyy').format(_currentMonth);
     return Column(
@@ -79,10 +81,10 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
                       child: Center(
                         child: Text(
                           d,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: CupertinoColors.secondaryLabel,
+                            color: AppColors.textSecondary(brightness),
                           ),
                         ),
                       ),
