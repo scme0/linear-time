@@ -1,0 +1,30 @@
+lib/providers/report_providers.dart
+  s_019582d6a6af2d::t_96e3dbee971524 1-114
+lib/ui/screens/history/history_screen.dart
+  s_019582d6a6af2d::t_53aea2d6ddebbc 19,21-37,41-42,61-65
+  s_019582d6a6af2d::t_2d683c209430c4 2,5-9,12-18,20,38-40,43-45,56-60,66-79
+lib/ui/screens/history/monthly/widgets/day_cell.dart
+  s_019582d6a6af2d::t_99ecfd037e15e3 1-135
+lib/ui/screens/history/weekly/weekly_view.dart
+  s_019582d6a6af2d::t_9eea781ac9b430 1-220
+lib/ui/screens/history/monthly/monthly_view.dart
+  s_019582d6a6af2d::t_2e19341701b170 1-174
+lib/ui/screens/history/daily/daily_view.dart
+  s_019582d6a6af2d::t_8e29f8372c15f2 1-319
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "a1abfadd5141fa49f69633add89491b9b1d8f891",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
