@@ -1,0 +1,23 @@
+lib/data/api/linear_api_client.dart
+  s_019582d6a6af2d::t_04d275b8d5f827 157,161
+  s_019582d6a6af2d::t_051e030133d0e7 171
+lib/services/notification_service.dart
+  s_019582d6a6af2d::t_9a3612b4bf004a 34,36
+  s_019582d6a6af2d::t_a3835476c4b2e1 58,60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "00e848a5554dab307aa200c212e44a0e94603258",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
