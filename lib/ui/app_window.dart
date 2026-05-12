@@ -28,6 +28,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
   bool _hotkeyInitialized = false;
   final _searchFocusNotifier = ValueNotifier<int>(0);
   final _hotkeyFilterNotifier = ValueNotifier<String?>('myIssues');
+  final _filterModeNotifier = ValueNotifier<IssueFilterMode?>(null);
   TrayManager? _trayManager;
   NotificationService? _notificationService;
 
@@ -152,6 +153,15 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
         // Cmd+N for new manual entry
         const SingleActivator(LogicalKeyboardKey.keyN, meta: true):
             const _NewEntryIntent(),
+        // Cmd+M for My Issues
+        const SingleActivator(LogicalKeyboardKey.keyM, meta: true):
+            const _FilterModeIntent(IssueFilterMode.myIssues),
+        // Cmd+E for All Issues (Everything)
+        const SingleActivator(LogicalKeyboardKey.keyE, meta: true):
+            const _FilterModeIntent(IssueFilterMode.allIssues),
+        // Cmd+R for Recently Tracked
+        const SingleActivator(LogicalKeyboardKey.keyR, meta: true):
+            const _FilterModeIntent(IssueFilterMode.recentlyTracked),
       },
       child: Actions(
         actions: {
@@ -184,6 +194,13 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
               TrayManager.instance?.updateMenu();
               TrayManager.instance?.updateTitle();
               NotificationService.instance?.onTimerStateChanged();
+              return null;
+            },
+          ),
+          _FilterModeIntent: CallbackAction<_FilterModeIntent>(
+            onInvoke: (intent) {
+              setState(() => _pageIndex = 0);
+              _filterModeNotifier.value = intent.mode;
               return null;
             },
           ),
@@ -243,6 +260,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
                 TimerScreen(
                   searchFocusNotifier: _searchFocusNotifier,
                   hotkeyFilterNotifier: _hotkeyFilterNotifier,
+                  filterModeNotifier: _filterModeNotifier,
                 ),
                 const HistoryScreen(),
                 const SettingsScreen(),
@@ -278,6 +296,11 @@ class _StopTimerIntent extends Intent {
 
 class _NewEntryIntent extends Intent {
   const _NewEntryIntent();
+}
+
+class _FilterModeIntent extends Intent {
+  const _FilterModeIntent(this.mode);
+  final IssueFilterMode mode;
 }
 
 class _TabButton extends StatefulWidget {

@@ -20,10 +20,12 @@ class TimerScreen extends ConsumerStatefulWidget {
     super.key,
     this.searchFocusNotifier,
     this.hotkeyFilterNotifier,
+    this.filterModeNotifier,
   });
 
   final ValueNotifier<int>? searchFocusNotifier;
   final ValueNotifier<String?>? hotkeyFilterNotifier;
+  final ValueNotifier<IssueFilterMode?>? filterModeNotifier;
 
   @override
   ConsumerState<TimerScreen> createState() => _TimerScreenState();
@@ -39,12 +41,25 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   void initState() {
     super.initState();
     widget.hotkeyFilterNotifier?.addListener(_onHotkeyFilter);
+    widget.filterModeNotifier?.addListener(_onFilterModeChanged);
   }
 
   @override
   void dispose() {
     widget.hotkeyFilterNotifier?.removeListener(_onHotkeyFilter);
+    widget.filterModeNotifier?.removeListener(_onFilterModeChanged);
     super.dispose();
+  }
+
+  void _onFilterModeChanged() {
+    final mode = widget.filterModeNotifier?.value;
+    if (mode != null) {
+      setState(() {
+        _mode = mode;
+        _subFilters = const SubFilters();
+        _selectedIndex = 0;
+      });
+    }
   }
 
   void _onHotkeyFilter() {
