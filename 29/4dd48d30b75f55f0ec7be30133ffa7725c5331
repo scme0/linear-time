@@ -1,0 +1,27 @@
+lib/ui/screens/timer/widgets/issue_search_bar.dart
+  s_019582d6a6af2d::t_8a5c8b68961bc1 107-109
+  s_019582d6a6af2d::t_b54284ac4509a6 2,6,9,26,29,33-40,45,73-92,97-106,110-121,123-203,205,207-208
+lib/data/database/daos/cached_issue_dao.dart
+  s_019582d6a6af2d::t_d310a40377ce49 105-158
+lib/ui/screens/timer/timer_screen.dart
+  s_019582d6a6af2d::t_4e992c8604bb7f 129,131-151
+lib/ui/screens/timer/widgets/issue_list.dart
+  s_019582d6a6af2d::t_317ad5dd4adfaf 76-79
+  s_019582d6a6af2d::t_d34b2316647443 89-104,108
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "294dd48d30b75f55f0ec7be30133ffa7725c5331",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
