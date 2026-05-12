@@ -1,0 +1,33 @@
+lib/ui/screens/history/weekly/weekly_view.dart
+  s_019582d6a6af2d::t_4ea7d18f5a112b 505-512
+  s_019582d6a6af2d::t_2e18cb83fbc7f7 463
+  s_019582d6a6af2d::t_163a92c3aff40d 484-494,521-522
+  s_019582d6a6af2d::t_a0acff91dc4d1a 571-572,581-583,585-590
+  s_019582d6a6af2d::t_bc5024a1aec1f1 357-358
+  s_019582d6a6af2d::t_54f162070ef202 655,658
+  s_019582d6a6af2d::t_cbd5cf6766c04a 54,60-63
+  s_019582d6a6af2d::t_69378b593919b7 359
+  s_019582d6a6af2d::t_5e35f75417e9d9 244-245
+  s_019582d6a6af2d::t_d79df7f53698db 443,452-453
+lib/ui/screens/history/daily/widgets/time_entry_dialog.dart
+  s_019582d6a6af2d::t_22133bcdded6b4 62-68
+  s_019582d6a6af2d::t_b0021afee2ec6a 20-22,29-31
+  s_019582d6a6af2d::t_71e579a42a9335 262-278
+  s_019582d6a6af2d::t_3776c5ab38ed0b 89-95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "a8d2de14d7b0126b334f9c93b43bb7c40b68b3b3",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
