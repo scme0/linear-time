@@ -1,0 +1,26 @@
+lib/ui/app_window.dart
+  s_019582d6a6af2d::t_03c0e0620efadf 126
+  s_019582d6a6af2d::t_92d1de23334b1c 62,64-66
+macos/Runner.xcodeproj/project.pbxproj
+  s_019582d6a6af2d::t_ddb432e59607cd 563,647,697
+macos/Runner/OverlayWindow.swift
+  s_019582d6a6af2d::t_523199fa1ba452 105-109
+macos/Podfile
+  s_019582d6a6af2d::t_2662977b794081 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "04188c50069214c8cd72f2c46934f97af3e16400",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
