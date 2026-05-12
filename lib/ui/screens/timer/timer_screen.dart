@@ -1,17 +1,52 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart' show Divider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
 import '../../../providers/timer_providers.dart';
-import '../../../core/extensions/duration_extensions.dart';
+import '../../../providers/issue_providers.dart';
+import '../../../providers/repository_providers.dart';
+import '../../../data/database/app_database.dart';
+import 'widgets/active_timer_banner.dart';
+import 'widgets/issue_list.dart';
+import 'widgets/issue_search_bar.dart';
 
-class TimerScreen extends ConsumerWidget {
+class TimerScreen extends ConsumerStatefulWidget {
   const TimerScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TimerScreen> createState() => _TimerScreenState();
+}
+
+class _TimerScreenState extends ConsumerState<TimerScreen> {
+  String _searchQuery = '';
+  IssueFilter _filter = IssueFilter.myIssues;
+
+  void _onIssueSelected(CachedIssue issue) {
+    if (issue.isDeleted) return;
+    final repo = ref.read(timeTrackingRepositoryProvider);
+    repo.startTimer(
+      issueId: issue.issueId,
+      issueIdentifier: issue.identifier,
+      issueTitle: issue.title,
+      teamName: issue.teamName,
+      projectName: issue.projectName,
+      teamColor: issue.teamColor,
+    );
+    ref.invalidate(recentTrackedIssuesProvider);
+  }
+
+  void _onStopTimer() {
+    final repo = ref.read(timeTrackingRepositoryProvider);
+    repo.stopTimer();
+    ref.invalidate(recentTrackedIssuesProvider);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final activeTimer = ref.watch(activeTimerProvider);
     final elapsed = ref.watch(timerTickProvider);
+    final todayTotal = ref.watch(todayTotalForActiveIssueProvider);
 
     return MacosScaffold(
       toolBar: ToolBar(
@@ -21,64 +56,45 @@ class TimerScreen extends ConsumerWidget {
       children: [
         ContentArea(
           builder: (context, scrollController) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  activeTimer.when(
-                    data: (entry) {
-                      if (entry == null) {
-                        return const Text(
-                          'No active timer',
-                          style: TextStyle(fontSize: 24),
-                        );
-                      }
-                      return Column(
-                        children: [
-                          Text(
-                            entry.issueIdentifier,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            entry.issueTitle,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                          const SizedBox(height: 16),
-                          elapsed.when(
-                            data: (d) => Text(
-                              d.toHms(),
-                              style: const TextStyle(
-                                fontSize: 48,
-                                fontWeight: FontWeight.w200,
-                                fontFeatures: [FontFeature.tabularFigures()],
-                              ),
-                            ),
-                            loading: () => const Text('00:00:00',
-                                style: TextStyle(fontSize: 48)),
-                            error: (_, __) => const Text('--:--:--'),
-                          ),
-                        ],
-                      );
-                    },
-                    loading: () => const ProgressCircle(),
-                    error: (e, _) => Text('Error: $e'),
+            return Column(
+              children: [
+                // Active timer banner
+                ActiveTimerBanner(
+                  activeTimer: activeTimer,
+                  elapsed: elapsed,
+                  todayTotal: todayTotal,
+                  onStop: _onStopTimer,
+                ),
+                const Divider(height: 1),
+                // Search and filter bar
+                IssueSearchBar(
+                  filter: _filter,
+                  onFilterChanged: (f) => setState(() => _filter = f),
+                  onSearchChanged: (q) => setState(() => _searchQuery = q),
+                ),
+                const Divider(height: 1),
+                // Issue list
+                Expanded(
+                  child: IssueList(
+                    searchQuery: _searchQuery,
+                    filter: _filter,
+                    activeIssueId: activeTimer.valueOrNull?.issueId,
+                    onIssueSelected: _onIssueSelected,
                   ),
-                  const SizedBox(height: 32),
-                  const Text(
-                    'Select an issue below to start tracking',
-                    style: TextStyle(color: CupertinoColors.secondaryLabel),
-                  ),
-                  // TODO: Issue picker widget
-                ],
-              ),
+                ),
+              ],
             );
           },
         ),
       ],
     );
   }
+}
+
+enum IssueFilter {
+  myIssues('My Issues'),
+  recentlyTracked('Recently Tracked');
+
+  const IssueFilter(this.label);
+  final String label;
 }
