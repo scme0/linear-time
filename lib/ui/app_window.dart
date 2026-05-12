@@ -110,13 +110,25 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
                   children: [
                     SizedBox(
                       width: 80,
-                      child: Text(
-                        entry.$1,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: 'Menlo',
-                          color: AppColors.textPrimary(brightness),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface2(brightness),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: AppColors.border(brightness),
+                            width: 0.5,
+                          ),
+                        ),
+                        child: Text(
+                          entry.$1,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Menlo',
+                            color: AppColors.textPrimary(brightness),
+                          ),
                         ),
                       ),
                     ),
