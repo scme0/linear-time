@@ -7,6 +7,7 @@ import 'package:macos_ui/macos_ui.dart';
 
 import '../../../../data/database/app_database.dart';
 import '../../../../providers/report_providers.dart';
+import '../../../../providers/settings_providers.dart';
 import '../../../../core/extensions/date_time_extensions.dart';
 import '../../../../core/extensions/duration_extensions.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -28,25 +29,24 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
   }
 
   void _previousWeek() {
-    setState(() {
-      _weekStart = _weekStart.subtract(const Duration(days: 7));
-    });
+    setState(() => _weekStart = _weekStart.subtract(const Duration(days: 7)));
   }
 
   void _nextWeek() {
-    setState(() {
-      _weekStart = _weekStart.add(const Duration(days: 7));
-    });
+    setState(() => _weekStart = _weekStart.add(const Duration(days: 7)));
   }
 
   @override
   Widget build(BuildContext context) {
     final summary = ref.watch(weeklySummaryProvider(_weekStart));
+    final settingsAsync = ref.watch(appSettingsProvider);
     final weekEnd = _weekStart.add(const Duration(days: 6));
     final dateFormat = DateFormat('MMM d');
     final weekLabel =
         '${dateFormat.format(_weekStart)} – ${dateFormat.format(weekEnd)}, ${weekEnd.year}';
     final brightness = MacosTheme.of(context).brightness;
+
+    final settings = settingsAsync.valueOrNull ?? const AppSettings();
 
     return Column(
       children: [
@@ -77,67 +77,85 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
             ],
           ),
         ),
-        // Day bars with issue stripes
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: _WeekDayBars(weekStart: _weekStart),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          height: 1,
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          color: AppColors.border(brightness),
-        ),
-        // Issue breakdown list
+        // Timeline
         Expanded(
-          child: summary.when(
-            data: (data) {
-              if (data.issues.isEmpty) {
-                return Center(
-                  child: Text(
-                    'No time tracked this week',
-                    style: TextStyle(
-                        color: AppColors.textSecondary(brightness)),
-                  ),
-                );
-              }
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: data.issues.length,
-                itemBuilder: (context, index) {
-                  final issue = data.issues[index];
-                  return _IssueRow(
-                      issue: issue, brightness: brightness);
-                },
-              );
-            },
-            loading: () => const Center(child: ProgressCircle()),
-            error: (e, _) => Center(child: Text('Error: $e')),
+          child: _WeekTimeline(
+            weekStart: _weekStart,
+            settings: settings,
+            brightness: brightness,
           ),
         ),
-        // Grand total
+        // Issue legend + grand total
         summary.when(
           data: (data) {
-            if (data.grandTotalSeconds == 0) return const SizedBox.shrink();
+            if (data.issues.isEmpty) return const SizedBox.shrink();
             return Container(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(
+                      color: AppColors.border(brightness), width: 0.5),
+                ),
+              ),
+              child: Column(
                 children: [
-                  Text(
-                    'Week total: ',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary(brightness),
+                  // Issue legend
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Wrap(
+                      spacing: 16,
+                      runSpacing: 4,
+                      children: data.issues.map((issue) {
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color:
+                                    AppColors.colorForIssue(issue.issueId),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${issue.identifier} ${Duration(seconds: issue.totalSeconds).toHumanReadable()}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary(brightness),
+                              ),
+                            ),
+                          ],
+                        );
+                      }).toList(),
                     ),
                   ),
-                  Text(
-                    Duration(seconds: data.grandTotalSeconds).toHumanReadable(),
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary(brightness),
+                  // Grand total
+                  Padding(
+                    padding: const EdgeInsets.only(
+                        left: 16, right: 16, bottom: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Week total: ',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary(brightness),
+                          ),
+                        ),
+                        Text(
+                          Duration(seconds: data.grandTotalSeconds)
+                              .toHumanReadable(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary(brightness),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -152,202 +170,313 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
   }
 }
 
-/// Shows 7 day bars (Mon-Sun) with colored stripes per issue.
-class _WeekDayBars extends ConsumerWidget {
-  const _WeekDayBars({required this.weekStart});
+/// The main timeline widget showing day columns with hour lines and entry blocks.
+class _WeekTimeline extends ConsumerWidget {
+  const _WeekTimeline({
+    required this.weekStart,
+    required this.settings,
+    required this.brightness,
+  });
 
   final DateTime weekStart;
+  final AppSettings settings;
+  final Brightness brightness;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final brightness = MacosTheme.of(context).brightness;
+    // Load all 7 days of entries
+    final allDayEntries = <int, List<TimeEntry>>{};
+    for (var i = 0; i < 7; i++) {
+      final day = weekStart.add(Duration(days: i));
+      final entriesAsync = ref.watch(dailyEntriesProvider(day));
+      allDayEntries[i] = entriesAsync.valueOrNull ?? [];
+    }
+
+    // Determine which days to show:
+    // - Office days from settings
+    // - Any day that has entries this week
+    final officeDays = settings.officeDays; // 1=Mon, 7=Sun
+    final visibleDays = <int>[]; // 0-indexed (0=Mon)
+    for (var i = 0; i < 7; i++) {
+      final dayNum = i + 1; // 1=Mon
+      final hasEntries = allDayEntries[i]?.isNotEmpty ?? false;
+      if (officeDays.contains(dayNum) || hasEntries) {
+        visibleDays.add(i);
+      }
+    }
+    if (visibleDays.isEmpty) {
+      visibleDays.addAll([0, 1, 2, 3, 4]); // default Mon-Fri
+    }
+
+    // Determine hour range: default office hours, expand if entries go outside
+    var minHour = settings.officeStartHour;
+    var maxHour = settings.officeEndHour;
+    for (final i in visibleDays) {
+      for (final entry in allDayEntries[i] ?? <TimeEntry>[]) {
+        final startH = entry.startTime.hour;
+        final endH = entry.endTime != null
+            ? (entry.endTime!.minute > 0
+                ? entry.endTime!.hour + 1
+                : entry.endTime!.hour)
+            : DateTime.now().hour + 1;
+        if (startH < minHour) minHour = startH;
+        if (endH > maxHour) maxHour = endH;
+      }
+    }
+    // Clamp
+    minHour = minHour.clamp(0, 23);
+    maxHour = maxHour.clamp(minHour + 1, 24);
+
+    final totalHours = maxHour - minHour;
     final dayFormat = DateFormat('E');
     final dayNumFormat = DateFormat('d');
 
-    return SizedBox(
-      height: 80,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: List.generate(7, (i) {
-          final day = weekStart.add(Duration(days: i));
-          final entries = ref.watch(dailyEntriesProvider(day));
-          final isToday = day.isSameDay(DateTime.now());
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Hour labels column
+          SizedBox(
+            width: 40,
+            child: _HourLabels(
+              minHour: minHour,
+              totalHours: totalHours,
+              brightness: brightness,
+            ),
+          ),
+          // Day columns
+          ...visibleDays.map((i) {
+            final day = weekStart.add(Duration(days: i));
+            final entries = allDayEntries[i] ?? [];
+            final isToday = day.isSameDay(DateTime.now());
 
-          return Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: Column(
-                children: [
-                  // Day label
-                  Text(
-                    dayFormat.format(day),
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: isToday
-                          ? AppColors.accent
-                          : AppColors.textSecondary(brightness),
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: Column(
+                  children: [
+                    // Day header
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Column(
+                        children: [
+                          Text(
+                            dayFormat.format(day),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isToday
+                                  ? AppColors.accent
+                                  : AppColors.textSecondary(brightness),
+                            ),
+                          ),
+                          Text(
+                            dayNumFormat.format(day),
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isToday
+                                  ? AppColors.accent
+                                  : AppColors.textTertiary(brightness),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Text(
-                    dayNumFormat.format(day),
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: isToday
-                          ? AppColors.accent
-                          : AppColors.textTertiary(brightness),
+                    // Timeline column
+                    Expanded(
+                      child: _DayColumn(
+                        entries: entries,
+                        minHour: minHour,
+                        maxHour: maxHour,
+                        isToday: isToday,
+                        brightness: brightness,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  // Stripe bar
-                  Expanded(
-                    child: entries.when(
-                      data: (entryList) =>
-                          _buildDayBar(entryList, brightness),
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, _) => const SizedBox.shrink(),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          );
-        }),
-      ),
-    );
-  }
-
-  Widget _buildDayBar(
-      List<TimeEntry> entries, Brightness brightness) {
-    if (entries.isEmpty) {
-      return Container(
-        decoration: BoxDecoration(
-          color: AppColors.border(brightness),
-          borderRadius: BorderRadius.circular(4),
-        ),
-      );
-    }
-
-    // Group by issue and compute seconds
-    final issueSeconds = <String, int>{};
-    final issueIds = <String>[];
-    int totalSeconds = 0;
-
-    for (final entry in entries) {
-      if (entry.endTime == null) continue;
-      final seconds = entry.durationSeconds ??
-          entry.endTime!.difference(entry.startTime).inSeconds;
-      totalSeconds += seconds;
-      if (!issueSeconds.containsKey(entry.issueId)) {
-        issueIds.add(entry.issueId);
-      }
-      issueSeconds[entry.issueId] =
-          (issueSeconds[entry.issueId] ?? 0) + seconds;
-    }
-
-    if (totalSeconds == 0) {
-      return Container(
-        decoration: BoxDecoration(
-          color: AppColors.border(brightness),
-          borderRadius: BorderRadius.circular(4),
-        ),
-      );
-    }
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(4),
-      child: Column(
-        children: issueIds.map((id) {
-          final seconds = issueSeconds[id]!;
-          final fraction = seconds / totalSeconds;
-          return Flexible(
-            flex: (fraction * 100).round().clamp(1, 100),
-            child: Container(
-              width: double.infinity,
-              color: AppColors.colorForIssue(id),
-            ),
-          );
-        }).toList(),
+            );
+          }),
+        ],
       ),
     );
   }
 }
 
-class _IssueRow extends StatelessWidget {
-  const _IssueRow({required this.issue, required this.brightness});
+/// Hour labels on the left side.
+class _HourLabels extends StatelessWidget {
+  const _HourLabels({
+    required this.minHour,
+    required this.totalHours,
+    required this.brightness,
+  });
 
-  final IssueSummary issue;
+  final int minHour;
+  final int totalHours;
   final Brightness brightness;
 
   @override
   Widget build(BuildContext context) {
-    final issueColor = AppColors.colorForIssue(issue.issueId);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Account for the day header space at top
+        const headerHeight = 34.0;
+        final timelineHeight = constraints.maxHeight - headerHeight;
+        final hourHeight = timelineHeight / totalHours;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-      margin: const EdgeInsets.symmetric(vertical: 2),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          // Issue color dot (matches bar color)
-          Container(
-            width: 10,
-            height: 10,
-            margin: const EdgeInsets.only(right: 10),
-            decoration: BoxDecoration(
-              color: issueColor,
-              shape: BoxShape.circle,
-            ),
-          ),
-          // Identifier
-          SizedBox(
-            width: 80,
-            child: Text(
-              issue.identifier,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-                color: AppColors.textPrimary(brightness),
+        return Column(
+          children: [
+            const SizedBox(height: headerHeight),
+            Expanded(
+              child: Stack(
+                children: List.generate(totalHours + 1, (i) {
+                  final hour = minHour + i;
+                  if (hour > 23) return const SizedBox.shrink();
+                  return Positioned(
+                    top: i * hourHeight - 6,
+                    left: 0,
+                    right: 4,
+                    child: Text(
+                      '${hour.toString().padLeft(2, '0')}:00',
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                        fontSize: 9,
+                        color: AppColors.textTertiary(brightness),
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  );
+                }),
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          // Title
-          Expanded(
-            child: Text(
-              issue.title,
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.textPrimary(brightness),
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// A single day column with hour grid lines and entry blocks.
+class _DayColumn extends StatelessWidget {
+  const _DayColumn({
+    required this.entries,
+    required this.minHour,
+    required this.maxHour,
+    required this.isToday,
+    required this.brightness,
+  });
+
+  final List<TimeEntry> entries;
+  final int minHour;
+  final int maxHour;
+  final bool isToday;
+  final Brightness brightness;
+
+  @override
+  Widget build(BuildContext context) {
+    final totalMinutes = (maxHour - minHour) * 60;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final height = constraints.maxHeight;
+
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface(brightness),
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+              color: isToday
+                  ? AppColors.accent.withValues(alpha: 0.4)
+                  : AppColors.border(brightness),
+              width: isToday ? 1.0 : 0.5,
             ),
           ),
-          const SizedBox(width: 8),
-          // Entry count
-          Text(
-            '${issue.entryCount} ${issue.entryCount == 1 ? 'entry' : 'entries'}',
-            style: TextStyle(
-              fontSize: 11,
-              color: AppColors.textSecondary(brightness),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(3.5),
+            child: Stack(
+              children: [
+                // Hour grid lines
+                ...List.generate(maxHour - minHour - 1, (i) {
+                  final y = (i + 1) / (maxHour - minHour) * height;
+                  return Positioned(
+                    top: y,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      height: 0.5,
+                      color: AppColors.border(brightness)
+                          .withValues(alpha: 0.5),
+                    ),
+                  );
+                }),
+                // Entry blocks
+                ...entries.where((e) => e.endTime != null).map((entry) {
+                  final startMin = entry.startTime.hour * 60 +
+                      entry.startTime.minute -
+                      minHour * 60;
+                  final endMin = entry.endTime!.hour * 60 +
+                      entry.endTime!.minute -
+                      minHour * 60;
+
+                  final top = (startMin / totalMinutes * height)
+                      .clamp(0.0, height);
+                  final bottom = (endMin / totalMinutes * height)
+                      .clamp(0.0, height);
+                  final blockHeight = (bottom - top).clamp(2.0, height);
+
+                  return Positioned(
+                    top: top,
+                    left: 1,
+                    right: 1,
+                    height: blockHeight,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.colorForIssue(entry.issueId)
+                            .withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  );
+                }),
+                // Currently running entry
+                ...entries.where((e) => e.endTime == null).map((entry) {
+                  final startMin = entry.startTime.hour * 60 +
+                      entry.startTime.minute -
+                      minHour * 60;
+                  final now = DateTime.now();
+                  final endMin =
+                      now.hour * 60 + now.minute - minHour * 60;
+
+                  final top = (startMin / totalMinutes * height)
+                      .clamp(0.0, height);
+                  final bottom = (endMin / totalMinutes * height)
+                      .clamp(0.0, height);
+                  final blockHeight = (bottom - top).clamp(2.0, height);
+
+                  return Positioned(
+                    top: top,
+                    left: 1,
+                    right: 1,
+                    height: blockHeight,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.colorForIssue(entry.issueId)
+                            .withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(2),
+                        border: Border.all(
+                          color: AppColors.colorForIssue(entry.issueId),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ],
             ),
           ),
-          const SizedBox(width: 16),
-          // Duration
-          Text(
-            Duration(seconds: issue.totalSeconds).toHumanReadable(),
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary(brightness),
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
