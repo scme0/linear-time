@@ -27,7 +27,7 @@ class _AppWindowState extends ConsumerState<AppWindow> {
 
     return MacosWindow(
       titleBar: TitleBar(
-        height: 36,
+        height: 52,
         centerTitle: true,
         title: Row(
           mainAxisSize: MainAxisSize.min,
