@@ -251,7 +251,7 @@ class _WeekTimeline extends ConsumerWidget {
     final dayNumFormat = DateFormat('d');
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
