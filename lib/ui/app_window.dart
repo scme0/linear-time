@@ -13,6 +13,7 @@ import '../services/notification_service.dart';
 import 'tray/tray_manager.dart';
 import 'screens/timer/timer_screen.dart';
 import 'screens/history/history_screen.dart';
+import 'screens/history/daily/widgets/time_entry_dialog.dart';
 import 'screens/settings/settings_screen.dart';
 
 class AppWindow extends ConsumerStatefulWidget {
@@ -148,6 +149,9 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
         // Cmd+S to stop timer
         const SingleActivator(LogicalKeyboardKey.keyS, meta: true):
             const _StopTimerIntent(),
+        // Cmd+N for new manual entry
+        const SingleActivator(LogicalKeyboardKey.keyN, meta: true):
+            const _NewEntryIntent(),
       },
       child: Actions(
         actions: {
@@ -180,6 +184,17 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
               TrayManager.instance?.updateMenu();
               TrayManager.instance?.updateTitle();
               NotificationService.instance?.onTimerStateChanged();
+              return null;
+            },
+          ),
+          _NewEntryIntent: CallbackAction<_NewEntryIntent>(
+            onInvoke: (_) {
+              final now = DateTime.now();
+              final today = DateTime(now.year, now.month, now.day);
+              showMacosAlertDialog<bool>(
+                context: context,
+                builder: (ctx) => TimeEntryDialog(date: today),
+              );
               return null;
             },
           ),
@@ -259,6 +274,10 @@ class _EscapeIntent extends Intent {
 
 class _StopTimerIntent extends Intent {
   const _StopTimerIntent();
+}
+
+class _NewEntryIntent extends Intent {
+  const _NewEntryIntent();
 }
 
 class _TabButton extends StatefulWidget {

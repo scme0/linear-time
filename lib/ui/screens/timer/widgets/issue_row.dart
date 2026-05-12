@@ -14,10 +14,12 @@ class IssueRow extends StatefulWidget {
     required this.onTap,
     this.onAddTime,
     this.todaySeconds = 0,
+    this.isKeyboardSelected = false,
   });
 
   final CachedIssue issue;
   final bool isActive;
+  final bool isKeyboardSelected;
   final VoidCallback onTap;
   final VoidCallback? onAddTime;
   final int todaySeconds;
@@ -49,7 +51,7 @@ class _IssueRowState extends State<IssueRow> {
           decoration: BoxDecoration(
             color: widget.isActive
                 ? AppColors.activeTimerBg(brightness)
-                : _hovering
+                : (_hovering || widget.isKeyboardSelected)
                     ? AppColors.hover(brightness)
                     : null,
             borderRadius: BorderRadius.circular(8),
@@ -58,7 +60,12 @@ class _IssueRowState extends State<IssueRow> {
                     color: AppColors.success.withValues(alpha: 0.4),
                     width: 1,
                   )
-                : null,
+                : widget.isKeyboardSelected
+                    ? Border.all(
+                        color: AppColors.accent.withValues(alpha: 0.4),
+                        width: 1,
+                      )
+                    : null,
           ),
           child: Opacity(
             opacity: isDeleted ? 0.5 : 1.0,

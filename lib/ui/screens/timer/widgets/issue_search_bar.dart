@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart' show KeyDownEvent, LogicalKeyboardKey;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
@@ -16,6 +17,8 @@ class IssueSearchBar extends ConsumerStatefulWidget {
     required this.onSubFiltersChanged,
     required this.onSearchChanged,
     this.onSubmitted,
+    this.onArrowDown,
+    this.onArrowUp,
     this.focusNotifier,
   });
 
@@ -25,6 +28,8 @@ class IssueSearchBar extends ConsumerStatefulWidget {
   final ValueChanged<SubFilters> onSubFiltersChanged;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback? onSubmitted;
+  final VoidCallback? onArrowDown;
+  final VoidCallback? onArrowUp;
   final ValueNotifier<int>? focusNotifier;
 
   @override
@@ -148,20 +153,32 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Search bar
-          MacosTextField(
-            controller: _searchController,
-            focusNode: _focusNode,
-            placeholder: 'Search issues or paste ID/URL...',
-            placeholderStyle: TextStyle(
-              color: AppColors.textSecondary(brightness),
-              fontSize: 13,
+          KeyboardListener(
+            focusNode: FocusNode(),
+            onKeyEvent: (event) {
+              if (event is KeyDownEvent) {
+                if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                  widget.onArrowDown?.call();
+                } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                  widget.onArrowUp?.call();
+                }
+              }
+            },
+            child: MacosTextField(
+              controller: _searchController,
+              focusNode: _focusNode,
+              placeholder: 'Search issues or paste ID/URL...',
+              placeholderStyle: TextStyle(
+                color: AppColors.textSecondary(brightness),
+                fontSize: 13,
+              ),
+              style: TextStyle(
+                color: AppColors.textPrimary(brightness),
+                fontSize: 13,
+              ),
+              onChanged: (value) => widget.onSearchChanged(value),
+              onSubmitted: (_) => widget.onSubmitted?.call(),
             ),
-            style: TextStyle(
-              color: AppColors.textPrimary(brightness),
-              fontSize: 13,
-            ),
-            onChanged: (value) => widget.onSearchChanged(value),
-            onSubmitted: (_) => widget.onSubmitted?.call(),
           ),
           const SizedBox(height: 6),
           // Filter row

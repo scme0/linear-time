@@ -33,6 +33,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   String _searchQuery = '';
   IssueFilterMode _mode = IssueFilterMode.myIssues;
   SubFilters _subFilters = const SubFilters();
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -81,19 +82,41 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   }
 
   void _onSearchSubmitted() {
-    final issues = ref.read(assignedIssuesProvider).valueOrNull ?? [];
+    // The IssueList filters and renders the list — we need the same
+    // filtered list here. Use the same logic to get it.
+    final isAllIssues = _mode == IssueFilterMode.allIssues;
+    var issues = isAllIssues
+        ? ref.read(allCachedIssuesProvider).valueOrNull ?? []
+        : ref.read(assignedIssuesProvider).valueOrNull ?? [];
+
+    // Apply sub-filters
+    if (_subFilters.teamId != null) {
+      issues = issues.where((i) => i.teamId == _subFilters.teamId).toList();
+    }
+    if (_subFilters.projectId != null) {
+      issues = issues.where((i) => i.projectId == _subFilters.projectId).toList();
+    }
+    if (_subFilters.statusType != null) {
+      issues = issues.where((i) => i.statusType == _subFilters.statusType).toList();
+    }
+    if (_subFilters.assigneeId != null) {
+      issues = issues.where((i) => i.assigneeId == _subFilters.assigneeId).toList();
+    }
+
+    // Apply search
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
-      final filtered = issues.where((i) =>
+      issues = issues.where((i) =>
           i.identifier.toLowerCase().contains(q) ||
           i.title.toLowerCase().contains(q) ||
           (i.teamName?.toLowerCase().contains(q) ?? false) ||
-          (i.projectName?.toLowerCase().contains(q) ?? false));
-      if (filtered.isNotEmpty) {
-        _onIssueSelected(filtered.first);
-      }
-    } else if (issues.isNotEmpty) {
-      _onIssueSelected(issues.first);
+          (i.projectName?.toLowerCase().contains(q) ?? false)).toList();
+    }
+
+    // Select at index
+    final idx = _selectedIndex.clamp(0, issues.length - 1);
+    if (issues.isNotEmpty) {
+      _onIssueSelected(issues[idx]);
     }
   }
 
@@ -146,8 +169,15 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
             _subFilters = const SubFilters();
           }),
           onSubFiltersChanged: (f) => setState(() => _subFilters = f),
-          onSearchChanged: (q) => setState(() => _searchQuery = q),
+          onSearchChanged: (q) => setState(() {
+            _searchQuery = q;
+            _selectedIndex = 0; // Reset selection on search change
+          }),
           onSubmitted: _onSearchSubmitted,
+          onArrowDown: () => setState(() => _selectedIndex++),
+          onArrowUp: () => setState(() {
+            if (_selectedIndex > 0) _selectedIndex--;
+          }),
           focusNotifier: widget.searchFocusNotifier,
         ),
         Container(
@@ -160,6 +190,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
             mode: _mode,
             subFilters: _subFilters,
             activeIssueId: activeTimer.valueOrNull?.issueId,
+            selectedIndex: _selectedIndex,
             onIssueSelected: _onIssueSelected,
             onAddTime: _onAddTime,
           ),

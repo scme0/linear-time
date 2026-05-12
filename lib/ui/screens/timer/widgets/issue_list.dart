@@ -19,6 +19,7 @@ class IssueList extends ConsumerStatefulWidget {
     required this.activeIssueId,
     required this.onIssueSelected,
     this.onAddTime,
+    this.selectedIndex = 0,
   });
 
   final String searchQuery;
@@ -27,6 +28,7 @@ class IssueList extends ConsumerStatefulWidget {
   final String? activeIssueId;
   final ValueChanged<CachedIssue> onIssueSelected;
   final ValueChanged<CachedIssue>? onAddTime;
+  final int selectedIndex;
 
   @override
   ConsumerState<IssueList> createState() => _IssueListState();
@@ -154,6 +156,7 @@ class _IssueListState extends ConsumerState<IssueList> {
             return IssueRow(
               issue: issue,
               isActive: issue.issueId == widget.activeIssueId,
+              isKeyboardSelected: adjustedIndex == widget.selectedIndex.clamp(0, filtered.length - 1),
               todaySeconds: todayTotals[issue.issueId] ?? 0,
               onTap: () => widget.onIssueSelected(issue),
               onAddTime: widget.onAddTime != null
