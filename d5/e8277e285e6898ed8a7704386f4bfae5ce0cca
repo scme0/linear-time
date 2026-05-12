@@ -1,0 +1,27 @@
+macos/Runner.xcodeproj/project.pbxproj
+  ai_agent 30-31,65-66,71,84-85,87-90,98,106,140,188-200,204-205,217,236,242,363-423,475,490,505,574,577,708,711,730,733
+macos/Runner.xcworkspace/contents.xcworkspacedata
+  ai_agent 7-9
+pubspec.yaml
+  s_019582d6a6af2d::t_2204a94e567ef3 4
+lib/ui/app_window.dart
+  s_019582d6a6af2d::t_e65182ae606dad 50
+.gitignore
+  s_019582d6a6af2d::t_68174be0626181 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "d5e8277e285e6898ed8a7704386f4bfae5ce0cca",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
