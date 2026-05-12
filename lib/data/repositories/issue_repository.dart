@@ -27,16 +27,10 @@ class IssueRepository {
 
     if (apiIssues.isEmpty) return;
 
-    final companions = apiIssues.map(_mapToCompanion).toList();
+    final companions = apiIssues
+        .map((d) => _mapToCompanion(d, isAssigned: true))
+        .toList();
     await cachedIssueDao.upsertIssues(companions);
-
-    // Detect deleted issues
-    final apiIds = apiIssues.map((i) => i['id'] as String).toSet();
-    final cachedIds = await cachedIssueDao.getAllIssueIds();
-    final deletedIds = cachedIds.where((id) => !apiIds.contains(id)).toList();
-    if (deletedIds.isNotEmpty) {
-      await cachedIssueDao.markDeletedBatch(deletedIds);
-    }
   }
 
   /// Sync all issues from all user's teams into cache.
@@ -52,7 +46,9 @@ class IssueRepository {
         excludeStatusTypes: excludeTypes.isEmpty ? null : excludeTypes,
       );
       if (apiIssues.isNotEmpty) {
-        final companions = apiIssues.map(_mapToCompanion).toList();
+        final companions = apiIssues
+            .map((d) => _mapToCompanion(d, isAssigned: false))
+            .toList();
         await cachedIssueDao.upsertIssues(companions);
       }
     }
@@ -103,7 +99,8 @@ class IssueRepository {
   /// Clear all cached data (for disconnect).
   Future<void> clearCache() => cachedIssueDao.clearAll();
 
-  CachedIssuesCompanion _mapToCompanion(Map<String, dynamic> data) {
+  CachedIssuesCompanion _mapToCompanion(Map<String, dynamic> data,
+      {bool isAssigned = false}) {
     final team = data['team'] as Map<String, dynamic>?;
     final project = data['project'] as Map<String, dynamic>?;
     final state = data['state'] as Map<String, dynamic>?;
@@ -122,6 +119,7 @@ class IssueRepository {
       priority: Value(data['priority'] as int? ?? 0),
       url: Value(data['url'] as String? ?? ''),
       isDeleted: const Value(false),
+      isAssigned: Value(isAssigned),
       lastSynced: Value(DateTime.now()),
     );
   }

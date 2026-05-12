@@ -141,8 +141,8 @@ query Teams {
 ''';
 
 const String projectsQuery = r'''
-query Projects($teamId: String) {
-  projects(filter: { accessibleTeams: { id: { eq: $teamId } } }) {
+query Projects {
+  projects {
     nodes {
       id
       name

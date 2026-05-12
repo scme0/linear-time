@@ -819,6 +819,21 @@ class $CachedIssuesTable extends CachedIssues
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _isAssignedMeta = const VerificationMeta(
+    'isAssigned',
+  );
+  @override
+  late final GeneratedColumn<bool> isAssigned = GeneratedColumn<bool>(
+    'is_assigned',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_assigned" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _lastSyncedMeta = const VerificationMeta(
     'lastSynced',
   );
@@ -845,6 +860,7 @@ class $CachedIssuesTable extends CachedIssues
     priority,
     url,
     isDeleted,
+    isAssigned,
     lastSynced,
   ];
   @override
@@ -954,6 +970,12 @@ class $CachedIssuesTable extends CachedIssues
         isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
       );
     }
+    if (data.containsKey('is_assigned')) {
+      context.handle(
+        _isAssignedMeta,
+        isAssigned.isAcceptableOrUnknown(data['is_assigned']!, _isAssignedMeta),
+      );
+    }
     if (data.containsKey('last_synced')) {
       context.handle(
         _lastSyncedMeta,
@@ -1023,6 +1045,10 @@ class $CachedIssuesTable extends CachedIssues
         DriftSqlType.bool,
         data['${effectivePrefix}is_deleted'],
       )!,
+      isAssigned: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_assigned'],
+      )!,
       lastSynced: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}last_synced'],
@@ -1050,6 +1076,7 @@ class CachedIssue extends DataClass implements Insertable<CachedIssue> {
   final int priority;
   final String url;
   final bool isDeleted;
+  final bool isAssigned;
   final DateTime lastSynced;
   const CachedIssue({
     required this.issueId,
@@ -1065,6 +1092,7 @@ class CachedIssue extends DataClass implements Insertable<CachedIssue> {
     required this.priority,
     required this.url,
     required this.isDeleted,
+    required this.isAssigned,
     required this.lastSynced,
   });
   @override
@@ -1093,6 +1121,7 @@ class CachedIssue extends DataClass implements Insertable<CachedIssue> {
     map['priority'] = Variable<int>(priority);
     map['url'] = Variable<String>(url);
     map['is_deleted'] = Variable<bool>(isDeleted);
+    map['is_assigned'] = Variable<bool>(isAssigned);
     map['last_synced'] = Variable<DateTime>(lastSynced);
     return map;
   }
@@ -1122,6 +1151,7 @@ class CachedIssue extends DataClass implements Insertable<CachedIssue> {
       priority: Value(priority),
       url: Value(url),
       isDeleted: Value(isDeleted),
+      isAssigned: Value(isAssigned),
       lastSynced: Value(lastSynced),
     );
   }
@@ -1145,6 +1175,7 @@ class CachedIssue extends DataClass implements Insertable<CachedIssue> {
       priority: serializer.fromJson<int>(json['priority']),
       url: serializer.fromJson<String>(json['url']),
       isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      isAssigned: serializer.fromJson<bool>(json['isAssigned']),
       lastSynced: serializer.fromJson<DateTime>(json['lastSynced']),
     );
   }
@@ -1165,6 +1196,7 @@ class CachedIssue extends DataClass implements Insertable<CachedIssue> {
       'priority': serializer.toJson<int>(priority),
       'url': serializer.toJson<String>(url),
       'isDeleted': serializer.toJson<bool>(isDeleted),
+      'isAssigned': serializer.toJson<bool>(isAssigned),
       'lastSynced': serializer.toJson<DateTime>(lastSynced),
     };
   }
@@ -1183,6 +1215,7 @@ class CachedIssue extends DataClass implements Insertable<CachedIssue> {
     int? priority,
     String? url,
     bool? isDeleted,
+    bool? isAssigned,
     DateTime? lastSynced,
   }) => CachedIssue(
     issueId: issueId ?? this.issueId,
@@ -1198,6 +1231,7 @@ class CachedIssue extends DataClass implements Insertable<CachedIssue> {
     priority: priority ?? this.priority,
     url: url ?? this.url,
     isDeleted: isDeleted ?? this.isDeleted,
+    isAssigned: isAssigned ?? this.isAssigned,
     lastSynced: lastSynced ?? this.lastSynced,
   );
   CachedIssue copyWithCompanion(CachedIssuesCompanion data) {
@@ -1221,6 +1255,9 @@ class CachedIssue extends DataClass implements Insertable<CachedIssue> {
       priority: data.priority.present ? data.priority.value : this.priority,
       url: data.url.present ? data.url.value : this.url,
       isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      isAssigned: data.isAssigned.present
+          ? data.isAssigned.value
+          : this.isAssigned,
       lastSynced: data.lastSynced.present
           ? data.lastSynced.value
           : this.lastSynced,
@@ -1243,6 +1280,7 @@ class CachedIssue extends DataClass implements Insertable<CachedIssue> {
           ..write('priority: $priority, ')
           ..write('url: $url, ')
           ..write('isDeleted: $isDeleted, ')
+          ..write('isAssigned: $isAssigned, ')
           ..write('lastSynced: $lastSynced')
           ..write(')'))
         .toString();
@@ -1263,6 +1301,7 @@ class CachedIssue extends DataClass implements Insertable<CachedIssue> {
     priority,
     url,
     isDeleted,
+    isAssigned,
     lastSynced,
   );
   @override
@@ -1282,6 +1321,7 @@ class CachedIssue extends DataClass implements Insertable<CachedIssue> {
           other.priority == this.priority &&
           other.url == this.url &&
           other.isDeleted == this.isDeleted &&
+          other.isAssigned == this.isAssigned &&
           other.lastSynced == this.lastSynced);
 }
 
@@ -1299,6 +1339,7 @@ class CachedIssuesCompanion extends UpdateCompanion<CachedIssue> {
   final Value<int> priority;
   final Value<String> url;
   final Value<bool> isDeleted;
+  final Value<bool> isAssigned;
   final Value<DateTime> lastSynced;
   final Value<int> rowid;
   const CachedIssuesCompanion({
@@ -1315,6 +1356,7 @@ class CachedIssuesCompanion extends UpdateCompanion<CachedIssue> {
     this.priority = const Value.absent(),
     this.url = const Value.absent(),
     this.isDeleted = const Value.absent(),
+    this.isAssigned = const Value.absent(),
     this.lastSynced = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1332,6 +1374,7 @@ class CachedIssuesCompanion extends UpdateCompanion<CachedIssue> {
     required int priority,
     required String url,
     this.isDeleted = const Value.absent(),
+    this.isAssigned = const Value.absent(),
     required DateTime lastSynced,
     this.rowid = const Value.absent(),
   }) : issueId = Value(issueId),
@@ -1356,6 +1399,7 @@ class CachedIssuesCompanion extends UpdateCompanion<CachedIssue> {
     Expression<int>? priority,
     Expression<String>? url,
     Expression<bool>? isDeleted,
+    Expression<bool>? isAssigned,
     Expression<DateTime>? lastSynced,
     Expression<int>? rowid,
   }) {
@@ -1373,6 +1417,7 @@ class CachedIssuesCompanion extends UpdateCompanion<CachedIssue> {
       if (priority != null) 'priority': priority,
       if (url != null) 'url': url,
       if (isDeleted != null) 'is_deleted': isDeleted,
+      if (isAssigned != null) 'is_assigned': isAssigned,
       if (lastSynced != null) 'last_synced': lastSynced,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1392,6 +1437,7 @@ class CachedIssuesCompanion extends UpdateCompanion<CachedIssue> {
     Value<int>? priority,
     Value<String>? url,
     Value<bool>? isDeleted,
+    Value<bool>? isAssigned,
     Value<DateTime>? lastSynced,
     Value<int>? rowid,
   }) {
@@ -1409,6 +1455,7 @@ class CachedIssuesCompanion extends UpdateCompanion<CachedIssue> {
       priority: priority ?? this.priority,
       url: url ?? this.url,
       isDeleted: isDeleted ?? this.isDeleted,
+      isAssigned: isAssigned ?? this.isAssigned,
       lastSynced: lastSynced ?? this.lastSynced,
       rowid: rowid ?? this.rowid,
     );
@@ -1456,6 +1503,9 @@ class CachedIssuesCompanion extends UpdateCompanion<CachedIssue> {
     if (isDeleted.present) {
       map['is_deleted'] = Variable<bool>(isDeleted.value);
     }
+    if (isAssigned.present) {
+      map['is_assigned'] = Variable<bool>(isAssigned.value);
+    }
     if (lastSynced.present) {
       map['last_synced'] = Variable<DateTime>(lastSynced.value);
     }
@@ -1481,6 +1531,7 @@ class CachedIssuesCompanion extends UpdateCompanion<CachedIssue> {
           ..write('priority: $priority, ')
           ..write('url: $url, ')
           ..write('isDeleted: $isDeleted, ')
+          ..write('isAssigned: $isAssigned, ')
           ..write('lastSynced: $lastSynced, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -2043,6 +2094,7 @@ typedef $$CachedIssuesTableCreateCompanionBuilder =
       required int priority,
       required String url,
       Value<bool> isDeleted,
+      Value<bool> isAssigned,
       required DateTime lastSynced,
       Value<int> rowid,
     });
@@ -2061,6 +2113,7 @@ typedef $$CachedIssuesTableUpdateCompanionBuilder =
       Value<int> priority,
       Value<String> url,
       Value<bool> isDeleted,
+      Value<bool> isAssigned,
       Value<DateTime> lastSynced,
       Value<int> rowid,
     });
@@ -2136,6 +2189,11 @@ class $$CachedIssuesTableFilterComposer
 
   ColumnFilters<bool> get isDeleted => $composableBuilder(
     column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isAssigned => $composableBuilder(
+    column: $table.isAssigned,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2219,6 +2277,11 @@ class $$CachedIssuesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isAssigned => $composableBuilder(
+    column: $table.isAssigned,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get lastSynced => $composableBuilder(
     column: $table.lastSynced,
     builder: (column) => ColumnOrderings(column),
@@ -2279,6 +2342,11 @@ class $$CachedIssuesTableAnnotationComposer
   GeneratedColumn<bool> get isDeleted =>
       $composableBuilder(column: $table.isDeleted, builder: (column) => column);
 
+  GeneratedColumn<bool> get isAssigned => $composableBuilder(
+    column: $table.isAssigned,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get lastSynced => $composableBuilder(
     column: $table.lastSynced,
     builder: (column) => column,
@@ -2329,6 +2397,7 @@ class $$CachedIssuesTableTableManager
                 Value<int> priority = const Value.absent(),
                 Value<String> url = const Value.absent(),
                 Value<bool> isDeleted = const Value.absent(),
+                Value<bool> isAssigned = const Value.absent(),
                 Value<DateTime> lastSynced = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CachedIssuesCompanion(
@@ -2345,6 +2414,7 @@ class $$CachedIssuesTableTableManager
                 priority: priority,
                 url: url,
                 isDeleted: isDeleted,
+                isAssigned: isAssigned,
                 lastSynced: lastSynced,
                 rowid: rowid,
               ),
@@ -2363,6 +2433,7 @@ class $$CachedIssuesTableTableManager
                 required int priority,
                 required String url,
                 Value<bool> isDeleted = const Value.absent(),
+                Value<bool> isAssigned = const Value.absent(),
                 required DateTime lastSynced,
                 Value<int> rowid = const Value.absent(),
               }) => CachedIssuesCompanion.insert(
@@ -2379,6 +2450,7 @@ class $$CachedIssuesTableTableManager
                 priority: priority,
                 url: url,
                 isDeleted: isDeleted,
+                isAssigned: isAssigned,
                 lastSynced: lastSynced,
                 rowid: rowid,
               ),

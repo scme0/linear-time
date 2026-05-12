@@ -24,16 +24,24 @@ class CachedIssueDao extends DatabaseAccessor<AppDatabase>
     });
   }
 
-  /// Get all non-deleted cached issues assigned to user, ordered by priority.
+  /// Get issues assigned to user, ordered by priority.
   Future<List<CachedIssue>> getAssignedIssues() {
     return (select(cachedIssues)
-          ..where((i) => i.isDeleted.equals(false))
+          ..where((i) => i.isDeleted.equals(false) & i.isAssigned.equals(true))
           ..orderBy([(i) => OrderingTerm.asc(i.priority)]))
         .get();
   }
 
   /// Watch assigned issues for reactive UI updates.
   Stream<List<CachedIssue>> watchAssignedIssues() {
+    return (select(cachedIssues)
+          ..where((i) => i.isDeleted.equals(false) & i.isAssigned.equals(true))
+          ..orderBy([(i) => OrderingTerm.asc(i.priority)]))
+        .watch();
+  }
+
+  /// Watch ALL non-deleted cached issues (assigned + team).
+  Stream<List<CachedIssue>> watchAllIssues() {
     return (select(cachedIssues)
           ..where((i) => i.isDeleted.equals(false))
           ..orderBy([(i) => OrderingTerm.asc(i.priority)]))

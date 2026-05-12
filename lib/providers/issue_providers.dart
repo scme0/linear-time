@@ -11,6 +11,12 @@ final assignedIssuesProvider = StreamProvider<List<CachedIssue>>((ref) {
   return dao.watchAssignedIssues();
 });
 
+/// All cached issues (assigned + team) — reactive.
+final allCachedIssuesProvider = StreamProvider<List<CachedIssue>>((ref) {
+  final dao = ref.watch(cachedIssueDaoProvider);
+  return dao.watchAllIssues();
+});
+
 /// Recently tracked issues (last 5).
 final recentTrackedIssuesProvider =
     FutureProvider<List<TimeEntry>>((ref) async {

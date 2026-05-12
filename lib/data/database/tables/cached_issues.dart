@@ -14,6 +14,7 @@ class CachedIssues extends Table {
   IntColumn get priority => integer()();
   TextColumn get url => text()();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+  BoolColumn get isAssigned => boolean().withDefault(const Constant(false))();
   DateTimeColumn get lastSynced => dateTime()();
 
   @override

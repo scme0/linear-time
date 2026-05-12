@@ -84,7 +84,10 @@ class _IssueListState extends ConsumerState<IssueList> {
   }
 
   Widget _buildAssignedIssues() {
-    final issuesAsync = ref.watch(assignedIssuesProvider);
+    final isAllIssues = widget.filter.type == 'allIssues';
+    final issuesAsync = isAllIssues
+        ? ref.watch(allCachedIssuesProvider)
+        : ref.watch(assignedIssuesProvider);
 
     return issuesAsync.when(
       data: (issues) {

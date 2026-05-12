@@ -159,15 +159,10 @@ class LinearApiClient {
     return nodes?.cast<Map<String, dynamic>>() ?? [];
   }
 
-  /// Fetch projects, optionally filtered by team.
-  Future<List<Map<String, dynamic>>> fetchProjects({String? teamId}) async {
+  /// Fetch all projects accessible to the user.
+  Future<List<Map<String, dynamic>>> fetchProjects() async {
     final result = await _client.query(
-      QueryOptions(
-        document: gql(projectsQuery),
-        variables: {
-          if (teamId != null) 'teamId': teamId,
-        },
-      ),
+      QueryOptions(document: gql(projectsQuery)),
     );
     if (result.hasException) return [];
     final nodes = result.data?['projects']?['nodes'] as List?;
