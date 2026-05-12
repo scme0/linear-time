@@ -1,0 +1,33 @@
+lib/core/constants.dart
+  s_019582d6a6af2d::t_dadc5eefcbc36e 41
+macos/Runner/AppDelegate.swift
+  s_019582d6a6af2d::t_d37e14b02346f6 4,8-12,23,25,28,30-35,42-106
+lib/ui/screens/settings/settings_screen.dart
+  s_019582d6a6af2d::t_22b9cfdbe130d4 4
+  s_019582d6a6af2d::t_66fce24ac0f705 18
+  s_019582d6a6af2d::t_9a624fe8cd95bc 412-413,419
+  s_019582d6a6af2d::t_e0fc3ab56a379b 736-938
+  s_019582d6a6af2d::t_1fab303280cdb7 393-395
+lib/services/hotkey_service.dart
+  s_019582d6a6af2d::t_330db58cdf19ed 1-118
+lib/ui/app_window.dart
+  s_019582d6a6af2d::t_9f3b6156cbf455 68
+  s_019582d6a6af2d::t_28789ad4ed97be 5
+  s_019582d6a6af2d::t_81330bdb6e0fad 7-9,11,25-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "4896cd7f9cdce140443d4570f5abe3be43573532",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
