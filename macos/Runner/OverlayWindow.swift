@@ -102,11 +102,10 @@ class OverlayContentView: NSView {
       dialog.widthAnchor.constraint(equalToConstant: 420),
     ])
 
-    // Icon
-    let icon = NSImageView()
-    icon.image = NSImage(systemSymbolName: "clock.badge.exclamationmark", accessibilityDescription: "Timer alert")
-    icon.symbolConfiguration = .init(pointSize: 36, weight: .light)
-    icon.contentTintColor = .white
+    // Icon (text-based for compatibility)
+    let icon = NSTextField(labelWithString: "⏱")
+    icon.font = NSFont.systemFont(ofSize: 40)
+    icon.alignment = .center
     icon.translatesAutoresizingMaskIntoConstraints = false
     dialog.addSubview(icon)
 
