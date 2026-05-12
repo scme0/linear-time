@@ -13,14 +13,16 @@ class IssueList extends ConsumerStatefulWidget {
   const IssueList({
     super.key,
     required this.searchQuery,
-    required this.filter,
+    required this.mode,
+    required this.subFilters,
     required this.activeIssueId,
     required this.onIssueSelected,
     this.onAddTime,
   });
 
   final String searchQuery;
-  final IssueFilter filter;
+  final IssueFilterMode mode;
+  final SubFilters subFilters;
   final String? activeIssueId;
   final ValueChanged<CachedIssue> onIssueSelected;
   final ValueChanged<CachedIssue>? onAddTime;
@@ -73,18 +75,17 @@ class _IssueListState extends ConsumerState<IssueList> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.filter.type == 'recentlyTracked') {
+    if (widget.mode == IssueFilterMode.recentlyTracked) {
       return _buildRecentIssues();
     }
-    // Trigger full team sync when "All Issues" selected
-    if (widget.filter.type == 'allIssues') {
+    if (widget.mode == IssueFilterMode.allIssues) {
       ref.watch(syncAllIssuesProvider);
     }
     return _buildAssignedIssues();
   }
 
   Widget _buildAssignedIssues() {
-    final isAllIssues = widget.filter.type == 'allIssues';
+    final isAllIssues = widget.mode == IssueFilterMode.allIssues;
     final issuesAsync = isAllIssues
         ? ref.watch(allCachedIssuesProvider)
         : ref.watch(assignedIssuesProvider);
@@ -94,23 +95,18 @@ class _IssueListState extends ConsumerState<IssueList> {
         var filtered = issues;
 
         // Apply sub-filters
-        final filter = widget.filter;
-        if (filter.type == 'byTeam' && filter.filterId != null) {
-          filtered = filtered
-              .where((i) => i.teamId == filter.filterId)
-              .toList();
-        } else if (filter.type == 'byProject' && filter.filterId != null) {
-          filtered = filtered
-              .where((i) => i.projectId == filter.filterId)
-              .toList();
-        } else if (filter.type == 'byStatus' && filter.filterId != null) {
-          filtered = filtered
-              .where((i) => i.statusType == filter.filterId)
-              .toList();
-        } else if (filter.type == 'byAssignee' && filter.filterId != null) {
-          filtered = filtered
-              .where((i) => i.assigneeId == filter.filterId)
-              .toList();
+        final sf = widget.subFilters;
+        if (sf.teamId != null) {
+          filtered = filtered.where((i) => i.teamId == sf.teamId).toList();
+        }
+        if (sf.projectId != null) {
+          filtered = filtered.where((i) => i.projectId == sf.projectId).toList();
+        }
+        if (sf.statusType != null) {
+          filtered = filtered.where((i) => i.statusType == sf.statusType).toList();
+        }
+        if (sf.assigneeId != null) {
+          filtered = filtered.where((i) => i.assigneeId == sf.assigneeId).toList();
         }
 
         // Apply search filter

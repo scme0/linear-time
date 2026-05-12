@@ -10,15 +10,19 @@ import '../timer_screen.dart';
 class IssueSearchBar extends ConsumerStatefulWidget {
   const IssueSearchBar({
     super.key,
-    required this.filter,
-    required this.onFilterChanged,
+    required this.mode,
+    required this.subFilters,
+    required this.onModeChanged,
+    required this.onSubFiltersChanged,
     required this.onSearchChanged,
     this.onSubmitted,
     this.focusNotifier,
   });
 
-  final IssueFilter filter;
-  final ValueChanged<IssueFilter> onFilterChanged;
+  final IssueFilterMode mode;
+  final SubFilters subFilters;
+  final ValueChanged<IssueFilterMode> onModeChanged;
+  final ValueChanged<SubFilters> onSubFiltersChanged;
   final ValueChanged<String> onSearchChanged;
   final VoidCallback? onSubmitted;
   final ValueNotifier<int>? focusNotifier;
@@ -30,10 +34,6 @@ class IssueSearchBar extends ConsumerStatefulWidget {
 class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
-  String? _selectedTeamId;
-  String? _selectedProjectId;
-  String? _selectedStatusType;
-  String? _selectedAssigneeId;
 
   @override
   void initState() {
@@ -66,28 +66,14 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
     );
   }
 
-  void _clearSubFilters() {
-    _selectedTeamId = null;
-    _selectedProjectId = null;
-    _selectedStatusType = null;
-    _selectedAssigneeId = null;
-  }
-
-  IssueFilter get _primaryFilterValue {
-    final t = widget.filter.type;
-    if (t == 'recentlyTracked') return IssueFilter.recentlyTracked;
-    if (t == 'allIssues') return IssueFilter.allIssues;
-    return IssueFilter.myIssues;
-  }
-
-  bool get _showSubFilters => widget.filter.type != 'recentlyTracked';
+  bool get _showSubFilters => widget.mode != IssueFilterMode.recentlyTracked;
 
   @override
   Widget build(BuildContext context) {
     final brightness = MacosTheme.of(context).brightness;
 
     // Derive filter options from current issue list
-    final isAllIssues = widget.filter.type == 'allIssues';
+    final isAllIssues = widget.mode == IssueFilterMode.allIssues;
     final issues = isAllIssues
         ? ref.watch(allCachedIssuesProvider).valueOrNull ?? []
         : ref.watch(assignedIssuesProvider).valueOrNull ?? [];
@@ -150,20 +136,17 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
           // Filter row
           Row(
             children: [
-              // Primary filter
-              MacosPopupButton<IssueFilter>(
-                value: _primaryFilterValue,
-                items: IssueFilter.values
-                    .map((f) => MacosPopupMenuItem(
-                          value: f,
-                          child: Text(f.label),
+              // Primary mode
+              MacosPopupButton<IssueFilterMode>(
+                value: widget.mode,
+                items: IssueFilterMode.values
+                    .map((m) => MacosPopupMenuItem(
+                          value: m,
+                          child: Text(m.label),
                         ))
                     .toList(),
-                onChanged: (f) {
-                  if (f != null) {
-                    _clearSubFilters();
-                    widget.onFilterChanged(f);
-                  }
+                onChanged: (m) {
+                  if (m != null) widget.onModeChanged(m);
                 },
               ),
               // Sub-filters
@@ -172,56 +155,48 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
                   const SizedBox(width: 6),
                   SearchableDropdown<String>(
                     items: teams,
-                    value: _selectedTeamId,
+                    value: widget.subFilters.teamId,
                     allLabel: 'All Teams',
                     labelBuilder: (id) =>
                         id != null ? teamMap[id] ?? 'Team' : 'All Teams',
-                    onChanged: (v) {
-                      setState(() => _selectedTeamId = v);
-                      widget.onFilterChanged(IssueFilter.byTeam(v));
-                    },
+                    onChanged: (v) => widget.onSubFiltersChanged(
+                        widget.subFilters.copyWith(teamId: () => v)),
                   ),
                 ],
                 if (projects.length > 1) ...[
                   const SizedBox(width: 6),
                   SearchableDropdown<String>(
                     items: projects,
-                    value: _selectedProjectId,
+                    value: widget.subFilters.projectId,
                     allLabel: 'All Projects',
                     labelBuilder: (id) =>
                         id != null ? projectMap[id] ?? 'Project' : 'All Projects',
-                    onChanged: (v) {
-                      setState(() => _selectedProjectId = v);
-                      widget.onFilterChanged(IssueFilter.byProject(v));
-                    },
+                    onChanged: (v) => widget.onSubFiltersChanged(
+                        widget.subFilters.copyWith(projectId: () => v)),
                   ),
                 ],
                 if (statuses.length > 1) ...[
                   const SizedBox(width: 6),
                   SearchableDropdown<String>(
                     items: statuses,
-                    value: _selectedStatusType,
+                    value: widget.subFilters.statusType,
                     allLabel: 'All Statuses',
                     labelBuilder: (id) =>
                         id != null ? statusMap[id] ?? 'Status' : 'All Statuses',
-                    onChanged: (v) {
-                      setState(() => _selectedStatusType = v);
-                      widget.onFilterChanged(IssueFilter.byStatus(v));
-                    },
+                    onChanged: (v) => widget.onSubFiltersChanged(
+                        widget.subFilters.copyWith(statusType: () => v)),
                   ),
                 ],
                 if (assignees.length > 1) ...[
                   const SizedBox(width: 6),
                   SearchableDropdown<String>(
                     items: assignees,
-                    value: _selectedAssigneeId,
+                    value: widget.subFilters.assigneeId,
                     allLabel: 'All Assignees',
                     labelBuilder: (id) =>
                         id != null ? assigneeMap[id] ?? 'Assignee' : 'All Assignees',
-                    onChanged: (v) {
-                      setState(() => _selectedAssigneeId = v);
-                      widget.onFilterChanged(IssueFilter.byAssignee(v));
-                    },
+                    onChanged: (v) => widget.onSubFiltersChanged(
+                        widget.subFilters.copyWith(assigneeId: () => v)),
                   ),
                 ],
               ],

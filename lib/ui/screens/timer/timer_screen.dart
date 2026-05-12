@@ -29,7 +29,8 @@ class TimerScreen extends ConsumerStatefulWidget {
 
 class _TimerScreenState extends ConsumerState<TimerScreen> {
   String _searchQuery = '';
-  IssueFilter _filter = IssueFilter.myIssues;
+  IssueFilterMode _mode = IssueFilterMode.myIssues;
+  SubFilters _subFilters = const SubFilters();
 
   @override
   void initState() {
@@ -46,9 +47,10 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   void _onHotkeyFilter() {
     final val = widget.hotkeyFilterNotifier?.value;
     setState(() {
-      _filter = val == 'allIssues'
-          ? IssueFilter.allIssues
-          : IssueFilter.myIssues;
+      _mode = val == 'allIssues'
+          ? IssueFilterMode.allIssues
+          : IssueFilterMode.myIssues;
+      _subFilters = const SubFilters();
     });
   }
 
@@ -67,7 +69,6 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   }
 
   void _onSearchSubmitted() {
-    // Select the first visible issue in the filtered list
     final issues = ref.read(assignedIssuesProvider).valueOrNull ?? [];
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
@@ -114,7 +115,6 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
 
     return Column(
       children: [
-        // Active timer banner
         ActiveTimerBanner(
           activeTimer: activeTimer,
           elapsed: elapsed,
@@ -125,10 +125,14 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
           height: 1,
           color: AppColors.border(brightness),
         ),
-        // Search and filter bar
         IssueSearchBar(
-          filter: _filter,
-          onFilterChanged: (f) => setState(() => _filter = f),
+          mode: _mode,
+          subFilters: _subFilters,
+          onModeChanged: (m) => setState(() {
+            _mode = m;
+            _subFilters = const SubFilters();
+          }),
+          onSubFiltersChanged: (f) => setState(() => _subFilters = f),
           onSearchChanged: (q) => setState(() => _searchQuery = q),
           onSubmitted: _onSearchSubmitted,
           focusNotifier: widget.searchFocusNotifier,
@@ -137,11 +141,11 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
           height: 1,
           color: AppColors.border(brightness),
         ),
-        // Issue list
         Expanded(
           child: IssueList(
             searchQuery: _searchQuery,
-            filter: _filter,
+            mode: _mode,
+            subFilters: _subFilters,
             activeIssueId: activeTimer.valueOrNull?.issueId,
             onIssueSelected: _onIssueSelected,
             onAddTime: _onAddTime,
@@ -152,30 +156,45 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   }
 }
 
-class IssueFilter {
+enum IssueFilterMode {
+  myIssues('My Issues'),
+  allIssues('All Issues'),
+  recentlyTracked('Recently Tracked');
+
+  const IssueFilterMode(this.label);
   final String label;
-  final String type; // 'myIssues', 'recentlyTracked', 'byTeam', 'byProject', 'byStatus'
-  final String? filterId;
+}
 
-  const IssueFilter._(this.label, this.type, [this.filterId]);
+class SubFilters {
+  final String? teamId;
+  final String? projectId;
+  final String? statusType;
+  final String? assigneeId;
 
-  static const myIssues = IssueFilter._('My Issues', 'myIssues');
-  static const allIssues = IssueFilter._('All Issues', 'allIssues');
-  static const recentlyTracked = IssueFilter._('Recently Tracked', 'recentlyTracked');
-  static IssueFilter byTeam(String? teamId) =>
-      IssueFilter._(teamId != null ? 'Team' : 'My Issues', teamId != null ? 'byTeam' : 'myIssues', teamId);
-  static IssueFilter byProject(String? projectId) =>
-      IssueFilter._(projectId != null ? 'Project' : 'My Issues', projectId != null ? 'byProject' : 'myIssues', projectId);
-  static IssueFilter byStatus(String? statusType) =>
-      IssueFilter._(statusType != null ? 'Status' : 'My Issues', statusType != null ? 'byStatus' : 'myIssues', statusType);
-  static IssueFilter byAssignee(String? assigneeId) =>
-      IssueFilter._(assigneeId != null ? 'Assignee' : 'My Issues', assigneeId != null ? 'byAssignee' : 'myIssues', assigneeId);
+  const SubFilters({
+    this.teamId,
+    this.projectId,
+    this.statusType,
+    this.assigneeId,
+  });
 
-  static const values = [myIssues, allIssues, recentlyTracked];
+  SubFilters copyWith({
+    String? Function()? teamId,
+    String? Function()? projectId,
+    String? Function()? statusType,
+    String? Function()? assigneeId,
+  }) {
+    return SubFilters(
+      teamId: teamId != null ? teamId() : this.teamId,
+      projectId: projectId != null ? projectId() : this.projectId,
+      statusType: statusType != null ? statusType() : this.statusType,
+      assigneeId: assigneeId != null ? assigneeId() : this.assigneeId,
+    );
+  }
 
-  @override
-  bool operator ==(Object other) =>
-      other is IssueFilter && other.type == type && other.filterId == filterId;
-  @override
-  int get hashCode => Object.hash(type, filterId);
+  bool get isEmpty =>
+      teamId == null &&
+      projectId == null &&
+      statusType == null &&
+      assigneeId == null;
 }
