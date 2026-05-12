@@ -1,0 +1,38 @@
+lib/core/constants.dart
+  s_019582d6a6af2d::t_8c4d8a19ffabe7 43
+macos/Runner/AppDelegate.swift
+  s_019582d6a6af2d::t_c67009eef8a8b1 57-75
+lib/services/notification_service.dart
+  s_019582d6a6af2d::t_9c4c335bfe8517 11-12,26,38-40,44-46,62,64,67,70,72,79,85-87,89-109,114,119,121-185,187,193,198-211,230
+  s_019582d6a6af2d::t_b2dd573447cf3b 3,7
+  s_019582d6a6af2d::t_09d7d3b0b97cf4 9
+  s_019582d6a6af2d::t_c92c2d2a338e97 37,41-43
+macos/Runner/OverlayWindow.swift
+  s_019582d6a6af2d::t_926915cc789412 1-184
+lib/providers/settings_providers.dart
+  s_019582d6a6af2d::t_fdc6e8fb1d0ad4 68
+  s_019582d6a6af2d::t_7f7090876f4dfc 95
+  s_019582d6a6af2d::t_149adf851ce0cf 48
+lib/ui/screens/settings/settings_screen.dart
+  s_019582d6a6af2d::t_c15e3576bc57d4 256-277
+lib/services/hotkey_service.dart
+  s_019582d6a6af2d::t_b9d80fb3c00fe5 11-18
+lib/ui/app_window.dart
+  s_019582d6a6af2d::t_a2992441a2da24 126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "16f8c4bf1a36c676452eb948f4b86007f242474f",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
