@@ -164,6 +164,13 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
     return delete(timeEntries).go();
   }
 
+  /// Get all entries (for export).
+  Future<List<TimeEntry>> getAllEntries() {
+    return (select(timeEntries)
+          ..orderBy([(t) => OrderingTerm.asc(t.startTime)]))
+        .get();
+  }
+
   /// Update an entry (for manual corrections).
   Future<int> updateEntry(int id, TimeEntriesCompanion companion) {
     return (update(timeEntries)..where((t) => t.id.equals(id)))

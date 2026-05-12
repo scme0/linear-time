@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../data/api/linear_api_client.dart';
 import '../../../providers/api_providers.dart';
@@ -10,6 +13,7 @@ import '../../../providers/settings_providers.dart';
 import '../../../providers/database_providers.dart';
 import '../../../core/constants.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/csv_utils.dart';
 import 'widgets/settings_section.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -66,6 +70,45 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _apiKeyController.clear();
     setState(() => _testResult = null);
   }
+
+  Future<void> _exportCsv() async {
+    final dao = ref.read(timeEntryDaoProvider);
+    final csv = await exportToCsv(dao);
+    final dir = await getApplicationDocumentsDirectory();
+    final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-').split('.').first;
+    final file = File('${dir.path}/linear_time_export_$timestamp.csv');
+    await file.writeAsString(csv);
+    if (mounted) {
+      setState(() => _exportResult = 'Exported to ${file.path}');
+    }
+  }
+
+  Future<void> _importCsv() async {
+    // Use a simple file path input for now
+    final dir = await getApplicationDocumentsDirectory();
+    // Find the most recent export file
+    final files = dir
+        .listSync()
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.csv') && f.path.contains('linear_time'))
+        .toList()
+      ..sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+
+    if (files.isEmpty) {
+      if (mounted) setState(() => _exportResult = 'No CSV files found in ${dir.path}');
+      return;
+    }
+
+    final file = files.first;
+    final content = await file.readAsString();
+    final dao = ref.read(timeEntryDaoProvider);
+    final count = await importFromCsv(dao, content);
+    if (mounted) {
+      setState(() => _exportResult = 'Imported $count entries from ${file.uri.pathSegments.last}');
+    }
+  }
+
+  String? _exportResult;
 
   @override
   Widget build(BuildContext context) {
@@ -349,14 +392,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           SettingsSection(
             title: 'Data',
             children: [
+              FutureBuilder<Directory>(
+                future: getApplicationDocumentsDirectory(),
+                builder: (context, snapshot) {
+                  return SettingRow(
+                    label: 'Database location',
+                    description: snapshot.hasData
+                        ? '${snapshot.data!.path}/linear_time.sqlite'
+                        : 'Loading...',
+                    control: const SizedBox.shrink(),
+                  );
+                },
+              ),
               SettingRow(
                 label: 'Export time entries',
                 description: 'Download all time entries as CSV',
                 control: PushButton(
                   controlSize: ControlSize.regular,
-                  onPressed: () {
-                    // TODO: implement CSV export
-                  },
+                  onPressed: _exportCsv,
                   child: const Text('Export CSV'),
                 ),
               ),
@@ -365,9 +418,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 description: 'Restore from a CSV backup',
                 control: PushButton(
                   controlSize: ControlSize.regular,
-                  onPressed: () {
-                    // TODO: implement CSV import
-                  },
+                  onPressed: _importCsv,
                   child: const Text('Import CSV'),
                 ),
               ),
@@ -379,6 +430,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   onPressed: () => _confirmClearData(context),
                 ),
               ),
+              if (_exportResult != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  child: Text(
+                    _exportResult!,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary(brightness),
+                    ),
+                  ),
+                ),
             ],
           ),
 
