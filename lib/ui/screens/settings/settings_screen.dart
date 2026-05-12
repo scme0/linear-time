@@ -7,6 +7,7 @@ import '../../../providers/api_providers.dart';
 import '../../../providers/issue_providers.dart';
 import '../../../providers/repository_providers.dart';
 import '../../../providers/settings_providers.dart';
+import '../../../providers/database_providers.dart';
 import '../../../core/constants.dart';
 import '../../../core/theme/app_theme.dart';
 import 'widgets/settings_section.dart';
@@ -376,9 +377,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 control: PushButton(
                   controlSize: ControlSize.regular,
                   color: AppColors.danger,
-                  onPressed: () {
-                    // TODO: confirmation dialog + clear
-                  },
+                  onPressed: () => _confirmClearData(context),
                   child: const Text('Clear Data'),
                 ),
               ),
@@ -403,78 +402,131 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  Future<void> _confirmClearData(BuildContext context) async {
+    final confirmed = await showMacosAlertDialog<bool>(
+      context: context,
+      builder: (context) => MacosAlertDialog(
+        appIcon: const Icon(
+          CupertinoIcons.exclamationmark_triangle_fill,
+          color: AppColors.danger,
+          size: 48,
+        ),
+        title: const Text('Clear all data?'),
+        message: const Text(
+          'This will permanently delete all time entries and cached issues. '
+          'This action cannot be undone.',
+        ),
+        primaryButton: PushButton(
+          controlSize: ControlSize.large,
+          color: AppColors.danger,
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text('Clear Data'),
+        ),
+        secondaryButton: PushButton(
+          controlSize: ControlSize.large,
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('Cancel'),
+        ),
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final db = ref.read(databaseProvider);
+      await db.timeEntryDao.deleteAll();
+      await db.cachedIssueDao.clearAll();
+      await db.settingsDao.clearAll();
+      ref.invalidate(appSettingsProvider);
+    }
+  }
+
   Widget _buildLinearSection(Brightness brightness, bool isConnected) {
     return SettingsSection(
       title: 'Linear Connection',
       children: [
-        if (isConnected) ...[
-          Row(
-            children: [
-              const Icon(CupertinoIcons.check_mark_circled_solid,
-                  color: AppColors.success, size: 18),
-              const SizedBox(width: 8),
-              Text(
-                'Connected to Linear',
-                style: TextStyle(
-                    color: AppColors.textPrimary(brightness)),
-              ),
-            ],
-          ),
-          if (_testResult != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                _testResult!,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary(brightness),
+        if (isConnected)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(CupertinoIcons.check_mark_circled_solid,
+                        color: AppColors.success, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Connected to Linear',
+                      style: TextStyle(
+                          color: AppColors.textPrimary(brightness)),
+                    ),
+                  ],
                 ),
-              ),
-            ),
-          const SizedBox(height: 12),
-          PushButton(
-            controlSize: ControlSize.regular,
-            onPressed: _disconnect,
-            child: const Text('Disconnect'),
-          ),
-        ] else ...[
-          Text(
-            'Enter your Linear API key to connect:',
-            style: TextStyle(color: AppColors.textSecondary(brightness)),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: 400,
-            child: MacosTextField(
-              controller: _apiKeyController,
-              placeholder: 'lin_api_...',
-              placeholderStyle: TextStyle(
-                color: AppColors.textSecondary(brightness),
-              ),
-              obscureText: true,
-            ),
-          ),
-          const SizedBox(height: 12),
-          PushButton(
-            controlSize: ControlSize.regular,
-            onPressed: _testing ? null : _testConnection,
-            child: _testing
-                ? const ProgressCircle(radius: 8)
-                : const Text('Connect'),
-          ),
-          if (_testResult != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                _testResult!,
-                style: TextStyle(
-                  color: _testResult!.startsWith('Connected')
-                      ? AppColors.success
-                      : AppColors.danger,
+                if (_testResult != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      _testResult!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary(brightness),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                PushButton(
+                  controlSize: ControlSize.regular,
+                  onPressed: _disconnect,
+                  child: const Text('Disconnect'),
                 ),
-              ),
+              ],
             ),
-        ],
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Enter your Linear API key to connect:',
+                  style: TextStyle(
+                      color: AppColors.textSecondary(brightness)),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: 400,
+                  child: MacosTextField(
+                    controller: _apiKeyController,
+                    placeholder: 'lin_api_...',
+                    placeholderStyle: TextStyle(
+                      color: AppColors.textSecondary(brightness),
+                    ),
+                    obscureText: true,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                PushButton(
+                  controlSize: ControlSize.regular,
+                  onPressed: _testing ? null : _testConnection,
+                  child: _testing
+                      ? const ProgressCircle(radius: 8)
+                      : const Text('Connect'),
+                ),
+                if (_testResult != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      _testResult!,
+                      style: TextStyle(
+                        color: _testResult!.startsWith('Connected')
+                            ? AppColors.success
+                            : AppColors.danger,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -484,7 +536,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     const dayValues = [1, 2, 3, 4, 5, 6, 7];
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

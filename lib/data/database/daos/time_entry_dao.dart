@@ -159,6 +159,11 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
     return (delete(timeEntries)..where((t) => t.id.equals(id))).go();
   }
 
+  /// Delete all entries.
+  Future<int> deleteAll() {
+    return delete(timeEntries).go();
+  }
+
   /// Update an entry (for manual corrections).
   Future<int> updateEntry(int id, TimeEntriesCompanion companion) {
     return (update(timeEntries)..where((t) => t.id.equals(id)))
