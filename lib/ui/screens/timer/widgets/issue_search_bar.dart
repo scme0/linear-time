@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
 import '../../../../core/theme/app_theme.dart';
-import '../../../../providers/database_providers.dart';
 import '../../../../providers/issue_providers.dart';
 import '../timer_screen.dart';
 
@@ -34,13 +33,11 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
   String? _selectedTeamId;
   String? _selectedProjectId;
   String? _selectedStatusType;
-  List<({String type, String name})> _statuses = [];
 
   @override
   void initState() {
     super.initState();
     widget.focusNotifier?.addListener(_onFocusRequested);
-    _loadStatuses();
   }
 
   @override
@@ -68,13 +65,7 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
     );
   }
 
-  Future<void> _loadStatuses() async {
-    final dao = ref.read(cachedIssueDaoProvider);
-    final statuses = await dao.getDistinctStatuses();
-    if (mounted) {
-      setState(() => _statuses = statuses);
-    }
-  }
+
 
   void _clearSubFilters() {
     _selectedTeamId = null;
@@ -90,14 +81,42 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
   }
 
   bool get _showSubFilters =>
-      widget.filter.type != 'recentlyTracked' &&
-      widget.filter.type != 'allIssues';
+      widget.filter.type != 'recentlyTracked';
 
   @override
   Widget build(BuildContext context) {
     final brightness = MacosTheme.of(context).brightness;
-    final teams = ref.watch(teamsProvider).valueOrNull ?? [];
-    final projects = ref.watch(projectsProvider).valueOrNull ?? [];
+
+    // Derive all filter options from the current issue list
+    final isAllIssues = widget.filter.type == 'allIssues';
+    final issues = isAllIssues
+        ? ref.watch(allCachedIssuesProvider).valueOrNull ?? []
+        : ref.watch(assignedIssuesProvider).valueOrNull ?? [];
+
+    final teamMap = <String, String>{};
+    final projectMap = <String, String>{};
+    final statusMap = <String, String>{};
+    for (final issue in issues) {
+      if (issue.teamId != null && issue.teamName != null) {
+        teamMap[issue.teamId!] = issue.teamName!;
+      }
+      if (issue.projectId != null && issue.projectName != null) {
+        projectMap[issue.projectId!] = issue.projectName!;
+      }
+      statusMap[issue.statusType] = issue.status;
+    }
+    final teams = teamMap.entries
+        .map((e) => (id: e.key, name: e.value))
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    final projects = projectMap.entries
+        .map((e) => (id: e.key, name: e.value))
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    final statuses = statusMap.entries
+        .map((e) => (type: e.key, name: e.value))
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -182,7 +201,7 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
                     },
                   ),
                 ],
-                if (_statuses.length > 1) ...[
+                if (statuses.length > 1) ...[
                   const SizedBox(width: 8),
                   MacosPopupButton<String?>(
                     value: _selectedStatusType,
@@ -191,7 +210,7 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
                         value: null,
                         child: Text('All Statuses'),
                       ),
-                      ..._statuses.map((s) => MacosPopupMenuItem(
+                      ...statuses.map((s) => MacosPopupMenuItem(
                             value: s.type,
                             child: Text(s.name),
                           )),
