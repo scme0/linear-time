@@ -83,27 +83,27 @@ class TrayManager {
 
     menuItems.add(MenuSeparator());
 
-    // Recent issues for quick switch
-    if (recentEntries.isNotEmpty) {
-      for (final entry in recentEntries.take(5)) {
-        final isActive = activeEntry?.issueId == entry.issueId;
+    // Recent issues for quick switch (exclude active)
+    final recentFiltered = recentEntries
+        .where((e) => activeEntry == null || e.issueId != activeEntry.issueId)
+        .take(5);
+    if (recentFiltered.isNotEmpty) {
+      for (final entry in recentFiltered) {
         menuItems.add(MenuItem(
-          label: '${isActive ? '● ' : ''}${entry.issueIdentifier}: ${entry.issueTitle}',
-          onClicked: isActive
-              ? null
-              : () {
-                  final repo = _ref.read(timeTrackingRepositoryProvider);
-                  repo.startTimer(
-                    issueId: entry.issueId,
-                    issueIdentifier: entry.issueIdentifier,
-                    issueTitle: entry.issueTitle,
-                    teamName: entry.teamName,
-                    projectName: entry.projectName,
-                    teamColor: entry.teamColor,
-                  );
-                  _ref.invalidate(recentTrackedIssuesProvider);
-                  _updateMenu();
-                },
+          label: '${entry.issueIdentifier}: ${entry.issueTitle}',
+          onClicked: () {
+            final repo = _ref.read(timeTrackingRepositoryProvider);
+            repo.startTimer(
+              issueId: entry.issueId,
+              issueIdentifier: entry.issueIdentifier,
+              issueTitle: entry.issueTitle,
+              teamName: entry.teamName,
+              projectName: entry.projectName,
+              teamColor: entry.teamColor,
+            );
+            _ref.invalidate(recentTrackedIssuesProvider);
+            _updateMenu();
+          },
         ));
       }
       menuItems.add(MenuSeparator());
