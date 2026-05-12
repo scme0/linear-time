@@ -46,6 +46,7 @@ class AppSettings {
     this.themeMode = 'system',
     this.hotkeyFilter = 'myIssues',
     this.notificationStyle = 'overlay',
+    this.presentationMode = false,
   });
 
   final int syncIntervalMinutes;
@@ -66,6 +67,7 @@ class AppSettings {
   final String themeMode;
   final String hotkeyFilter;
   final String notificationStyle;
+  final bool presentationMode;
 
   ThemeMode get flutterThemeMode => switch (themeMode) {
         'light' => ThemeMode.light,
@@ -93,6 +95,7 @@ class AppSettings {
       themeMode: m[SettingsKeys.themeMode] ?? 'system',
       hotkeyFilter: m[SettingsKeys.hotkeyFilter] ?? 'myIssues',
       notificationStyle: m[SettingsKeys.notificationStyle] ?? 'overlay',
+      presentationMode: _bool(m, SettingsKeys.presentationMode, false),
     );
   }
 

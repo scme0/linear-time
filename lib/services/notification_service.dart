@@ -56,6 +56,7 @@ class NotificationService {
   Future<void> _check() async {
     final settings = _ref.read(appSettingsProvider).valueOrNull;
     if (settings == null) return;
+    if (settings.presentationMode) return;
 
     if (settings.officeHoursEnabled && !_isInOfficeHours(settings)) return;
 

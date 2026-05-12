@@ -253,6 +253,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             title: 'Notifications',
             children: [
               SettingRow(
+                label: 'Presentation mode',
+                description: 'Mute all notifications (also in tray menu)',
+                control: MacosSwitch(
+                  value: settings.presentationMode,
+                  onChanged: (v) =>
+                      saveBool(ref, SettingsKeys.presentationMode, v),
+                ),
+              ),
+              SettingRow(
                 label: 'Notification style',
                 description: 'How reminders are shown',
                 control: MacosPopupButton<String>(

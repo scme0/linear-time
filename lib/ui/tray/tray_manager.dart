@@ -7,6 +7,9 @@ import 'package:system_tray/system_tray.dart';
 import '../../providers/timer_providers.dart';
 import '../../providers/issue_providers.dart';
 import '../../providers/repository_providers.dart';
+import '../../providers/settings_providers.dart';
+import '../../providers/database_providers.dart';
+import '../../core/constants.dart';
 import '../../core/extensions/duration_extensions.dart';
 import '../../services/hotkey_service.dart';
 
@@ -136,6 +139,20 @@ class TrayManager {
       onClicked: () {
         HotkeyService.bringToFront();
         onNavigate?.call(2);
+      },
+    ));
+    menuItems.add(MenuSeparator());
+
+    // Presentation mode toggle
+    final settings = _ref.read(appSettingsProvider).valueOrNull;
+    final presentationMode = settings?.presentationMode ?? false;
+    menuItems.add(MenuItem(
+      label: presentationMode ? '● Presentation Mode (on)' : 'Presentation Mode',
+      onClicked: () async {
+        final dao = _ref.read(settingsDaoProvider);
+        await dao.setValue(SettingsKeys.presentationMode, (!presentationMode).toString());
+        _ref.invalidate(appSettingsProvider);
+        updateMenu();
       },
     ));
     menuItems.add(MenuSeparator());
