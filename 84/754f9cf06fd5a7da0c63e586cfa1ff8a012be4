@@ -1,0 +1,24 @@
+lib/ui/screens/settings/settings_screen.dart
+  s_019582d6a6af2d::t_c2567d86d04338 386-389
+  s_019582d6a6af2d::t_a81b9179e9043e 4
+  s_019582d6a6af2d::t_cce7aefb3e214e 114-123
+  s_019582d6a6af2d::t_5af1ca4e9b7e0a 407-421
+macos/Runner/AppDelegate.swift
+  s_019582d6a6af2d::t_080666eabec7d8 3,14-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "84754f9cf06fd5a7da0c63e586cfa1ff8a012be4",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
