@@ -1,0 +1,21 @@
+lib/data/repositories/issue_repository.dart
+  s_019582d6a6af2d::t_ce96266f31bb1c 34-45
+lib/data/repositories/time_tracking_repository.dart
+  s_019582d6a6af2d::t_f6cf3b7ab0b931 11,34,42,53,55,85,111,115,121-154,156-165,168-171
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "609b858117da05f0d55d2f730a610fff32c0c4f8",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
