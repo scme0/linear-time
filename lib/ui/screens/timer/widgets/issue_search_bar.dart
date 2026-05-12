@@ -206,18 +206,6 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
                         widget.subFilters.copyWith(projectId: () => v)),
                   ),
                 ],
-                if (statuses.length > 1) ...[
-                  const SizedBox(width: 6),
-                  SearchableDropdown<String>(
-                    items: statuses,
-                    value: widget.subFilters.statusType,
-                    allLabel: 'All Statuses',
-                    labelBuilder: (id) =>
-                        id != null ? statusMap[id] ?? 'Status' : 'All Statuses',
-                    onChanged: (v) => widget.onSubFiltersChanged(
-                        widget.subFilters.copyWith(statusType: () => v)),
-                  ),
-                ],
                 if (assignees.length > 1) ...[
                   const SizedBox(width: 6),
                   SearchableDropdown<String>(
@@ -228,6 +216,18 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
                         id != null ? assigneeMap[id] ?? 'Assignee' : 'All Assignees',
                     onChanged: (v) => widget.onSubFiltersChanged(
                         widget.subFilters.copyWith(assigneeId: () => v)),
+                  ),
+                ],
+                if (statuses.length > 1) ...[
+                  const SizedBox(width: 6),
+                  SearchableDropdown<String>(
+                    items: statuses,
+                    value: widget.subFilters.statusType,
+                    allLabel: 'All Statuses',
+                    labelBuilder: (id) =>
+                        id != null ? statusMap[id] ?? 'Status' : 'All Statuses',
+                    onChanged: (v) => widget.onSubFiltersChanged(
+                        widget.subFilters.copyWith(statusType: () => v)),
                   ),
                 ],
               ],
