@@ -1,0 +1,22 @@
+lib/data/repositories/issue_repository.dart
+  s_019582d6a6af2d::t_da496bac768771 49,51
+  s_019582d6a6af2d::t_01fa87e3d495eb 104
+lib/ui/widgets/searchable_dropdown.dart
+  s_019582d6a6af2d::t_42d930456a6b87 73-75,80-81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "2941dab7a161d381948c707331324a8b73dc4c86",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
