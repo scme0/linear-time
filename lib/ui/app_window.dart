@@ -31,8 +31,10 @@ class _AppWindowState extends ConsumerState<AppWindow> {
       // Bring window to front, switch to timer, focus search
       HotkeyService.bringToFront();
       setState(() => _pageIndex = 0);
-      // Trigger search focus (increment to notify listeners)
-      _searchFocusNotifier.value++;
+      // Delay focus until after the tab switch renders
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _searchFocusNotifier.value++;
+      });
     });
 
     // Register saved hotkey
