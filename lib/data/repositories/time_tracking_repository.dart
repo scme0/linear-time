@@ -8,10 +8,9 @@ class TimeTrackingRepository {
   TimeTrackingRepository({required this.timeEntryDao, required this.settingsDao});
 
   final TimeEntryDao timeEntryDao;
-  final dynamic settingsDao; // SettingsDao, using dynamic to avoid circular
+  final dynamic settingsDao;
 
   /// Start a timer on an issue. Stops any active timer first.
-  /// Returns the new entry ID, or null if the entry was too short (discarded).
   Future<int> startTimer({
     required String issueId,
     required String issueIdentifier,
@@ -32,6 +31,7 @@ class TimeTrackingRepository {
   }
 
   /// Stop the current timer. Discards if below minimum duration.
+  /// Auto-splits at midnight boundaries.
   Future<void> stopTimer() async {
     final active = await timeEntryDao.getActiveEntry();
     if (active == null) return;
@@ -39,7 +39,7 @@ class TimeTrackingRepository {
     await timeEntryDao.stopEntry(active.id);
     await timeEntryDao.finalizeDuration(active.id);
 
-    // Check minimum duration — discard if too short
+    // Check minimum duration
     final minSeconds = await _getMinDurationSeconds();
     final stoppedEntries = await timeEntryDao.getEntriesForDay(DateTime.now());
     final stopped = stoppedEntries.where((e) => e.id == active.id).firstOrNull;
@@ -50,60 +50,9 @@ class TimeTrackingRepository {
       return;
     }
 
-    // Split at midnight if entry spans multiple days
+    // Finalize the entry (midnight split)
     if (stopped != null && stopped.endTime != null) {
-      await _splitAtMidnights(stopped);
-    }
-  }
-
-  /// Split a completed entry at each midnight boundary.
-  Future<void> _splitAtMidnights(TimeEntry entry) async {
-    final start = entry.startTime;
-    final end = entry.endTime!;
-    final startDay = DateTime(start.year, start.month, start.day);
-    final endDay = DateTime(end.year, end.month, end.day);
-
-    // Same day — nothing to split
-    if (startDay == endDay) return;
-
-    // Walk through each midnight boundary
-    var currentStart = start;
-    var currentDay = startDay;
-
-    // Update the original entry to end at first midnight
-    final firstMidnight = currentDay.add(const Duration(days: 1));
-    await timeEntryDao.updateEntry(
-      entry.id,
-      TimeEntriesCompanion(
-        endTime: Value(firstMidnight),
-        durationSeconds: Value(firstMidnight.difference(start).inSeconds),
-      ),
-    );
-
-    currentStart = firstMidnight;
-    currentDay = currentDay.add(const Duration(days: 1));
-
-    // Create new entries for each subsequent day
-    while (currentDay.isBefore(endDay) || currentDay == endDay) {
-      final nextMidnight = currentDay.add(const Duration(days: 1));
-      final segmentEnd = nextMidnight.isBefore(end) ? nextMidnight : end;
-
-      if (segmentEnd.difference(currentStart).inSeconds > 0) {
-        await timeEntryDao.addManualEntry(
-          issueId: entry.issueId,
-          issueIdentifier: entry.issueIdentifier,
-          issueTitle: entry.issueTitle,
-          teamName: entry.teamName,
-          projectName: entry.projectName,
-          teamColor: entry.teamColor,
-          startTime: currentStart,
-          endTime: segmentEnd,
-        );
-      }
-
-      if (!nextMidnight.isBefore(end)) break;
-      currentStart = nextMidnight;
-      currentDay = currentDay.add(const Duration(days: 1));
+      await _finalizeEntry(stopped);
     }
   }
 
@@ -133,6 +82,7 @@ class TimeTrackingRepository {
   Stream<TimeEntry?> watchActiveTimer() => timeEntryDao.watchActiveEntry();
 
   /// Add a manual time entry. Returns null if overlapping.
+  /// Auto-splits at midnight boundaries.
   Future<int?> addManualEntry({
     required String issueId,
     required String issueIdentifier,
@@ -158,53 +108,67 @@ class TimeTrackingRepository {
       endTime: endTime,
     );
 
-    // Split at midnights if spanning multiple days
+    // Finalize (midnight split)
     final entries = await timeEntryDao.getEntriesForDay(startTime);
     final entry = entries.where((e) => e.id == id).firstOrNull;
     if (entry != null) {
-      await _splitAtMidnights(entry);
+      await _finalizeEntry(entry);
     }
 
     return id;
   }
 
-  /// Split an entry at midnight if it spans multiple days.
-  Future<void> splitMidnightEntries() async {
-    final active = await timeEntryDao.getActiveEntry();
-    if (active == null) return;
+  // ── Private ──────────────────────────────────────────────────────
 
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+  /// Finalize a completed entry: split at midnight boundaries if needed.
+  Future<void> _finalizeEntry(TimeEntry entry) async {
+    if (entry.endTime == null) return;
+    await _splitAtMidnights(entry);
+  }
 
-    if (active.startTime.isBefore(today)) {
-      // Stop the old entry at midnight
-      await timeEntryDao.updateEntry(
-        active.id,
-        TimeEntriesCompanion(
-          endTime: Value(today),
-          durationSeconds:
-              Value(today.difference(active.startTime).inSeconds),
-        ),
-      );
+  /// Split a completed entry at each midnight boundary.
+  Future<void> _splitAtMidnights(TimeEntry entry) async {
+    final start = entry.startTime;
+    final end = entry.endTime!;
+    final startDay = DateTime(start.year, start.month, start.day);
+    final endDay = DateTime(end.year, end.month, end.day);
 
-      // Start a new entry from midnight
-      await timeEntryDao.startEntry(
-        issueId: active.issueId,
-        issueIdentifier: active.issueIdentifier,
-        issueTitle: active.issueTitle,
-        teamName: active.teamName,
-        projectName: active.projectName,
-        teamColor: active.teamColor,
-      );
+    if (startDay == endDay) return;
 
-      // Update the new entry's start time to midnight
-      final newActive = await timeEntryDao.getActiveEntry();
-      if (newActive != null) {
-        await timeEntryDao.updateEntry(
-          newActive.id,
-          TimeEntriesCompanion(startTime: Value(today)),
+    // Trim original entry to first midnight
+    final firstMidnight = startDay.add(const Duration(days: 1));
+    await timeEntryDao.updateEntry(
+      entry.id,
+      TimeEntriesCompanion(
+        endTime: Value(firstMidnight),
+        durationSeconds: Value(firstMidnight.difference(start).inSeconds),
+      ),
+    );
+
+    // Create entries for each subsequent day
+    var currentStart = firstMidnight;
+    var currentDay = firstMidnight;
+
+    while (currentDay.isBefore(endDay) || currentDay == endDay) {
+      final nextMidnight = currentDay.add(const Duration(days: 1));
+      final segmentEnd = nextMidnight.isBefore(end) ? nextMidnight : end;
+
+      if (segmentEnd.difference(currentStart).inSeconds > 0) {
+        await timeEntryDao.addManualEntry(
+          issueId: entry.issueId,
+          issueIdentifier: entry.issueIdentifier,
+          issueTitle: entry.issueTitle,
+          teamName: entry.teamName,
+          projectName: entry.projectName,
+          teamColor: entry.teamColor,
+          startTime: currentStart,
+          endTime: segmentEnd,
         );
       }
+
+      if (!nextMidnight.isBefore(end)) break;
+      currentStart = nextMidnight;
+      currentDay = nextMidnight;
     }
   }
 

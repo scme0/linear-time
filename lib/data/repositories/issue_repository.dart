@@ -31,6 +31,18 @@ class IssueRepository {
         .map((d) => _mapToCompanion(d, isAssigned: true))
         .toList();
     await cachedIssueDao.upsertIssues(companions);
+
+    // Detect deleted/removed issues: any assigned issue in cache that's
+    // no longer in the API response should be marked as deleted
+    final apiIds = apiIssues.map((i) => i['id'] as String).toSet();
+    final cachedAssigned = await cachedIssueDao.getAssignedIssues();
+    final missingIds = cachedAssigned
+        .map((i) => i.issueId)
+        .where((id) => !apiIds.contains(id))
+        .toList();
+    if (missingIds.isNotEmpty) {
+      await cachedIssueDao.markDeletedBatch(missingIds);
+    }
   }
 
   /// Sync all issues from all user's teams into cache.
