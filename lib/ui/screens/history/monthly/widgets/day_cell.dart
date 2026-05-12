@@ -83,8 +83,8 @@ class _DayCellState extends State<DayCell> {
                         ),
                     ],
                   ),
-                  const Spacer(),
-                  if (hasData) _buildStripes(),
+                  const SizedBox(height: 2),
+                  if (hasData) Expanded(child: _buildStripes()),
                 ],
               ),
             ),
@@ -108,6 +108,7 @@ class _DayCellState extends State<DayCell> {
 
   Widget _buildStripes() {
     final data = widget.data!;
+    final brightness = MacosTheme.of(context).brightness;
     final entries = data.issueSeconds.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
@@ -117,33 +118,28 @@ class _DayCellState extends State<DayCell> {
     final emptyFraction = 1.0 - trackedFraction;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(2),
-      child: SizedBox(
-        height: 6,
-        child: Row(
-          children: [
-            // Issue color segments proportional to tracked time
-            ...entries.map((entry) {
-              final fraction =
-                  entry.value / widget.workDaySeconds;
-              return Flexible(
-                flex: (fraction * 1000).round().clamp(1, 1000),
-                child: Container(
-                  color: AppColors.colorForIssue(entry.key),
-                ),
-              );
-            }),
-            // Empty space for untracked portion
-            if (emptyFraction > 0.01)
-              Flexible(
-                flex: (emptyFraction * 1000).round().clamp(1, 1000),
-                child: Container(
-                  color: AppColors.border(
-                      MacosTheme.of(context).brightness),
-                ),
+      borderRadius: BorderRadius.circular(3),
+      child: Row(
+        children: [
+          // Issue color segments proportional to tracked time
+          ...entries.map((entry) {
+            final fraction = entry.value / widget.workDaySeconds;
+            return Flexible(
+              flex: (fraction * 1000).round().clamp(1, 1000),
+              child: Container(
+                color: AppColors.colorForIssue(entry.key),
               ),
-          ],
-        ),
+            );
+          }),
+          // Empty space for untracked portion
+          if (emptyFraction > 0.01)
+            Flexible(
+              flex: (emptyFraction * 1000).round().clamp(1, 1000),
+              child: Container(
+                color: AppColors.border(brightness).withValues(alpha: 0.3),
+              ),
+            ),
+        ],
       ),
     );
   }

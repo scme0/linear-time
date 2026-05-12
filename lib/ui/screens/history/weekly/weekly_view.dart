@@ -35,6 +35,22 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
 
   bool get _isCurrentWeek => _weekStart == DateTime.now().startOfWeek;
 
+  Future<void> _onTapEntry(DateTime date, TimeEntry entry) async {
+    final day = DateTime(date.year, date.month, date.day);
+    final result = await showMacosAlertDialog<bool>(
+      context: context,
+      builder: (context) => TimeEntryDialog(
+        date: day,
+        existingEntry: entry,
+      ),
+    );
+    if (result == true) {
+      ref.invalidate(weeklyEntriesProvider(_weekStart));
+      ref.invalidate(weeklySummaryProvider(_weekStart));
+      ref.invalidate(dailyEntriesProvider(day));
+    }
+  }
+
   Future<void> _onTapEmpty(DateTime date, int hour) async {
     final day = DateTime(date.year, date.month, date.day);
     final result = await showMacosAlertDialog<bool>(
@@ -133,6 +149,7 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
             settings: settings,
             brightness: brightness,
             onTapEmpty: _onTapEmpty,
+            onTapEntry: _onTapEntry,
           ),
         ),
         // Issue legend + grand total
@@ -215,12 +232,14 @@ class _WeekTimeline extends ConsumerWidget {
     required this.settings,
     required this.brightness,
     this.onTapEmpty,
+    this.onTapEntry,
   });
 
   final DateTime weekStart;
   final AppSettings settings;
   final Brightness brightness;
   final void Function(DateTime date, int hour)? onTapEmpty;
+  final void Function(DateTime date, TimeEntry entry)? onTapEntry;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -334,6 +353,9 @@ class _WeekTimeline extends ConsumerWidget {
                         onTapHour: onTapEmpty != null
                             ? (hour) => onTapEmpty!(day, hour)
                             : null,
+                        onTapEntry: onTapEntry != null
+                            ? (entry) => onTapEntry!(day, entry)
+                            : null,
                       ),
                     ),
                   ],
@@ -405,8 +427,8 @@ class _HourLabels extends StatelessWidget {
   }
 }
 
-/// A single day column with hour grid lines and entry blocks.
-class _DayColumn extends StatelessWidget {
+/// A single day column with hour grid lines, entry blocks, hover preview, and click handling.
+class _DayColumn extends StatefulWidget {
   const _DayColumn({
     required this.entries,
     required this.minHour,
@@ -414,6 +436,7 @@ class _DayColumn extends StatelessWidget {
     required this.isToday,
     required this.brightness,
     this.onTapHour,
+    this.onTapEntry,
   });
 
   final List<TimeEntry> entries;
@@ -422,135 +445,215 @@ class _DayColumn extends StatelessWidget {
   final bool isToday;
   final Brightness brightness;
   final ValueChanged<int>? onTapHour;
+  final ValueChanged<TimeEntry>? onTapEntry;
+
+  @override
+  State<_DayColumn> createState() => _DayColumnState();
+}
+
+class _DayColumnState extends State<_DayColumn> {
+  double? _hoverY;
+  double _columnHeight = 1;
+
+  int get _totalMinutes => (widget.maxHour - widget.minHour) * 60;
+
+  /// Find entry at a given Y position, or null if empty space.
+  TimeEntry? _entryAtY(double y) {
+    for (final entry in widget.entries) {
+      if (entry.endTime == null) continue;
+      final startMin = entry.startTime.hour * 60 +
+          entry.startTime.minute -
+          widget.minHour * 60;
+      final endMin = entry.endTime!.hour * 60 +
+          entry.endTime!.minute -
+          widget.minHour * 60;
+      final top = startMin / _totalMinutes * _columnHeight;
+      final bottom = endMin / _totalMinutes * _columnHeight;
+      if (y >= top && y <= bottom) return entry;
+    }
+    return null;
+  }
+
+  int _hourAtY(double y) {
+    return (widget.minHour +
+            (y / _columnHeight * (widget.maxHour - widget.minHour)))
+        .floor()
+        .clamp(widget.minHour, widget.maxHour - 1);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final totalMinutes = (maxHour - minHour) * 60;
-
     return LayoutBuilder(
       builder: (context, constraints) {
-        final height = constraints.maxHeight;
+        _columnHeight = constraints.maxHeight;
+        final height = _columnHeight;
 
-        return GestureDetector(
-          onTapUp: onTapHour != null
-              ? (details) {
-                  final y = details.localPosition.dy;
-                  final hour =
-                      minHour + (y / height * (maxHour - minHour)).floor();
-                  onTapHour!(hour.clamp(minHour, maxHour - 1));
-                }
-              : null,
-          child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.surface(brightness),
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(
-              color: isToday
-                  ? AppColors.accent.withValues(alpha: 0.4)
-                  : AppColors.border(brightness),
-              width: isToday ? 1.0 : 0.5,
-            ),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(3.5),
-            child: Stack(
-              children: [
-                // Hour grid lines
-                ...List.generate(maxHour - minHour - 1, (i) {
-                  final y = (i + 1) / (maxHour - minHour) * height;
-                  return Positioned(
-                    top: y,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      height: 0.5,
-                      color: AppColors.border(brightness)
-                          .withValues(alpha: 0.5),
-                    ),
-                  );
-                }),
-                // Entry blocks
-                ...entries.where((e) => e.endTime != null).map((entry) {
-                  final startMin = entry.startTime.hour * 60 +
-                      entry.startTime.minute -
-                      minHour * 60;
-                  final endMin = entry.endTime!.hour * 60 +
-                      entry.endTime!.minute -
-                      minHour * 60;
-
-                  final top = (startMin / totalMinutes * height)
-                      .clamp(0.0, height);
-                  final bottom = (endMin / totalMinutes * height)
-                      .clamp(0.0, height);
-                  final blockHeight = (bottom - top).clamp(2.0, height);
-
-                  return Positioned(
-                    top: top,
-                    left: 1,
-                    right: 1,
-                    height: blockHeight,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.colorForIssue(entry.issueId)
-                            .withValues(alpha: 0.8),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      child: blockHeight >= 16
-                          ? Text(
-                              entry.issueIdentifier,
-                              style: const TextStyle(
-                                fontSize: 8,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFFFFFFFF),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.clip,
-                            )
-                          : null,
-                    ),
-                  );
-                }),
-                // Currently running entry
-                ...entries.where((e) => e.endTime == null).map((entry) {
-                  final startMin = entry.startTime.hour * 60 +
-                      entry.startTime.minute -
-                      minHour * 60;
-                  final now = DateTime.now();
-                  final endMin =
-                      now.hour * 60 + now.minute - minHour * 60;
-
-                  final top = (startMin / totalMinutes * height)
-                      .clamp(0.0, height);
-                  final bottom = (endMin / totalMinutes * height)
-                      .clamp(0.0, height);
-                  final blockHeight = (bottom - top).clamp(2.0, height);
-
-                  return Positioned(
-                    top: top,
-                    left: 1,
-                    right: 1,
-                    height: blockHeight,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.colorForIssue(entry.issueId)
-                            .withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(2),
-                        border: Border.all(
-                          color: AppColors.colorForIssue(entry.issueId),
-                          width: 1,
+        return MouseRegion(
+          onHover: (event) => setState(() => _hoverY = event.localPosition.dy),
+          onExit: (_) => setState(() => _hoverY = null),
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTapUp: (details) {
+              final y = details.localPosition.dy;
+              final entry = _entryAtY(y);
+              if (entry != null) {
+                widget.onTapEntry?.call(entry);
+              } else {
+                final hour = _hourAtY(y);
+                widget.onTapHour?.call(hour);
+              }
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface(widget.brightness),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: widget.isToday
+                      ? AppColors.accent.withValues(alpha: 0.4)
+                      : AppColors.border(widget.brightness),
+                  width: widget.isToday ? 1.0 : 0.5,
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(3.5),
+                child: Stack(
+                  children: [
+                    // Hour grid lines
+                    ...List.generate(widget.maxHour - widget.minHour - 1, (i) {
+                      final y = (i + 1) / (widget.maxHour - widget.minHour) * height;
+                      return Positioned(
+                        top: y,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          height: 0.5,
+                          color: AppColors.border(widget.brightness)
+                              .withValues(alpha: 0.5),
                         ),
-                      ),
-                    ),
-                  );
-                }),
-              ],
+                      );
+                    }),
+                    // Hover preview (ghost block)
+                    if (_hoverY != null && _entryAtY(_hoverY!) == null)
+                      _buildHoverPreview(height),
+                    // Completed entry blocks
+                    ...widget.entries.where((e) => e.endTime != null).map((entry) {
+                      final startMin = entry.startTime.hour * 60 +
+                          entry.startTime.minute -
+                          widget.minHour * 60;
+                      final endMin = entry.endTime!.hour * 60 +
+                          entry.endTime!.minute -
+                          widget.minHour * 60;
+
+                      final top = (startMin / _totalMinutes * height)
+                          .clamp(0.0, height);
+                      final bottom = (endMin / _totalMinutes * height)
+                          .clamp(0.0, height);
+                      final blockHeight = (bottom - top).clamp(2.0, height);
+
+                      return Positioned(
+                        top: top,
+                        left: 1,
+                        right: 1,
+                        height: blockHeight,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.colorForIssue(entry.issueId)
+                                .withValues(alpha: 0.8),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          child: blockHeight >= 16
+                              ? Text(
+                                  entry.issueIdentifier,
+                                  style: const TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFFFFFFFF),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.clip,
+                                )
+                              : null,
+                        ),
+                      );
+                    }),
+                    // Currently running entry
+                    ...widget.entries.where((e) => e.endTime == null).map((entry) {
+                      final startMin = entry.startTime.hour * 60 +
+                          entry.startTime.minute -
+                          widget.minHour * 60;
+                      final now = DateTime.now();
+                      final endMin =
+                          now.hour * 60 + now.minute - widget.minHour * 60;
+
+                      final top = (startMin / _totalMinutes * height)
+                          .clamp(0.0, height);
+                      final bottom = (endMin / _totalMinutes * height)
+                          .clamp(0.0, height);
+                      final blockHeight = (bottom - top).clamp(2.0, height);
+
+                      return Positioned(
+                        top: top,
+                        left: 1,
+                        right: 1,
+                        height: blockHeight,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.colorForIssue(entry.issueId)
+                                .withValues(alpha: 0.6),
+                            borderRadius: BorderRadius.circular(2),
+                            border: Border.all(
+                              color: AppColors.colorForIssue(entry.issueId),
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
         );
       },
+    );
+  }
+
+  Widget _buildHoverPreview(double height) {
+    // Show a 15-min ghost block at the hover position
+    const previewMinutes = 15;
+    final hoverMin =
+        (_hoverY! / height * _totalMinutes).round();
+    // Snap to 15-min grid
+    final snappedMin = (hoverMin ~/ previewMinutes) * previewMinutes;
+    final top = (snappedMin / _totalMinutes * height).clamp(0.0, height);
+    final bottom =
+        ((snappedMin + previewMinutes) / _totalMinutes * height).clamp(0.0, height);
+    final blockHeight = (bottom - top).clamp(2.0, height);
+
+    return Positioned(
+      top: top,
+      left: 1,
+      right: 1,
+      height: blockHeight,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.accent.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(2),
+          border: Border.all(
+            color: AppColors.accent.withValues(alpha: 0.4),
+            width: 1,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Icon(
+          CupertinoIcons.plus,
+          size: 10,
+          color: AppColors.accent.withValues(alpha: 0.6),
+        ),
+      ),
     );
   }
 }
