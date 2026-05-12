@@ -16,7 +16,8 @@ class TrayManager {
 
   final WidgetRef _ref;
   final _systemTray = SystemTray();
-  Timer? _updateTimer;
+  Timer? _menuTimer;
+  Timer? _titleTimer;
   bool _initialized = false;
 
   Future<void> init() async {
@@ -39,10 +40,16 @@ class TrayManager {
 
     await _updateMenu();
 
-    // Update menu every 5 seconds to refresh timer display
-    _updateTimer = Timer.periodic(
-      const Duration(seconds: 5),
+    // Update menu every 10 seconds (structural changes)
+    _menuTimer = Timer.periodic(
+      const Duration(seconds: 10),
       (_) => _updateMenu(),
+    );
+
+    // Update title every second (cheap — just text)
+    _titleTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => _updateTitle(),
     );
   }
 
@@ -124,10 +131,13 @@ class TrayManager {
 
     await _systemTray.setContextMenu(menuItems);
 
-    // Update menubar title + tooltip
+    await _updateTitle();
+  }
+
+  Future<void> _updateTitle() async {
+    final activeEntry = _ref.read(activeTimerProvider).valueOrNull;
     if (activeEntry != null) {
-      final elapsed =
-          DateTime.now().difference(activeEntry.startTime);
+      final elapsed = DateTime.now().difference(activeEntry.startTime);
       await _systemTray.setTitle(
           '${activeEntry.issueIdentifier} ${elapsed.toHms()}');
       await _systemTray.setToolTip(
@@ -139,6 +149,7 @@ class TrayManager {
   }
 
   void dispose() {
-    _updateTimer?.cancel();
+    _menuTimer?.cancel();
+    _titleTimer?.cancel();
   }
 }
