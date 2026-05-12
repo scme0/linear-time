@@ -36,6 +36,57 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+  }
+
+  bool _handleKeyEvent(KeyEvent event) {
+    if (event is! KeyDownEvent) return false;
+    final meta = HardwareKeyboard.instance.isMetaPressed;
+    if (!meta) return false;
+
+    switch (event.logicalKey) {
+      case LogicalKeyboardKey.keyS:
+        final repo = ref.read(timeTrackingRepositoryProvider);
+        repo.stopTimer();
+        TrayManager.instance?.updateMenu();
+        TrayManager.instance?.updateTitle();
+        NotificationService.instance?.onTimerStateChanged();
+        return true;
+      case LogicalKeyboardKey.keyF:
+        setState(() => _pageIndex = 0);
+        Future.delayed(const Duration(milliseconds: 50), () {
+          _searchFocusNotifier.value++;
+        });
+        return true;
+      case LogicalKeyboardKey.keyN:
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        showMacosAlertDialog<bool>(
+          context: context,
+          builder: (ctx) => TimeEntryDialog(date: today),
+        );
+        return true;
+      case LogicalKeyboardKey.keyM:
+        setState(() => _pageIndex = 0);
+        _filterModeNotifier.value = IssueFilterMode.myIssues;
+        return true;
+      case LogicalKeyboardKey.keyE:
+        setState(() => _pageIndex = 0);
+        _filterModeNotifier.value = IssueFilterMode.allIssues;
+        return true;
+      case LogicalKeyboardKey.keyR:
+        setState(() => _pageIndex = 0);
+        _filterModeNotifier.value = IssueFilterMode.recentlyTracked;
+        return true;
+      case LogicalKeyboardKey.comma:
+        setState(() => _pageIndex = 2);
+        return true;
+      case LogicalKeyboardKey.slash:
+        _showCheatsheet(context, MacosTheme.of(context).brightness);
+        return true;
+      default:
+        return false;
+    }
   }
 
   void _showCheatsheet(BuildContext context, Brightness brightness) {
@@ -146,6 +197,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
   @override
   void dispose() {
     _stopTimerOnExit();
+    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     WidgetsBinding.instance.removeObserver(this);
     _trayManager?.dispose();
     _notificationService?.dispose();
@@ -191,105 +243,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
 
     final brightness = MacosTheme.of(context).brightness;
 
-    return Shortcuts(
-      shortcuts: {
-        // Cmd+1/2/3 to switch tabs
-        const SingleActivator(LogicalKeyboardKey.digit1, meta: true):
-            const _SwitchTabIntent(0),
-        const SingleActivator(LogicalKeyboardKey.digit2, meta: true):
-            const _SwitchTabIntent(1),
-        const SingleActivator(LogicalKeyboardKey.digit3, meta: true):
-            const _SwitchTabIntent(2),
-        // Cmd+, for Settings (macOS convention)
-        const SingleActivator(LogicalKeyboardKey.comma, meta: true):
-            const _SwitchTabIntent(2),
-        // Cmd+F to focus search
-        const SingleActivator(LogicalKeyboardKey.keyF, meta: true):
-            const _FocusSearchIntent(),
-        // Escape to clear search
-        const SingleActivator(LogicalKeyboardKey.escape):
-            const _EscapeIntent(),
-        // Cmd+S to stop timer
-        const SingleActivator(LogicalKeyboardKey.keyS, meta: true):
-            const _StopTimerIntent(),
-        // Cmd+N for new manual entry
-        const SingleActivator(LogicalKeyboardKey.keyN, meta: true):
-            const _NewEntryIntent(),
-        // Cmd+/ for shortcut cheatsheet
-        const SingleActivator(LogicalKeyboardKey.slash, meta: true):
-            const _CheatsheetIntent(),
-        // Cmd+M for My Issues
-        const SingleActivator(LogicalKeyboardKey.keyM, meta: true):
-            const _FilterModeIntent(IssueFilterMode.myIssues),
-        // Cmd+E for All Issues (Everything)
-        const SingleActivator(LogicalKeyboardKey.keyE, meta: true):
-            const _FilterModeIntent(IssueFilterMode.allIssues),
-        // Cmd+R for Recently Tracked
-        const SingleActivator(LogicalKeyboardKey.keyR, meta: true):
-            const _FilterModeIntent(IssueFilterMode.recentlyTracked),
-      },
-      child: Actions(
-        actions: {
-          _SwitchTabIntent: CallbackAction<_SwitchTabIntent>(
-            onInvoke: (intent) {
-              setState(() => _pageIndex = intent.tab);
-              return null;
-            },
-          ),
-          _FocusSearchIntent: CallbackAction<_FocusSearchIntent>(
-            onInvoke: (_) {
-              setState(() => _pageIndex = 0);
-              Future.delayed(const Duration(milliseconds: 50), () {
-                _searchFocusNotifier.value++;
-              });
-              return null;
-            },
-          ),
-          _EscapeIntent: CallbackAction<_EscapeIntent>(
-            onInvoke: (_) {
-              // Clear search focus — just switch focus away
-              FocusManager.instance.primaryFocus?.unfocus();
-              return null;
-            },
-          ),
-          _StopTimerIntent: CallbackAction<_StopTimerIntent>(
-            onInvoke: (_) {
-              final repo = ref.read(timeTrackingRepositoryProvider);
-              repo.stopTimer();
-              TrayManager.instance?.updateMenu();
-              TrayManager.instance?.updateTitle();
-              NotificationService.instance?.onTimerStateChanged();
-              return null;
-            },
-          ),
-          _CheatsheetIntent: CallbackAction<_CheatsheetIntent>(
-            onInvoke: (_) {
-              _showCheatsheet(context, brightness);
-              return null;
-            },
-          ),
-          _FilterModeIntent: CallbackAction<_FilterModeIntent>(
-            onInvoke: (intent) {
-              setState(() => _pageIndex = 0);
-              _filterModeNotifier.value = intent.mode;
-              return null;
-            },
-          ),
-          _NewEntryIntent: CallbackAction<_NewEntryIntent>(
-            onInvoke: (_) {
-              final now = DateTime.now();
-              final today = DateTime(now.year, now.month, now.day);
-              showMacosAlertDialog<bool>(
-                context: context,
-                builder: (ctx) => TimeEntryDialog(date: today),
-              );
-              return null;
-            },
-          ),
-        },
-        child: Focus(
-          autofocus: true,
-          child: MacosWindow(
+    return MacosWindow(
       titleBar: TitleBar(
         height: 52,
         centerTitle: true,
@@ -340,43 +294,10 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
           ),
         ],
       ),
-    ),
-        ),
-      ),
     );
   }
 }
 
-// Intent classes for keyboard shortcuts
-class _SwitchTabIntent extends Intent {
-  const _SwitchTabIntent(this.tab);
-  final int tab;
-}
-
-class _FocusSearchIntent extends Intent {
-  const _FocusSearchIntent();
-}
-
-class _EscapeIntent extends Intent {
-  const _EscapeIntent();
-}
-
-class _StopTimerIntent extends Intent {
-  const _StopTimerIntent();
-}
-
-class _NewEntryIntent extends Intent {
-  const _NewEntryIntent();
-}
-
-class _CheatsheetIntent extends Intent {
-  const _CheatsheetIntent();
-}
-
-class _FilterModeIntent extends Intent {
-  const _FilterModeIntent(this.mode);
-  final IssueFilterMode mode;
-}
 
 class _TabButton extends StatefulWidget {
   const _TabButton({

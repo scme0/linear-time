@@ -94,6 +94,8 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
       TrayManager.instance?.updateTitle();
     });
     NotificationService.instance?.onTimerStateChanged();
+    // Unfocus search bar so keyboard shortcuts work again
+    FocusManager.instance.primaryFocus?.unfocus();
   }
 
   void _onSearchSubmitted() {
