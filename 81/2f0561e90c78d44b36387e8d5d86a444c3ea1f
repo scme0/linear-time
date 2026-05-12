@@ -1,0 +1,19 @@
+lib/ui/screens/timer/widgets/issue_row.dart
+  s_019582d6a6af2d::t_e524c33b931425 129-145
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "812f0561e90c78d44b36387e8d5d86a444c3ea1f",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
