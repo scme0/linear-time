@@ -28,8 +28,6 @@ Future<void> saveInt(WidgetRef ref, String key, int value) =>
 
 class AppSettings {
   const AppSettings({
-    this.syncIntervalMinutes = kDefaultSyncIntervalMinutes,
-    this.syncOnLaunch = true,
     this.showCompletedIssues = false,
     this.idleDetectionEnabled = true,
     this.idleDelayMinutes = kDefaultIdleDelayMinutes,
@@ -49,8 +47,6 @@ class AppSettings {
     this.presentationMode = false,
   });
 
-  final int syncIntervalMinutes;
-  final bool syncOnLaunch;
   final bool showCompletedIssues;
   final bool idleDetectionEnabled;
   final int idleDelayMinutes;
@@ -77,8 +73,6 @@ class AppSettings {
 
   factory AppSettings.fromMap(Map<String, String> m) {
     return AppSettings(
-      syncIntervalMinutes: _int(m, SettingsKeys.syncIntervalMinutes, kDefaultSyncIntervalMinutes),
-      syncOnLaunch: _bool(m, SettingsKeys.syncOnLaunch, true),
       showCompletedIssues: _bool(m, SettingsKeys.showCompletedIssues, false),
       idleDetectionEnabled: _bool(m, SettingsKeys.idleDetectionEnabled, true),
       idleDelayMinutes: _int(m, SettingsKeys.idleDelayMinutes, kDefaultIdleDelayMinutes),

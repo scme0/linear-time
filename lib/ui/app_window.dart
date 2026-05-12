@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
+import '../providers/api_providers.dart';
 import '../providers/database_providers.dart';
 import '../providers/issue_providers.dart';
 import '../providers/repository_providers.dart';
@@ -12,6 +13,7 @@ import '../core/time_format.dart';
 import '../providers/settings_providers.dart';
 import '../services/hotkey_service.dart';
 import '../services/notification_service.dart';
+import '../services/sync_service.dart';
 import 'tray/tray_manager.dart';
 import 'screens/timer/timer_screen.dart';
 import 'screens/history/history_screen.dart';
@@ -33,6 +35,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
   final _filterModeNotifier = ValueNotifier<IssueFilterMode?>(null);
   TrayManager? _trayManager;
   NotificationService? _notificationService;
+  SyncService? _syncService;
 
   @override
   void initState() {
@@ -106,7 +109,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
                 child: Row(
                   children: [
                     SizedBox(
-                      width: 100,
+                      width: 80,
                       child: Text(
                         entry.$1,
                         style: TextStyle(
@@ -117,12 +120,14 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Text(
-                      entry.$2,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary(brightness),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        entry.$2,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textSecondary(brightness),
+                        ),
                       ),
                     ),
                   ],
@@ -161,6 +166,12 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
     _notificationService!.init();
   }
 
+  void _initSync() {
+    if (_syncService != null) return;
+    _syncService = SyncService(ref);
+    _syncService!.init();
+  }
+
   void _initTray() {
     if (_trayManager != null) return;
     _trayManager = TrayManager(ref, onNavigate: (tab) {
@@ -183,6 +194,13 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
     if (_startupDone) return;
     _startupDone = true;
 
+    // First launch: if no API key, go to Settings
+    ref.read(apiKeyProvider.future).then((key) {
+      if (key == null && mounted) {
+        setState(() => _pageIndex = 2); // Settings tab
+      }
+    });
+
     // Apply Show in Dock setting
     ref.read(settingsDaoProvider).getValue(SettingsKeys.showInDock).then((val) {
       if (val == 'false') {
@@ -204,6 +222,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
     WidgetsBinding.instance.removeObserver(this);
     _trayManager?.dispose();
     _notificationService?.dispose();
+    _syncService?.dispose();
     super.dispose();
   }
 
@@ -245,6 +264,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
     _initNotifications(); // Must be first — sets unified method channel handler
     _initHotkey();
     _initTray();
+    _initSync();
     _applyStartupSettings();
 
     final brightness = MacosTheme.of(context).brightness;

@@ -1,9 +1,6 @@
 /// Linear API endpoint.
 const kLinearApiUrl = 'https://api.linear.app/graphql';
 
-/// Default sync interval in minutes.
-const kDefaultSyncIntervalMinutes = 5;
-
 /// Default idle detection delay in minutes.
 const kDefaultIdleDelayMinutes = 15;
 
@@ -22,8 +19,6 @@ const kDefaultMinEntryDurationSeconds = 5;
 
 /// Settings keys.
 abstract class SettingsKeys {
-  static const syncIntervalMinutes = 'sync_interval_minutes';
-  static const syncOnLaunch = 'sync_on_launch';
   static const showCompletedIssues = 'show_completed_issues';
   static const idleDetectionEnabled = 'idle_detection_enabled';
   static const idleDelayMinutes = 'idle_delay_minutes';

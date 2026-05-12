@@ -156,39 +156,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
           // ── Linear Connection ──
+          // Keyboard shortcuts hint
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Text(
+              'Keyboard shortcuts: ⌘/',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondary(brightness),
+              ),
+            ),
+          ),
+
           _buildLinearSection(brightness, isConnected),
 
           // ── Sync ──
           SettingsSection(
             title: 'Sync',
             children: [
-              SettingRow(
-                label: 'Sync on launch',
-                description: 'Fetch issues from Linear when app starts',
-                control: MacosSwitch(
-                  value: settings.syncOnLaunch,
-                  onChanged: (v) =>
-                      saveBool(ref, SettingsKeys.syncOnLaunch, v),
-                ),
-              ),
-              SettingRow(
-                label: 'Sync interval',
-                description: 'How often to refresh issues in the background',
-                control: MacosPopupButton<int>(
-                  value: settings.syncIntervalMinutes,
-                  items: [5, 15, 30, 60]
-                      .map((v) => MacosPopupMenuItem(
-                            value: v,
-                            child: Text(v == 60 ? '1 hour' : '$v min'),
-                          ))
-                      .toList(),
-                  onChanged: (v) {
-                    if (v != null) {
-                      saveInt(ref, SettingsKeys.syncIntervalMinutes, v);
-                    }
-                  },
-                ),
-              ),
               SettingRow(
                 label: 'Show completed issues',
                 description: 'Include completed/cancelled issues in the list',

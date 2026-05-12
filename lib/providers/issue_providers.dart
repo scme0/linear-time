@@ -4,6 +4,7 @@ import '../data/database/app_database.dart';
 import 'api_providers.dart';
 import 'database_providers.dart';
 import 'repository_providers.dart';
+import 'settings_providers.dart';
 
 /// Assigned issues from cache (reactive).
 final assignedIssuesProvider = StreamProvider<List<CachedIssue>>((ref) {
@@ -28,14 +29,18 @@ final recentTrackedIssuesProvider =
 final syncIssuesProvider = FutureProvider<void>((ref) async {
   final repo = ref.watch(issueRepositoryProvider);
   if (repo == null) return;
-  await repo.syncAssignedIssues();
+  final settings = ref.read(appSettingsProvider).valueOrNull;
+  final showCompleted = settings?.showCompletedIssues ?? false;
+  await repo.syncAssignedIssues(showCompleted: showCompleted);
 });
 
 /// Trigger a full sync of all team issues from Linear.
 final syncAllIssuesProvider = FutureProvider<void>((ref) async {
   final repo = ref.watch(issueRepositoryProvider);
   if (repo == null) return;
-  await repo.syncAllTeamIssues();
+  final settings = ref.read(appSettingsProvider).valueOrNull;
+  final showCompleted = settings?.showCompletedIssues ?? false;
+  await repo.syncAllTeamIssues(showCompleted: showCompleted);
 });
 
 /// Teams from Linear API (teams user is a member of).
