@@ -1,0 +1,63 @@
+lib/ui/screens/history/daily/daily_view.dart
+  s_019582d6a6af2d::t_49fd056211737f 275,282
+  s_019582d6a6af2d::t_d421c702dae854 96,100
+  s_019582d6a6af2d::t_e5310bde342fa3 12
+  s_019582d6a6af2d::t_d524d6c98dd428 224
+  s_019582d6a6af2d::t_d8c8e022a3a64f 68
+  s_019582d6a6af2d::t_f49efbf74ba22c 228,242,245
+  s_019582d6a6af2d::t_8cdb77d2f982f0 119,122
+  s_019582d6a6af2d::t_9b14761e506263 293
+  s_019582d6a6af2d::t_9144201f4df87a 312
+lib/ui/screens/history/monthly/monthly_view.dart
+  s_019582d6a6af2d::t_607fc093041fb2 44
+  s_019582d6a6af2d::t_89012e34dbc095 8
+  s_019582d6a6af2d::t_9ae802185cfb2c 84,87
+lib/ui/screens/history/weekly/weekly_view.dart
+  s_019582d6a6af2d::t_442e189d508479 188,197
+lib/ui/app_window.dart
+  s_019582d6a6af2d::t_b8842821a1257f 39,50,61
+lib/core/theme/app_theme.dart
+  s_019582d6a6af2d::t_26beb04d7d1c3f 3-11,13-63,65-76,79,85-94,96-97,99-100,102-103,105-106,108-109,111-112,114-115
+lib/ui/screens/history/monthly/widgets/day_cell.dart
+  s_019582d6a6af2d::t_76b9dc033e4d7d 51
+  s_019582d6a6af2d::t_56260c6b517eab 6
+  s_019582d6a6af2d::t_f432b81d4829ec 60,64
+  s_019582d6a6af2d::t_18a990a9da819e 124
+  s_019582d6a6af2d::t_e7d1f64d093f70 110
+  s_019582d6a6af2d::t_d65ec2431145a5 29,31
+  s_019582d6a6af2d::t_df686655026b17 101
+  s_019582d6a6af2d::t_3b8fe10a90fad7 84
+  s_019582d6a6af2d::t_56b0938856f7f9 92,94
+lib/ui/screens/timer/widgets/issue_list.dart
+  s_019582d6a6af2d::t_77202346b3c0c3 253
+  s_019582d6a6af2d::t_8189c13e5f4001 160-161,164
+  s_019582d6a6af2d::t_416419931129e0 9
+  s_019582d6a6af2d::t_ec1e67a12cb706 266
+  s_019582d6a6af2d::t_c857b92113e0d8 201,212,219
+  s_019582d6a6af2d::t_e2207a5e277ab1 289,291
+lib/ui/screens/timer/widgets/issue_row.dart
+  s_019582d6a6af2d::t_aad0c234757510 66,92
+  s_019582d6a6af2d::t_e02ec4aa02dd9e 139,146
+lib/ui/screens/settings/settings_screen.dart
+  s_019582d6a6af2d::t_8d122a47c230b3 90,146
+  s_019582d6a6af2d::t_8c4c714bc3667c 147
+lib/ui/screens/timer/widgets/active_timer_banner.dart
+  s_019582d6a6af2d::t_2074fa575ed463 71,83
+  s_019582d6a6af2d::t_924ffbc51918ec 173
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "41de65f85d9d41e39f8715be69cb13ceaec49193",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
