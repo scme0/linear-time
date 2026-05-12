@@ -1,0 +1,22 @@
+lib/ui/screens/settings/settings_screen.dart
+  s_019582d6a6af2d::t_a6869197b98030 13
+  s_019582d6a6af2d::t_9e080b8597451f 611,613-618
+lib/ui/app_window.dart
+  s_019582d6a6af2d::t_112b88e7b44ec4 160,163-170
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "e8a0f72566b1ee0c06814164daa35743bd35820c",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
