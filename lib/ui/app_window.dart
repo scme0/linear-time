@@ -4,6 +4,7 @@ import 'package:macos_ui/macos_ui.dart';
 
 import '../providers/database_providers.dart';
 import '../providers/issue_providers.dart';
+import '../providers/repository_providers.dart';
 import '../core/constants.dart';
 import '../core/theme/app_theme.dart';
 import '../services/hotkey_service.dart';
@@ -19,12 +20,18 @@ class AppWindow extends ConsumerStatefulWidget {
   ConsumerState<AppWindow> createState() => _AppWindowState();
 }
 
-class _AppWindowState extends ConsumerState<AppWindow> {
+class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserver {
   int _pageIndex = 0;
   bool _hotkeyInitialized = false;
   final _searchFocusNotifier = ValueNotifier<int>(0);
   final _hotkeyFilterNotifier = ValueNotifier<String?>('myIssues');
   TrayManager? _trayManager;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   void _initTray() {
     if (_trayManager != null) return;
@@ -34,7 +41,31 @@ class _AppWindowState extends ConsumerState<AppWindow> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached) {
+      _stopTimerOnExit();
+    }
+  }
+
+  bool _orphanCheckDone = false;
+
+  void _stopOrphanedTimers() {
+    if (_orphanCheckDone) return;
+    _orphanCheckDone = true;
+    // Stop any timer left running from a previous session (crash/force quit)
+    final repo = ref.read(timeTrackingRepositoryProvider);
+    repo.stopTimer();
+  }
+
+  void _stopTimerOnExit() {
+    final repo = ref.read(timeTrackingRepositoryProvider);
+    repo.stopTimer();
+  }
+
+  @override
   void dispose() {
+    _stopTimerOnExit();
+    WidgetsBinding.instance.removeObserver(this);
     _trayManager?.dispose();
     super.dispose();
   }
@@ -73,6 +104,7 @@ class _AppWindowState extends ConsumerState<AppWindow> {
     ref.watch(syncIssuesProvider);
     _initHotkey();
     _initTray();
+    _stopOrphanedTimers();
 
     final brightness = MacosTheme.of(context).brightness;
 

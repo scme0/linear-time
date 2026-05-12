@@ -71,8 +71,11 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   }
 
   void _refreshTray() {
-    TrayManager.instance?.updateMenu();
-    TrayManager.instance?.updateTitle();
+    // Small delay to let provider state settle after start/stop
+    Future.delayed(const Duration(milliseconds: 200), () {
+      TrayManager.instance?.updateMenu();
+      TrayManager.instance?.updateTitle();
+    });
   }
 
   void _onSearchSubmitted() {
