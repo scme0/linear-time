@@ -6,6 +6,7 @@ import '../../../../data/database/app_database.dart';
 import '../../../../providers/database_providers.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/extensions/duration_extensions.dart';
+import '../../../../core/utils/open_in_linear.dart';
 
 class IssueRow extends ConsumerStatefulWidget {
   const IssueRow({
@@ -184,6 +185,22 @@ class _IssueRowState extends ConsumerState<IssueRow> {
                         color: AppColors.textTertiary(brightness),
                       ),
                       onPressed: widget.onAddTime,
+                    ),
+                  ),
+                // Open in Linear
+                if (!isDeleted && _hovering)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 2),
+                    child: MacosIconButton(
+                      icon: MacosIcon(
+                        CupertinoIcons.arrow_up_right_square,
+                        size: 14,
+                        color: AppColors.textTertiary(brightness),
+                      ),
+                      onPressed: () => openInLinear(
+                        url: widget.issue.url,
+                        identifier: widget.issue.identifier,
+                      ),
                     ),
                   ),
               ],

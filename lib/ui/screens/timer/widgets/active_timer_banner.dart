@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
 import '../../../../data/database/app_database.dart';
+import '../../../../core/utils/open_in_linear.dart';
 import '../../../../core/extensions/duration_extensions.dart';
 import '../../../../core/theme/app_theme.dart';
 
@@ -166,7 +167,18 @@ class ActiveTimerBanner extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
+              // Open in Linear
+              MacosIconButton(
+                icon: MacosIcon(
+                  CupertinoIcons.arrow_up_right_square,
+                  size: 16,
+                  color: AppColors.textSecondary(brightness),
+                ),
+                onPressed: () => openInLinear(
+                    identifier: entry.issueIdentifier),
+              ),
+              const SizedBox(width: 8),
               // Stop button
               PushButton(
                 controlSize: ControlSize.large,

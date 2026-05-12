@@ -10,6 +10,7 @@ import '../../../../providers/report_providers.dart';
 import '../../../../providers/database_providers.dart';
 import '../../../../core/extensions/duration_extensions.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/open_in_linear.dart';
 import 'widgets/time_entry_dialog.dart';
 
 class DailyView extends ConsumerStatefulWidget {
@@ -396,6 +397,20 @@ class _EntryCardState extends State<_EntryCard> {
                     CupertinoIcons.pencil,
                     size: 12,
                     color: AppColors.textTertiary(brightness),
+                  ),
+                ),
+              // Open in Linear
+              if (_hovering)
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: MacosIconButton(
+                    icon: MacosIcon(
+                      CupertinoIcons.arrow_up_right_square,
+                      size: 14,
+                      color: AppColors.textTertiary(brightness),
+                    ),
+                    onPressed: () => openInLinear(
+                        identifier: widget.entry.issueIdentifier),
                   ),
                 ),
               // Duration

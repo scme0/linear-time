@@ -8,6 +8,7 @@ import '../../../../../data/database/app_database.dart';
 import '../../../../../providers/database_providers.dart';
 import '../../../../../providers/issue_providers.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/utils/open_in_linear.dart';
 
 /// Dialog for creating or editing a time entry.
 class TimeEntryDialog extends ConsumerStatefulWidget {
@@ -195,13 +196,30 @@ class _TimeEntryDialogState extends ConsumerState<TimeEntryDialog> {
               ),
             const SizedBox(height: 12),
           ] else ...[
-            Text(
-              widget.existingEntry!.issueIdentifier,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary(brightness),
-              ),
+            Row(
+              children: [
+                Text(
+                  widget.existingEntry!.issueIdentifier,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary(brightness),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                GestureDetector(
+                  onTap: () => openInLinear(
+                      identifier: widget.existingEntry!.issueIdentifier),
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: Icon(
+                      CupertinoIcons.arrow_up_right_square,
+                      size: 13,
+                      color: AppColors.textTertiary(brightness),
+                    ),
+                  ),
+                ),
+              ],
             ),
             Text(
               widget.existingEntry!.issueTitle,
