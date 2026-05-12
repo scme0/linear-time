@@ -7,6 +7,7 @@ import 'package:macos_ui/macos_ui.dart';
 import '../../../../../data/database/app_database.dart';
 import '../../../../../providers/database_providers.dart';
 import '../../../../../providers/issue_providers.dart';
+import '../../../../../providers/repository_providers.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/utils/open_in_linear.dart';
 
@@ -118,14 +119,8 @@ class _TimeEntryDialogState extends ConsumerState<TimeEntryDialog> {
         setState(() => _error = 'Select an issue');
         return;
       }
-      // Check overlaps
-      final overlaps = await dao.getOverlappingEntries(_startTime, _endTime);
-      if (overlaps.isNotEmpty) {
-        setState(() => _error =
-            'Overlaps with ${overlaps.first.issueIdentifier} (${DateFormat('HH:mm').format(overlaps.first.startTime)})');
-        return;
-      }
-      await dao.addManualEntry(
+      final repo = ref.read(timeTrackingRepositoryProvider);
+      final result = await repo.addManualEntry(
         issueId: _selectedIssue!.issueId,
         issueIdentifier: _selectedIssue!.identifier,
         issueTitle: _selectedIssue!.title,
@@ -135,6 +130,10 @@ class _TimeEntryDialogState extends ConsumerState<TimeEntryDialog> {
         startTime: _startTime,
         endTime: _endTime,
       );
+      if (result == null) {
+        setState(() => _error = 'Overlaps with an existing entry');
+        return;
+      }
     }
 
     if (mounted) Navigator.of(context).pop(true);

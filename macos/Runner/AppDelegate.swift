@@ -20,6 +20,20 @@ class AppDelegate: FlutterAppDelegate {
     return true
   }
 
+  override func applicationWillFinishLaunching(_ notification: Notification) {
+    // Single instance check — if already running, focus existing and exit
+    let bundleId = Bundle.main.bundleIdentifier ?? ""
+    let running = NSRunningApplication.runningApplications(withBundleIdentifier: bundleId)
+    if running.count > 1 {
+      // Another instance exists — activate it and terminate this one
+      for app in running where app != NSRunningApplication.current {
+        app.activate(options: .activateIgnoringOtherApps)
+      }
+      NSApp.terminate(nil)
+      return
+    }
+  }
+
   override func applicationDidFinishLaunching(_ notification: Notification) {
     let controller = mainFlutterWindow?.contentViewController as! FlutterViewController
     channel = FlutterMethodChannel(name: "com.lineartime/system", binaryMessenger: controller.engine.binaryMessenger)
