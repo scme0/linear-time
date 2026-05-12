@@ -143,12 +143,13 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
     ('⏎', 'Select issue & start timer'),
     ('⌘ S', 'Stop timer'),
     ('⌘ N', 'New manual entry'),
+    ('⌘ ⏎', 'Save (in dialogs)'),
     ('⌘ M', 'My Issues'),
     ('⌘ E', "Everyone's Issues"),
     ('⌘ R', 'Recently Tracked'),
     ('⌘ ,', 'Settings'),
     ('⌘ /', 'This cheatsheet'),
-    ('Esc', 'Unfocus'),
+    ('Esc', 'Cancel / Unfocus'),
   ];
 
   void _initNotifications() {

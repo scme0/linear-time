@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart' show KeyDownEvent, LogicalKeyboardKey;
+import 'package:flutter/services.dart' show HardwareKeyboard, KeyDownEvent, LogicalKeyboardKey;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:macos_ui/macos_ui.dart';
@@ -149,11 +149,12 @@ class _TimeEntryDialogState extends ConsumerState<TimeEntryDialog> {
       autofocus: true,
       onKeyEvent: (event) {
         if (event is KeyDownEvent) {
-          if (event.logicalKey == LogicalKeyboardKey.enter ||
-              event.logicalKey == LogicalKeyboardKey.numpadEnter) {
-            _save();
-          } else if (event.logicalKey == LogicalKeyboardKey.escape) {
+          if (event.logicalKey == LogicalKeyboardKey.escape) {
             Navigator.of(context).pop(false);
+          } else if ((event.logicalKey == LogicalKeyboardKey.enter ||
+                  event.logicalKey == LogicalKeyboardKey.numpadEnter) &&
+              HardwareKeyboard.instance.isMetaPressed) {
+            _save();
           }
         }
       },
