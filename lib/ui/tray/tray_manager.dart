@@ -62,14 +62,8 @@ class TrayManager {
 
     // Current timer status
     if (activeEntry != null) {
-      final elapsed =
-          DateTime.now().difference(activeEntry.startTime);
       menuItems.add(MenuItem(
         label: '${activeEntry.issueIdentifier}: ${activeEntry.issueTitle}',
-        enabled: false,
-      ));
-      menuItems.add(MenuItem(
-        label: '  ${elapsed.toHms()}',
         enabled: false,
       ));
       menuItems.add(MenuItem(
