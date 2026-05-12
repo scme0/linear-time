@@ -1,5 +1,31 @@
 /// GraphQL queries for the Linear API.
 
+/// Common issue fields used across queries.
+const String _issueFields = '''
+  id
+  identifier
+  title
+  priority
+  url
+  assignee {
+    id
+    name
+  }
+  state {
+    name
+    type
+  }
+  team {
+    id
+    name
+    color
+  }
+  project {
+    id
+    name
+  }
+''';
+
 const String viewerQuery = r'''
 query Viewer {
   viewer {
@@ -10,29 +36,12 @@ query Viewer {
 }
 ''';
 
-const String assignedIssuesQuery = r'''
-query AssignedIssues($after: String, $filter: IssueFilter) {
+final String assignedIssuesQuery = '''
+query AssignedIssues(\$after: String, \$filter: IssueFilter) {
   viewer {
-    assignedIssues(first: 50, after: $after, filter: $filter) {
+    assignedIssues(first: 50, after: \$after, filter: \$filter) {
       nodes {
-        id
-        identifier
-        title
-        priority
-        url
-        state {
-          name
-          type
-        }
-        team {
-          id
-          name
-          color
-        }
-        project {
-          id
-          name
-        }
+        $_issueFields
       }
       pageInfo {
         hasNextPage
@@ -43,81 +52,30 @@ query AssignedIssues($after: String, $filter: IssueFilter) {
 }
 ''';
 
-const String issueByIdQuery = r'''
-query IssueById($id: String!) {
-  issue(id: $id) {
-    id
-    identifier
-    title
-    priority
-    url
-    state {
-      name
-      type
-    }
-    team {
-      id
-      name
-      color
-    }
-    project {
-      id
-      name
-    }
+final String issueByIdQuery = '''
+query IssueById(\$id: String!) {
+  issue(id: \$id) {
+    $_issueFields
   }
 }
 ''';
 
-const String issueByIdentifierQuery = r'''
-query IssueByIdentifier($identifier: String!) {
-  issueSearch(query: $identifier, first: 1) {
+final String issueByIdentifierQuery = '''
+query IssueByIdentifier(\$identifier: String!) {
+  issueSearch(query: \$identifier, first: 1) {
     nodes {
-      id
-      identifier
-      title
-      priority
-      url
-      state {
-        name
-        type
-      }
-      team {
-        id
-        name
-        color
-      }
-      project {
-        id
-        name
-      }
+      $_issueFields
     }
   }
 }
 ''';
 
-const String teamIssuesQuery = r'''
-query TeamIssues($teamId: String!, $after: String, $filter: IssueFilter) {
-  team(id: $teamId) {
-    issues(first: 50, after: $after, filter: $filter) {
+final String teamIssuesQuery = '''
+query TeamIssues(\$teamId: String!, \$after: String, \$filter: IssueFilter) {
+  team(id: \$teamId) {
+    issues(first: 50, after: \$after, filter: \$filter) {
       nodes {
-        id
-        identifier
-        title
-        priority
-        url
-        state {
-          name
-          type
-        }
-        team {
-          id
-          name
-          color
-        }
-        project {
-          id
-          name
-        }
+        $_issueFields
       }
       pageInfo {
         hasNextPage

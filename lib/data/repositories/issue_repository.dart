@@ -104,6 +104,7 @@ class IssueRepository {
     final team = data['team'] as Map<String, dynamic>?;
     final project = data['project'] as Map<String, dynamic>?;
     final state = data['state'] as Map<String, dynamic>?;
+    final assignee = data['assignee'] as Map<String, dynamic>?;
 
     return CachedIssuesCompanion(
       issueId: Value(data['id'] as String),
@@ -118,6 +119,8 @@ class IssueRepository {
       statusType: Value(state?['type'] as String? ?? 'unstarted'),
       priority: Value(data['priority'] as int? ?? 0),
       url: Value(data['url'] as String? ?? ''),
+      assigneeId: Value(assignee?['id'] as String?),
+      assigneeName: Value(assignee?['name'] as String?),
       isDeleted: const Value(false),
       isAssigned: Value(isAssigned),
       lastSynced: Value(DateTime.now()),

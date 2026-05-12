@@ -107,6 +107,10 @@ class _IssueListState extends ConsumerState<IssueList> {
           filtered = filtered
               .where((i) => i.statusType == filter.filterId)
               .toList();
+        } else if (filter.type == 'byAssignee' && filter.filterId != null) {
+          filtered = filtered
+              .where((i) => i.assigneeId == filter.filterId)
+              .toList();
         }
 
         // Apply search filter

@@ -168,6 +168,8 @@ class IssueFilter {
       IssueFilter._(projectId != null ? 'Project' : 'My Issues', projectId != null ? 'byProject' : 'myIssues', projectId);
   static IssueFilter byStatus(String? statusType) =>
       IssueFilter._(statusType != null ? 'Status' : 'My Issues', statusType != null ? 'byStatus' : 'myIssues', statusType);
+  static IssueFilter byAssignee(String? assigneeId) =>
+      IssueFilter._(assigneeId != null ? 'Assignee' : 'My Issues', assigneeId != null ? 'byAssignee' : 'myIssues', assigneeId);
 
   static const values = [myIssues, allIssues, recentlyTracked];
 

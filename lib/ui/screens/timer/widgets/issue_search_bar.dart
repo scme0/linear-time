@@ -4,6 +4,7 @@ import 'package:macos_ui/macos_ui.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../providers/issue_providers.dart';
+import '../../../widgets/searchable_dropdown.dart';
 import '../timer_screen.dart';
 
 class IssueSearchBar extends ConsumerStatefulWidget {
@@ -29,10 +30,10 @@ class IssueSearchBar extends ConsumerStatefulWidget {
 class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
-
   String? _selectedTeamId;
   String? _selectedProjectId;
   String? _selectedStatusType;
+  String? _selectedAssigneeId;
 
   @override
   void initState() {
@@ -65,12 +66,11 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
     );
   }
 
-
-
   void _clearSubFilters() {
     _selectedTeamId = null;
     _selectedProjectId = null;
     _selectedStatusType = null;
+    _selectedAssigneeId = null;
   }
 
   IssueFilter get _primaryFilterValue {
@@ -80,14 +80,13 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
     return IssueFilter.myIssues;
   }
 
-  bool get _showSubFilters =>
-      widget.filter.type != 'recentlyTracked';
+  bool get _showSubFilters => widget.filter.type != 'recentlyTracked';
 
   @override
   Widget build(BuildContext context) {
     final brightness = MacosTheme.of(context).brightness;
 
-    // Derive all filter options from the current issue list
+    // Derive filter options from current issue list
     final isAllIssues = widget.filter.type == 'allIssues';
     final issues = isAllIssues
         ? ref.watch(allCachedIssuesProvider).valueOrNull ?? []
@@ -96,6 +95,7 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
     final teamMap = <String, String>{};
     final projectMap = <String, String>{};
     final statusMap = <String, String>{};
+    final assigneeMap = <String, String>{};
     for (final issue in issues) {
       if (issue.teamId != null && issue.teamName != null) {
         teamMap[issue.teamId!] = issue.teamName!;
@@ -104,6 +104,9 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
         projectMap[issue.projectId!] = issue.projectName!;
       }
       statusMap[issue.statusType] = issue.status;
+      if (issue.assigneeId != null && issue.assigneeName != null) {
+        assigneeMap[issue.assigneeId!] = issue.assigneeName!;
+      }
     }
     final teams = teamMap.entries
         .map((e) => (id: e.key, name: e.value))
@@ -114,7 +117,11 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
     final statuses = statusMap.entries
-        .map((e) => (type: e.key, name: e.value))
+        .map((e) => (id: e.key, name: e.value))
+        .toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    final assignees = assigneeMap.entries
+        .map((e) => (id: e.key, name: e.value))
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
 
@@ -162,39 +169,27 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
               // Sub-filters
               if (_showSubFilters) ...[
                 if (teams.length > 1) ...[
-                  const SizedBox(width: 8),
-                  MacosPopupButton<String?>(
+                  const SizedBox(width: 6),
+                  SearchableDropdown<String>(
+                    items: teams,
                     value: _selectedTeamId,
-                    items: [
-                      const MacosPopupMenuItem(
-                        value: null,
-                        child: Text('All Teams'),
-                      ),
-                      ...teams.map((t) => MacosPopupMenuItem(
-                            value: t.id,
-                            child: Text(t.name),
-                          )),
-                    ],
+                    allLabel: 'All Teams',
+                    labelBuilder: (id) =>
+                        id != null ? teamMap[id] ?? 'Team' : 'All Teams',
                     onChanged: (v) {
                       setState(() => _selectedTeamId = v);
                       widget.onFilterChanged(IssueFilter.byTeam(v));
                     },
                   ),
                 ],
-                if (projects.isNotEmpty) ...[
-                  const SizedBox(width: 8),
-                  MacosPopupButton<String?>(
+                if (projects.length > 1) ...[
+                  const SizedBox(width: 6),
+                  SearchableDropdown<String>(
+                    items: projects,
                     value: _selectedProjectId,
-                    items: [
-                      const MacosPopupMenuItem(
-                        value: null,
-                        child: Text('All Projects'),
-                      ),
-                      ...projects.map((p) => MacosPopupMenuItem(
-                            value: p.id,
-                            child: Text(p.name),
-                          )),
-                    ],
+                    allLabel: 'All Projects',
+                    labelBuilder: (id) =>
+                        id != null ? projectMap[id] ?? 'Project' : 'All Projects',
                     onChanged: (v) {
                       setState(() => _selectedProjectId = v);
                       widget.onFilterChanged(IssueFilter.byProject(v));
@@ -202,22 +197,30 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
                   ),
                 ],
                 if (statuses.length > 1) ...[
-                  const SizedBox(width: 8),
-                  MacosPopupButton<String?>(
+                  const SizedBox(width: 6),
+                  SearchableDropdown<String>(
+                    items: statuses,
                     value: _selectedStatusType,
-                    items: [
-                      const MacosPopupMenuItem(
-                        value: null,
-                        child: Text('All Statuses'),
-                      ),
-                      ...statuses.map((s) => MacosPopupMenuItem(
-                            value: s.type,
-                            child: Text(s.name),
-                          )),
-                    ],
+                    allLabel: 'All Statuses',
+                    labelBuilder: (id) =>
+                        id != null ? statusMap[id] ?? 'Status' : 'All Statuses',
                     onChanged: (v) {
                       setState(() => _selectedStatusType = v);
                       widget.onFilterChanged(IssueFilter.byStatus(v));
+                    },
+                  ),
+                ],
+                if (assignees.length > 1) ...[
+                  const SizedBox(width: 6),
+                  SearchableDropdown<String>(
+                    items: assignees,
+                    value: _selectedAssigneeId,
+                    allLabel: 'All Assignees',
+                    labelBuilder: (id) =>
+                        id != null ? assigneeMap[id] ?? 'Assignee' : 'All Assignees',
+                    onChanged: (v) {
+                      setState(() => _selectedAssigneeId = v);
+                      widget.onFilterChanged(IssueFilter.byAssignee(v));
                     },
                   ),
                 ],
