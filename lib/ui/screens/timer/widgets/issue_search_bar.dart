@@ -4,6 +4,7 @@ import 'package:macos_ui/macos_ui.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../providers/database_providers.dart';
+import '../../../../providers/issue_providers.dart';
 import '../timer_screen.dart';
 
 class IssueSearchBar extends ConsumerStatefulWidget {
@@ -70,9 +71,11 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
   }
 
   Future<void> _loadFilterData() async {
+    // Load teams and projects from Linear API
+    final teams = await ref.read(teamsProvider.future);
+    final projects = await ref.read(projectsProvider.future);
+    // Load statuses from cached issues (API doesn't have a status list endpoint)
     final dao = ref.read(cachedIssueDaoProvider);
-    final teams = await dao.getDistinctTeams();
-    final projects = await dao.getDistinctProjects();
     final statuses = await dao.getDistinctStatuses();
     if (mounted) {
       setState(() {
