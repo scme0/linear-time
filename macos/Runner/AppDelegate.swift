@@ -2,6 +2,7 @@ import Cocoa
 import FlutterMacOS
 import ServiceManagement
 import Carbon
+import UserNotifications
 
 @main
 class AppDelegate: FlutterAppDelegate {
@@ -53,10 +54,42 @@ class AppDelegate: FlutterAppDelegate {
         }
         result(nil)
 
+      case "sendNotification":
+        guard let args = call.arguments as? [String: Any],
+              let title = args["title"] as? String,
+              let body = args["body"] as? String else {
+          result(FlutterError(code: "INVALID_ARGS", message: "Missing title/body", details: nil))
+          return
+        }
+        self?.sendNotification(title: title, body: body, id: args["id"] as? String ?? "default")
+        result(nil)
+
+      case "requestNotificationPermission":
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, _ in
+          DispatchQueue.main.async { result(granted) }
+        }
+
+      case "getIdleSeconds":
+        let idle = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .mouseMoved)
+        let idleKb = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .keyDown)
+        result(Int(min(idle, idleKb)))
+
       default:
         result(FlutterMethodNotImplemented)
       }
     }
+  }
+
+  // MARK: - Notifications
+
+  private func sendNotification(title: String, body: String, id: String) {
+    let content = UNMutableNotificationContent()
+    content.title = title
+    content.body = body
+    content.sound = .default
+
+    let request = UNNotificationRequest(identifier: id, content: content, trigger: nil)
+    UNUserNotificationCenter.current().add(request)
   }
 
   // MARK: - Launch at Login

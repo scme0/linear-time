@@ -9,6 +9,7 @@ import '../providers/repository_providers.dart';
 import '../core/constants.dart';
 import '../core/theme/app_theme.dart';
 import '../services/hotkey_service.dart';
+import '../services/notification_service.dart';
 import 'tray/tray_manager.dart';
 import 'screens/timer/timer_screen.dart';
 import 'screens/history/history_screen.dart';
@@ -27,11 +28,19 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
   final _searchFocusNotifier = ValueNotifier<int>(0);
   final _hotkeyFilterNotifier = ValueNotifier<String?>('myIssues');
   TrayManager? _trayManager;
+  NotificationService? _notificationService;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  void _initNotifications() {
+    if (_notificationService != null) return;
+    _notificationService = NotificationService(ref);
+    NotificationService.instance = _notificationService;
+    _notificationService!.init();
   }
 
   void _initTray() {
@@ -78,6 +87,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
     _stopTimerOnExit();
     WidgetsBinding.instance.removeObserver(this);
     _trayManager?.dispose();
+    _notificationService?.dispose();
     super.dispose();
   }
 
@@ -115,6 +125,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
     ref.watch(syncIssuesProvider);
     _initHotkey();
     _initTray();
+    _initNotifications();
     _stopOrphanedTimers();
 
     final brightness = MacosTheme.of(context).brightness;

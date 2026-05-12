@@ -10,6 +10,7 @@ import '../../../data/database/app_database.dart';
 import '../../../core/theme/app_theme.dart';
 import '../history/daily/widgets/time_entry_dialog.dart';
 import '../../tray/tray_manager.dart';
+import '../../../services/notification_service.dart';
 import 'widgets/active_timer_banner.dart';
 import 'widgets/issue_list.dart';
 import 'widgets/issue_search_bar.dart';
@@ -76,6 +77,7 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
       TrayManager.instance?.updateMenu();
       TrayManager.instance?.updateTitle();
     });
+    NotificationService.instance?.onTimerStateChanged();
   }
 
   void _onSearchSubmitted() {
