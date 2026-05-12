@@ -10,11 +10,15 @@ class IssueSearchBar extends StatefulWidget {
     required this.filter,
     required this.onFilterChanged,
     required this.onSearchChanged,
+    this.onSubmitted,
+    this.focusNotifier,
   });
 
   final IssueFilter filter;
   final ValueChanged<IssueFilter> onFilterChanged;
   final ValueChanged<String> onSearchChanged;
+  final VoidCallback? onSubmitted;
+  final ValueNotifier<int>? focusNotifier;
 
   @override
   State<IssueSearchBar> createState() => _IssueSearchBarState();
@@ -22,11 +26,37 @@ class IssueSearchBar extends StatefulWidget {
 
 class _IssueSearchBarState extends State<IssueSearchBar> {
   final _searchController = TextEditingController();
+  final _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    widget.focusNotifier?.addListener(_onFocusRequested);
+  }
+
+  @override
+  void didUpdateWidget(IssueSearchBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNotifier != widget.focusNotifier) {
+      oldWidget.focusNotifier?.removeListener(_onFocusRequested);
+      widget.focusNotifier?.addListener(_onFocusRequested);
+    }
+  }
 
   @override
   void dispose() {
+    widget.focusNotifier?.removeListener(_onFocusRequested);
     _searchController.dispose();
+    _focusNode.dispose();
     super.dispose();
+  }
+
+  void _onFocusRequested() {
+    _focusNode.requestFocus();
+    _searchController.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: _searchController.text.length,
+    );
   }
 
   @override
@@ -55,6 +85,7 @@ class _IssueSearchBarState extends State<IssueSearchBar> {
           Expanded(
             child: MacosTextField(
               controller: _searchController,
+              focusNode: _focusNode,
               placeholder: 'Search issues or paste ID/URL...',
               placeholderStyle: TextStyle(
                 color: AppColors.textSecondary(brightness),
@@ -65,6 +96,7 @@ class _IssueSearchBarState extends State<IssueSearchBar> {
                 fontSize: 13,
               ),
               onChanged: (value) => widget.onSearchChanged(value),
+              onSubmitted: (_) => widget.onSubmitted?.call(),
             ),
           ),
         ],

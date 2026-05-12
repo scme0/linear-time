@@ -30,6 +30,11 @@ class HotkeyService {
   static Future<void> clearHotkey() async {
     await _channel.invokeMethod('clearGlobalHotkey');
   }
+
+  /// Bring the app window to front.
+  static Future<void> bringToFront() async {
+    await _channel.invokeMethod('bringToFront');
+  }
 }
 
 /// Common key codes for macOS.

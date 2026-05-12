@@ -34,6 +34,11 @@ class AppDelegate: FlutterAppDelegate {
         self?.clearGlobalHotkey()
         result(nil)
 
+      case "bringToFront":
+        NSApp.activate(ignoringOtherApps: true)
+        self?.mainFlutterWindow?.makeKeyAndOrderFront(nil)
+        result(nil)
+
       default:
         result(FlutterMethodNotImplemented)
       }

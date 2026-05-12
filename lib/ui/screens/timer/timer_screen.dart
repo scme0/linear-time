@@ -14,7 +14,9 @@ import 'widgets/issue_list.dart';
 import 'widgets/issue_search_bar.dart';
 
 class TimerScreen extends ConsumerStatefulWidget {
-  const TimerScreen({super.key});
+  const TimerScreen({super.key, this.searchFocusNotifier});
+
+  final ValueNotifier<int>? searchFocusNotifier;
 
   @override
   ConsumerState<TimerScreen> createState() => _TimerScreenState();
@@ -36,6 +38,24 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
       teamColor: issue.teamColor,
     );
     ref.invalidate(recentTrackedIssuesProvider);
+  }
+
+  void _onSearchSubmitted() {
+    // Select the first visible issue in the filtered list
+    final issues = ref.read(assignedIssuesProvider).valueOrNull ?? [];
+    if (_searchQuery.isNotEmpty) {
+      final q = _searchQuery.toLowerCase();
+      final filtered = issues.where((i) =>
+          i.identifier.toLowerCase().contains(q) ||
+          i.title.toLowerCase().contains(q) ||
+          (i.teamName?.toLowerCase().contains(q) ?? false) ||
+          (i.projectName?.toLowerCase().contains(q) ?? false));
+      if (filtered.isNotEmpty) {
+        _onIssueSelected(filtered.first);
+      }
+    } else if (issues.isNotEmpty) {
+      _onIssueSelected(issues.first);
+    }
   }
 
   void _onStopTimer() {
@@ -84,6 +104,8 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
           filter: _filter,
           onFilterChanged: (f) => setState(() => _filter = f),
           onSearchChanged: (q) => setState(() => _searchQuery = q),
+          onSubmitted: _onSearchSubmitted,
+          focusNotifier: widget.searchFocusNotifier,
         ),
         Container(
           height: 1,
