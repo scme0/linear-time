@@ -33,6 +33,11 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
     });
   }
 
+  bool get _isCurrentMonth {
+    final now = DateTime.now();
+    return _currentMonth.year == now.year && _currentMonth.month == now.month;
+  }
+
   void _nextMonth() {
     setState(() {
       _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + 1);
@@ -49,36 +54,44 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
         // Month navigator
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              MacosIconButton(
-                icon: const MacosIcon(CupertinoIcons.chevron_left),
-                onPressed: _previousMonth,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  MacosIconButton(
+                    icon: const MacosIcon(CupertinoIcons.chevron_left),
+                    onPressed: _previousMonth,
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    monthLabel,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  MacosIconButton(
+                    icon: const MacosIcon(CupertinoIcons.chevron_right),
+                    onPressed: _nextMonth,
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-              Text(
-                monthLabel,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+              if (!_isCurrentMonth)
+                Positioned(
+                  left: 0,
+                  child: PushButton(
+                    controlSize: ControlSize.small,
+                    secondary: true,
+                    onPressed: () {
+                      final now = DateTime.now();
+                      setState(() => _currentMonth = DateTime(now.year, now.month));
+                    },
+                    child: const Text('This Month'),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              MacosIconButton(
-                icon: const MacosIcon(CupertinoIcons.chevron_right),
-                onPressed: _nextMonth,
-              ),
-              const SizedBox(width: 12),
-              PushButton(
-                controlSize: ControlSize.small,
-                secondary: true,
-                onPressed: () {
-                  final now = DateTime.now();
-                  setState(() => _currentMonth = DateTime(now.year, now.month));
-                },
-                child: const Text('This Month'),
-              ),
             ],
           ),
         ),

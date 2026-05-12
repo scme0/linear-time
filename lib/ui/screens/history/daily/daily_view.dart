@@ -98,50 +98,58 @@ class _DailyViewState extends ConsumerState<DailyView> {
         // Date navigator
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              MacosIconButton(
-                icon: const MacosIcon(CupertinoIcons.chevron_left),
-                onPressed: _previousDay,
-              ),
-              const SizedBox(width: 16),
-              Column(
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    dateLabel,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  MacosIconButton(
+                    icon: const MacosIcon(CupertinoIcons.chevron_left),
+                    onPressed: _previousDay,
                   ),
-                  if (isToday)
-                    const Text(
-                      'Today',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.w500,
+                  const SizedBox(width: 16),
+                  Column(
+                    children: [
+                      Text(
+                        dateLabel,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
+                      if (isToday)
+                        const Text(
+                          'Today',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.accent,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  MacosIconButton(
+                    icon: const MacosIcon(CupertinoIcons.chevron_right),
+                    onPressed: _nextDay,
+                  ),
                 ],
               ),
-              const SizedBox(width: 16),
-              MacosIconButton(
-                icon: const MacosIcon(CupertinoIcons.chevron_right),
-                onPressed: _nextDay,
-              ),
-              const SizedBox(width: 12),
-              PushButton(
-                controlSize: ControlSize.small,
-                secondary: true,
-                onPressed: () {
-                  final now = DateTime.now();
-                  setState(() => _selectedDate =
-                      DateTime(now.year, now.month, now.day));
-                },
-                child: const Text('Today'),
-              ),
+              if (!isToday)
+                Positioned(
+                  left: 0,
+                  child: PushButton(
+                    controlSize: ControlSize.small,
+                    secondary: true,
+                    onPressed: () {
+                      final now = DateTime.now();
+                      setState(() => _selectedDate =
+                          DateTime(now.year, now.month, now.day));
+                    },
+                    child: const Text('Today'),
+                  ),
+                ),
             ],
           ),
         ),

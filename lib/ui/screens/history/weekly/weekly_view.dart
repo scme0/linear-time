@@ -32,6 +32,8 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
     setState(() => _weekStart = _weekStart.subtract(const Duration(days: 7)));
   }
 
+  bool get _isCurrentWeek => _weekStart == DateTime.now().startOfWeek;
+
   void _nextWeek() {
     setState(() => _weekStart = _weekStart.add(const Duration(days: 7)));
   }
@@ -53,36 +55,44 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
         // Week navigator
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              MacosIconButton(
-                icon: const MacosIcon(CupertinoIcons.chevron_left),
-                onPressed: _previousWeek,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  MacosIconButton(
+                    icon: const MacosIcon(CupertinoIcons.chevron_left),
+                    onPressed: _previousWeek,
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    weekLabel,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary(brightness),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  MacosIconButton(
+                    icon: const MacosIcon(CupertinoIcons.chevron_right),
+                    onPressed: _nextWeek,
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-              Text(
-                weekLabel,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary(brightness),
+              if (!_isCurrentWeek)
+                Positioned(
+                  left: 0,
+                  child: PushButton(
+                    controlSize: ControlSize.small,
+                    secondary: true,
+                    onPressed: () {
+                      setState(() => _weekStart = DateTime.now().startOfWeek);
+                    },
+                    child: const Text('This Week'),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              MacosIconButton(
-                icon: const MacosIcon(CupertinoIcons.chevron_right),
-                onPressed: _nextWeek,
-              ),
-              const SizedBox(width: 12),
-              PushButton(
-                controlSize: ControlSize.small,
-                secondary: true,
-                onPressed: () {
-                  setState(() => _weekStart = DateTime.now().startOfWeek);
-                },
-                child: const Text('This Week'),
-              ),
             ],
           ),
         ),
