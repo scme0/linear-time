@@ -8,11 +8,14 @@ class HotkeyService {
   /// Initialize the listener for hotkey events from native.
   static void init({required VoidCallback onHotkeyPressed}) {
     _onHotkeyPressed = onHotkeyPressed;
-    _channel.setMethodCallHandler((call) async {
-      if (call.method == 'onGlobalHotkey') {
-        _onHotkeyPressed?.call();
-      }
-    });
+    // Don't set method call handler here — unified handler set elsewhere
+  }
+
+  /// Handle a method call from the unified channel handler.
+  static void handleMethodCall(MethodCall call) {
+    if (call.method == 'onGlobalHotkey') {
+      _onHotkeyPressed?.call();
+    }
   }
 
   /// Register a global hotkey.

@@ -253,6 +253,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             title: 'Notifications',
             children: [
               SettingRow(
+                label: 'Notification style',
+                description: 'How reminders are shown',
+                control: MacosPopupButton<String>(
+                  value: settings.notificationStyle,
+                  items: const [
+                    MacosPopupMenuItem(
+                      value: 'overlay',
+                      child: Text("Can't miss 'em"),
+                    ),
+                    MacosPopupMenuItem(
+                      value: 'native',
+                      child: Text('Native (subtle)'),
+                    ),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) {
+                      saveSetting(
+                          ref, SettingsKeys.notificationStyle, v);
+                    }
+                  },
+                ),
+              ),
+              SettingRow(
                 label: 'Office hours',
                 description: 'Notifications only fire during these hours',
                 control: MacosSwitch(

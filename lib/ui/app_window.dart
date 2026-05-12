@@ -123,9 +123,9 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
   Widget build(BuildContext context) {
     // Trigger sync on launch (no-op if not connected)
     ref.watch(syncIssuesProvider);
+    _initNotifications(); // Must be first — sets unified method channel handler
     _initHotkey();
     _initTray();
-    _initNotifications();
     _stopOrphanedTimers();
 
     final brightness = MacosTheme.of(context).brightness;

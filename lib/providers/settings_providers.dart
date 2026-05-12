@@ -45,6 +45,7 @@ class AppSettings {
     this.minEntryDurationSeconds = kDefaultMinEntryDurationSeconds,
     this.themeMode = 'system',
     this.hotkeyFilter = 'myIssues',
+    this.notificationStyle = 'overlay',
   });
 
   final int syncIntervalMinutes;
@@ -64,6 +65,7 @@ class AppSettings {
   final int minEntryDurationSeconds;
   final String themeMode;
   final String hotkeyFilter;
+  final String notificationStyle;
 
   ThemeMode get flutterThemeMode => switch (themeMode) {
         'light' => ThemeMode.light,
@@ -90,6 +92,7 @@ class AppSettings {
       minEntryDurationSeconds: _int(m, SettingsKeys.minEntryDurationSeconds, kDefaultMinEntryDurationSeconds),
       themeMode: m[SettingsKeys.themeMode] ?? 'system',
       hotkeyFilter: m[SettingsKeys.hotkeyFilter] ?? 'myIssues',
+      notificationStyle: m[SettingsKeys.notificationStyle] ?? 'overlay',
     );
   }
 

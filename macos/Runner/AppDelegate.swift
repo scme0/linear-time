@@ -54,6 +54,25 @@ class AppDelegate: FlutterAppDelegate {
         }
         result(nil)
 
+      case "showOverlay":
+        guard let args = call.arguments as? [String: Any],
+              let title = args["title"] as? String,
+              let message = args["message"] as? String,
+              let actions = args["actions"] as? [String] else {
+          result(FlutterError(code: "INVALID_ARGS", message: "Missing title/message/actions", details: nil))
+          return
+        }
+        OverlayWindow.shared.show(title: title, message: message, actions: actions) { action in
+          DispatchQueue.main.async {
+            self?.channel?.invokeMethod("onOverlayResponse", arguments: action)
+          }
+        }
+        result(nil)
+
+      case "dismissOverlay":
+        OverlayWindow.shared.dismiss()
+        result(nil)
+
       case "sendNotification":
         guard let args = call.arguments as? [String: Any],
               let title = args["title"] as? String,
