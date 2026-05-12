@@ -30,7 +30,6 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
 
-  // Filter dropdown data
   List<({String id, String name})> _teams = [];
   List<({String id, String name})> _projects = [];
   List<({String type, String name})> _statuses = [];
@@ -90,23 +89,49 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
     _selectedStatusType = null;
   }
 
+  IssueFilter get _primaryFilterValue {
+    final t = widget.filter.type;
+    if (t == 'recentlyTracked') return IssueFilter.recentlyTracked;
+    if (t == 'allIssues') return IssueFilter.allIssues;
+    return IssueFilter.myIssues;
+  }
+
+  bool get _showSubFilters =>
+      widget.filter.type != 'recentlyTracked' &&
+      widget.filter.type != 'allIssues';
+
   @override
   Widget build(BuildContext context) {
     final brightness = MacosTheme.of(context).brightness;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Main filter row
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Search bar
+          MacosTextField(
+            controller: _searchController,
+            focusNode: _focusNode,
+            placeholder: 'Search issues or paste ID/URL...',
+            placeholderStyle: TextStyle(
+              color: AppColors.textSecondary(brightness),
+              fontSize: 13,
+            ),
+            style: TextStyle(
+              color: AppColors.textPrimary(brightness),
+              fontSize: 13,
+            ),
+            onChanged: (value) => widget.onSearchChanged(value),
+            onSubmitted: (_) => widget.onSubmitted?.call(),
+          ),
+          const SizedBox(height: 6),
+          // Filter row
+          Row(
             children: [
               // Primary filter
               MacosPopupButton<IssueFilter>(
-                value: widget.filter.type == 'recentlyTracked'
-                    ? IssueFilter.recentlyTracked
-                    : IssueFilter.myIssues,
+                value: _primaryFilterValue,
                 items: IssueFilter.values
                     .map((f) => MacosPopupMenuItem(
                           value: f,
@@ -120,8 +145,8 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
                   }
                 },
               ),
-              // Sub-filters (only for myIssues)
-              if (widget.filter == IssueFilter.myIssues) ...[
+              // Sub-filters
+              if (_showSubFilters) ...[
                 if (_teams.length > 1) ...[
                   const SizedBox(width: 8),
                   MacosPopupButton<String?>(
@@ -183,29 +208,10 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
                   ),
                 ],
               ],
-              const SizedBox(width: 12),
-              // Search field
-              Expanded(
-                child: MacosTextField(
-                  controller: _searchController,
-                  focusNode: _focusNode,
-                  placeholder: 'Search issues or paste ID/URL...',
-                  placeholderStyle: TextStyle(
-                    color: AppColors.textSecondary(brightness),
-                    fontSize: 13,
-                  ),
-                  style: TextStyle(
-                    color: AppColors.textPrimary(brightness),
-                    fontSize: 13,
-                  ),
-                  onChanged: (value) => widget.onSearchChanged(value),
-                  onSubmitted: (_) => widget.onSubmitted?.call(),
-                ),
-              ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

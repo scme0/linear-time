@@ -39,4 +39,5 @@ abstract class SettingsKeys {
   static const minEntryDurationSeconds = 'min_entry_duration_seconds';
   static const themeMode = 'theme_mode'; // "system", "light", "dark"
   static const globalHotkey = 'global_hotkey'; // e.g. "ctrl+shift+17"
+  static const hotkeyFilter = 'hotkey_filter'; // "myIssues" or "allIssues"
 }

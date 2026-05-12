@@ -22,6 +22,7 @@ class _AppWindowState extends ConsumerState<AppWindow> {
   int _pageIndex = 0;
   bool _hotkeyInitialized = false;
   final _searchFocusNotifier = ValueNotifier<int>(0);
+  final _hotkeyFilterNotifier = ValueNotifier<String?>('myIssues');
 
   void _initHotkey() {
     if (_hotkeyInitialized) return;
@@ -30,6 +31,10 @@ class _AppWindowState extends ConsumerState<AppWindow> {
     HotkeyService.init(onHotkeyPressed: () {
       // Bring window to front, switch to timer, focus search
       HotkeyService.bringToFront();
+      // Read hotkey filter preference
+      ref.read(settingsDaoProvider).getValue(SettingsKeys.hotkeyFilter).then((val) {
+        _hotkeyFilterNotifier.value = val ?? 'myIssues';
+      });
       setState(() => _pageIndex = 0);
       // Delay focus until after the tab switch renders
       Future.delayed(const Duration(milliseconds: 100), () {
@@ -94,7 +99,10 @@ class _AppWindowState extends ConsumerState<AppWindow> {
             child: IndexedStack(
               index: _pageIndex,
               children: [
-                TimerScreen(searchFocusNotifier: _searchFocusNotifier),
+                TimerScreen(
+                  searchFocusNotifier: _searchFocusNotifier,
+                  hotkeyFilterNotifier: _hotkeyFilterNotifier,
+                ),
                 const HistoryScreen(),
                 const SettingsScreen(),
               ],

@@ -14,9 +14,14 @@ import 'widgets/issue_list.dart';
 import 'widgets/issue_search_bar.dart';
 
 class TimerScreen extends ConsumerStatefulWidget {
-  const TimerScreen({super.key, this.searchFocusNotifier});
+  const TimerScreen({
+    super.key,
+    this.searchFocusNotifier,
+    this.hotkeyFilterNotifier,
+  });
 
   final ValueNotifier<int>? searchFocusNotifier;
+  final ValueNotifier<String?>? hotkeyFilterNotifier;
 
   @override
   ConsumerState<TimerScreen> createState() => _TimerScreenState();
@@ -25,6 +30,27 @@ class TimerScreen extends ConsumerStatefulWidget {
 class _TimerScreenState extends ConsumerState<TimerScreen> {
   String _searchQuery = '';
   IssueFilter _filter = IssueFilter.myIssues;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.hotkeyFilterNotifier?.addListener(_onHotkeyFilter);
+  }
+
+  @override
+  void dispose() {
+    widget.hotkeyFilterNotifier?.removeListener(_onHotkeyFilter);
+    super.dispose();
+  }
+
+  void _onHotkeyFilter() {
+    final val = widget.hotkeyFilterNotifier?.value;
+    setState(() {
+      _filter = val == 'allIssues'
+          ? IssueFilter.allIssues
+          : IssueFilter.myIssues;
+    });
+  }
 
   void _onIssueSelected(CachedIssue issue) {
     if (issue.isDeleted) return;
@@ -134,6 +160,7 @@ class IssueFilter {
   const IssueFilter._(this.label, this.type, [this.filterId]);
 
   static const myIssues = IssueFilter._('My Issues', 'myIssues');
+  static const allIssues = IssueFilter._('All Issues', 'allIssues');
   static const recentlyTracked = IssueFilter._('Recently Tracked', 'recentlyTracked');
   static IssueFilter byTeam(String? teamId) =>
       IssueFilter._(teamId != null ? 'Team' : 'My Issues', teamId != null ? 'byTeam' : 'myIssues', teamId);
@@ -142,7 +169,7 @@ class IssueFilter {
   static IssueFilter byStatus(String? statusType) =>
       IssueFilter._(statusType != null ? 'Status' : 'My Issues', statusType != null ? 'byStatus' : 'myIssues', statusType);
 
-  static const values = [myIssues, recentlyTracked];
+  static const values = [myIssues, allIssues, recentlyTracked];
 
   @override
   bool operator ==(Object other) =>

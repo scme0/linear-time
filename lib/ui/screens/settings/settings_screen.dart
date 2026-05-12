@@ -393,6 +393,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               _HotkeySettingRow(
                 brightness: brightness,
               ),
+              SettingRow(
+                label: 'Hotkey default filter',
+                description: 'Which issues to show when hotkey is pressed',
+                control: MacosPopupButton<String>(
+                  value: settings.hotkeyFilter,
+                  items: const [
+                    MacosPopupMenuItem(
+                      value: 'myIssues',
+                      child: Text('My Issues'),
+                    ),
+                    MacosPopupMenuItem(
+                      value: 'allIssues',
+                      child: Text('All Issues'),
+                    ),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) {
+                      saveSetting(ref, SettingsKeys.hotkeyFilter, v);
+                    }
+                  },
+                ),
+              ),
             ],
           ),
 

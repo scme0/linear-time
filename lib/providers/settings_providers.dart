@@ -44,6 +44,7 @@ class AppSettings {
     this.timeDisplayFormat = 'hms',
     this.minEntryDurationSeconds = kDefaultMinEntryDurationSeconds,
     this.themeMode = 'system',
+    this.hotkeyFilter = 'myIssues',
   });
 
   final int syncIntervalMinutes;
@@ -62,6 +63,7 @@ class AppSettings {
   final String timeDisplayFormat;
   final int minEntryDurationSeconds;
   final String themeMode;
+  final String hotkeyFilter;
 
   ThemeMode get flutterThemeMode => switch (themeMode) {
         'light' => ThemeMode.light,
@@ -87,6 +89,7 @@ class AppSettings {
       timeDisplayFormat: m[SettingsKeys.timeDisplayFormat] ?? 'hms',
       minEntryDurationSeconds: _int(m, SettingsKeys.minEntryDurationSeconds, kDefaultMinEntryDurationSeconds),
       themeMode: m[SettingsKeys.themeMode] ?? 'system',
+      hotkeyFilter: m[SettingsKeys.hotkeyFilter] ?? 'myIssues',
     );
   }
 
