@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:drift/drift.dart' as drift;
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -28,11 +29,15 @@ class NotificationService {
   Future<void> init() async {
     if (_initialized) return;
     _initialized = true;
+    debugPrint('[Notif] init');
 
     // Request notification permission
     try {
-      await _channel.invokeMethod('requestNotificationPermission');
-    } catch (_) {}
+      final granted = await _channel.invokeMethod('requestNotificationPermission');
+      debugPrint('[Notif] permission granted: $granted');
+    } catch (e) {
+      debugPrint('[Notif] permission error: $e');
+    }
 
     // Unified method call handler for all native → Flutter events
     _channel.setMethodCallHandler((call) async {
@@ -53,11 +58,21 @@ class NotificationService {
 
   Future<void> _check() async {
     final settings = _ref.read(appSettingsProvider).valueOrNull;
-    if (settings == null) return;
+    if (settings == null) {
+      debugPrint('[Notif] check: no settings');
+      return;
+    }
 
-    if (settings.officeHoursEnabled && !_isInOfficeHours(settings)) return;
+    if (settings.officeHoursEnabled && !_isInOfficeHours(settings)) {
+      debugPrint('[Notif] check: outside office hours');
+      return;
+    }
 
     final activeTimer = _ref.read(activeTimerProvider).valueOrNull;
+    debugPrint('[Notif] check: timer=${activeTimer != null ? "running" : "stopped"}, '
+        'idle=${settings.idleDetectionEnabled}, '
+        'forgotten=${settings.forgottenTimerEnabled}, '
+        'style=${settings.notificationStyle}');
 
     // Idle detection
     if (settings.idleDetectionEnabled && activeTimer != null) {
@@ -83,6 +98,7 @@ class NotificationService {
       final idleSeconds =
           await _channel.invokeMethod<int>('getIdleSeconds') ?? 0;
       final delaySeconds = settings.idleDelayMinutes * 60;
+      debugPrint('[Notif] idle: ${idleSeconds}s / ${delaySeconds}s threshold');
 
       if (idleSeconds >= delaySeconds) {
         _idleNotificationSent = true;
@@ -116,6 +132,7 @@ class NotificationService {
 
     _lastTimerStopTime ??= DateTime.now();
     final elapsed = DateTime.now().difference(_lastTimerStopTime!);
+    debugPrint('[Notif] forgotten: ${elapsed.inSeconds}s / ${settings.forgottenTimerDelayMinutes * 60}s threshold');
     if (elapsed.inMinutes >= settings.forgottenTimerDelayMinutes) {
       _forgottenNotificationSent = true;
 
