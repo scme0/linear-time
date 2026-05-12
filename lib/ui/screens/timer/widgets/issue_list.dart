@@ -5,6 +5,7 @@ import 'package:macos_ui/macos_ui.dart';
 import '../../../../data/database/app_database.dart';
 import '../../../../providers/issue_providers.dart';
 import '../../../../providers/repository_providers.dart';
+import '../../../../providers/timer_providers.dart';
 import '../timer_screen.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'issue_row.dart';
@@ -89,6 +90,7 @@ class _IssueListState extends ConsumerState<IssueList> {
     final issuesAsync = isAllIssues
         ? ref.watch(allCachedIssuesProvider)
         : ref.watch(assignedIssuesProvider);
+    final todayTotals = ref.watch(todayTotalsProvider).valueOrNull ?? {};
 
     return issuesAsync.when(
       data: (issues) {
@@ -132,6 +134,7 @@ class _IssueListState extends ConsumerState<IssueList> {
         }
 
         return ListView.builder(
+          itemExtent: 52,
           itemCount: filtered.length + (_resolving ? 1 : 0),
           itemBuilder: (context, index) {
             if (_resolving && index == 0) {
@@ -151,6 +154,7 @@ class _IssueListState extends ConsumerState<IssueList> {
             return IssueRow(
               issue: issue,
               isActive: issue.issueId == widget.activeIssueId,
+              todaySeconds: todayTotals[issue.issueId] ?? 0,
               onTap: () => widget.onIssueSelected(issue),
               onAddTime: widget.onAddTime != null
                   ? () => widget.onAddTime!(issue)

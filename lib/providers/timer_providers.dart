@@ -25,6 +25,12 @@ final timerTickProvider = StreamProvider<Duration>((ref) {
   });
 });
 
+/// Today's totals for all issues (single batch query).
+final todayTotalsProvider = FutureProvider<Map<String, int>>((ref) async {
+  final repo = ref.watch(timeTrackingRepositoryProvider);
+  return repo.timeEntryDao.getTodayTotalsForAllIssues();
+});
+
 /// Today's total tracked time for the currently active issue.
 final todayTotalForActiveIssueProvider = FutureProvider<int>((ref) async {
   final activeAsync = ref.watch(activeTimerProvider);

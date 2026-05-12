@@ -1,32 +1,32 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
 import '../../../../data/database/app_database.dart';
-import '../../../../providers/database_providers.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/extensions/duration_extensions.dart';
 import '../../../../core/utils/open_in_linear.dart';
 
-class IssueRow extends ConsumerStatefulWidget {
+class IssueRow extends StatefulWidget {
   const IssueRow({
     super.key,
     required this.issue,
     required this.isActive,
     required this.onTap,
     this.onAddTime,
+    this.todaySeconds = 0,
   });
 
   final CachedIssue issue;
   final bool isActive;
   final VoidCallback onTap;
   final VoidCallback? onAddTime;
+  final int todaySeconds;
 
   @override
-  ConsumerState<IssueRow> createState() => _IssueRowState();
+  State<IssueRow> createState() => _IssueRowState();
 }
 
-class _IssueRowState extends ConsumerState<IssueRow> {
+class _IssueRowState extends State<IssueRow> {
   bool _hovering = false;
 
 
@@ -34,9 +34,6 @@ class _IssueRowState extends ConsumerState<IssueRow> {
   Widget build(BuildContext context) {
     final brightness = MacosTheme.of(context).brightness;
     final isDeleted = widget.issue.isDeleted;
-
-    // Fetch today's tracked time for this issue
-    final todayTotal = ref.watch(_issueTodayTotalProvider(widget.issue.issueId));
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
@@ -145,24 +142,18 @@ class _IssueRowState extends ConsumerState<IssueRow> {
                   ),
                 ],
                 // Today's tracked time
-                todayTotal.when(
-                  data: (seconds) {
-                    if (seconds == 0) return const SizedBox.shrink();
-                    return Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: Text(
-                        Duration(seconds: seconds).toHumanReadable(),
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textSecondary(brightness),
-                        ),
+                if (widget.todaySeconds > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Text(
+                      Duration(seconds: widget.todaySeconds).toHumanReadable(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textSecondary(brightness),
                       ),
-                    );
-                  },
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, _) => const SizedBox.shrink(),
-                ),
+                    ),
+                  ),
                 // Project name
                 if (widget.issue.projectName != null) ...[
                   const SizedBox(width: 8),
@@ -212,12 +203,6 @@ class _IssueRowState extends ConsumerState<IssueRow> {
   }
 }
 
-/// Provider to get today's total for a specific issue.
-final _issueTodayTotalProvider =
-    FutureProvider.family<int, String>((ref, issueId) async {
-  final dao = ref.watch(timeEntryDaoProvider);
-  return dao.getTodayTotalForIssue(issueId);
-});
 
 class _StatusBadge extends StatelessWidget {
   const _StatusBadge({

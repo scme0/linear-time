@@ -177,6 +177,28 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
         .write(companion);
   }
 
+  /// Get today's total seconds for ALL issues (batch).
+  Future<Map<String, int>> getTodayTotalsForAllIssues() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+    final results = await customSelect(
+      'SELECT issue_id, COALESCE(SUM(duration_seconds), 0) as total '
+      'FROM time_entries '
+      'WHERE start_time >= ? AND start_time < ? AND end_time IS NOT NULL '
+      'GROUP BY issue_id',
+      variables: [
+        Variable.withDateTime(today),
+        Variable.withDateTime(tomorrow),
+      ],
+      readsFrom: {timeEntries},
+    ).get();
+    return {
+      for (final row in results)
+        row.data['issue_id'] as String: row.data['total'] as int,
+    };
+  }
+
   /// Get today's total seconds for a specific issue.
   Future<int> getTodayTotalForIssue(String issueId) async {
     final now = DateTime.now();
