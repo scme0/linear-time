@@ -157,17 +157,17 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
   }
 
   static const _shortcuts = [
-    ('⌘ F', 'Focus search bar'),
+    ('⌘+F', 'Focus search bar'),
     ('↑ ↓', 'Navigate issue list'),
     ('⏎', 'Select issue & start timer'),
-    ('⌘ S', 'Stop timer'),
-    ('⌘ N', 'New manual entry'),
-    ('⌘ ⏎', 'Save (in dialogs)'),
-    ('⌘ M', 'My Issues'),
-    ('⌘ E', "Everyone's Issues"),
-    ('⌘ R', 'Recently Tracked'),
-    ('⌘ ,', 'Settings'),
-    ('⌘ /', 'This cheatsheet'),
+    ('⌘+S', 'Stop timer'),
+    ('⌘+N', 'New manual entry'),
+    ('⌘+⏎', 'Save (in dialogs)'),
+    ('⌘+M', 'My Issues'),
+    ('⌘+E', "Everyone's Issues"),
+    ('⌘+R', 'Recently Tracked'),
+    ('⌘+,', 'Settings'),
+    ('⌘+/', 'This cheatsheet'),
     ('Esc', 'Cancel / Unfocus'),
   ];
 

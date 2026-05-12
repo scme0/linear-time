@@ -10,6 +10,7 @@ import '../../../data/api/linear_api_client.dart';
 import '../../../providers/api_providers.dart';
 import '../../../providers/issue_providers.dart';
 import '../../../providers/repository_providers.dart';
+import '../../../providers/timer_providers.dart';
 import '../../../providers/settings_providers.dart';
 import '../../../providers/database_providers.dart';
 import '../../../core/constants.dart';
@@ -607,7 +608,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       await db.timeEntryDao.deleteAll();
       await db.cachedIssueDao.clearAll();
       await db.settingsDao.clearAll();
+      // Invalidate all providers so UI refreshes
       ref.invalidate(appSettingsProvider);
+      ref.invalidate(assignedIssuesProvider);
+      ref.invalidate(allCachedIssuesProvider);
+      ref.invalidate(recentTrackedIssuesProvider);
+      ref.invalidate(syncIssuesProvider);
+      ref.invalidate(activeTimerProvider);
+      ref.invalidate(todayTotalsProvider);
     }
   }
 
