@@ -923,9 +923,11 @@ class _HotkeySettingRowState extends ConsumerState<_HotkeySettingRow> {
             onKeyEvent: _onKeyEvent,
             child: PushButton(
               controlSize: ControlSize.small,
-              onPressed: _startRecording,
+              onPressed: _recording
+                  ? () => setState(() => _recording = false)
+                  : _startRecording,
               child: Text(_recording
-                  ? 'Press keys...'
+                  ? 'Cancel'
                   : _currentDisplay != null
                       ? 'Change'
                       : 'Record'),
