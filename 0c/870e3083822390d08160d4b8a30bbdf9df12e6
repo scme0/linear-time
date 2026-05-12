@@ -1,0 +1,27 @@
+lib/ui/tray/tray_manager.dart
+  s_019582d6a6af2d::t_a29897be225507 27
+  s_019582d6a6af2d::t_6414cbb0402209 1-26,28-139
+lib/ui/app_window.dart
+  s_019582d6a6af2d::t_a80031a82eff8d 10
+  s_019582d6a6af2d::t_3faa7db9315f3c 29-39
+  s_019582d6a6af2d::t_7e5c17ef90f1e4 27
+  s_019582d6a6af2d::t_d2a2a2f3f67a93 74
+pubspec.yaml
+  s_019582d6a6af2d::t_30dc0144a348a4 53-54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "0c870e3083822390d08160d4b8a30bbdf9df12e6",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
