@@ -1,0 +1,37 @@
+lib/data/database/tables/cached_issues.dart
+  s_019582d6a6af2d::t_60eb097004a24b 17
+lib/data/database/app_database.dart
+  s_019582d6a6af2d::t_80885991661eaa 21-31
+lib/providers/issue_providers.dart
+  s_019582d6a6af2d::t_e90e02051d8e29 14-19
+lib/data/database/app_database.g.dart
+  s_019582d6a6af2d::t_638c0b3f4a7367 822-836,863,973-978,1048-1051,1079,1095,1124,1154,1178,1199,1218,1234,1258-1260,1283,1304,1324,1342,1359,1377,1402,1420,1440,1458,1506-1508,1534,2097,2116,2195-2199,2280-2284,2345-2349,2400,2417,2436,2453
+lib/data/api/linear_api_client.dart
+  s_019582d6a6af2d::t_7ffbea979b2072 162-163,165
+lib/data/database/daos/cached_issue_dao.dart
+  s_019582d6a6af2d::t_a923a4ab11b2c6 27,30,37-44
+lib/data/api/graphql/queries.dart
+  s_019582d6a6af2d::t_5a111e5c3eea5e 144-145
+lib/ui/screens/timer/widgets/issue_list.dart
+  s_019582d6a6af2d::t_ef5b6757344eab 87-90
+lib/data/repositories/issue_repository.dart
+  s_019582d6a6af2d::t_8bdc3112a2f769 102-103,122
+  s_019582d6a6af2d::t_0339fbd7c7a767 49-51
+  s_019582d6a6af2d::t_28c7b5d7c1cee9 30-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "4fe1de96af33e930c79baad63102314e6a6db00b",
+  "prompts": {},
+  "sessions": {
+    "s_019582d6a6af2d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dbc0123f-9496-430a-b7ba-587f81ac930f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
