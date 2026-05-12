@@ -78,22 +78,53 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
         ? ref.watch(allCachedIssuesProvider).valueOrNull ?? []
         : ref.watch(assignedIssuesProvider).valueOrNull ?? [];
 
+    // Teams come from the full list (top-level filter)
     final teamMap = <String, String>{};
-    final projectMap = <String, String>{};
-    final statusMap = <String, String>{};
-    final assigneeMap = <String, String>{};
     for (final issue in issues) {
       if (issue.teamId != null && issue.teamName != null) {
         teamMap[issue.teamId!] = issue.teamName!;
       }
+    }
+
+    // Progressively filter: each dropdown's options come from
+    // the list filtered by all previously selected filters
+    var filtered = issues;
+    final sf = widget.subFilters;
+
+    if (sf.teamId != null) {
+      filtered = filtered.where((i) => i.teamId == sf.teamId).toList();
+    }
+
+    // Projects from team-filtered list
+    final projectMap = <String, String>{};
+    for (final issue in filtered) {
       if (issue.projectId != null && issue.projectName != null) {
         projectMap[issue.projectId!] = issue.projectName!;
       }
-      statusMap[issue.statusType] = issue.status;
+    }
+
+    if (sf.projectId != null) {
+      filtered = filtered.where((i) => i.projectId == sf.projectId).toList();
+    }
+
+    // Assignees from team+project filtered list
+    final assigneeMap = <String, String>{};
+    for (final issue in filtered) {
       if (issue.assigneeId != null && issue.assigneeName != null) {
         assigneeMap[issue.assigneeId!] = issue.assigneeName!;
       }
     }
+
+    if (sf.assigneeId != null) {
+      filtered = filtered.where((i) => i.assigneeId == sf.assigneeId).toList();
+    }
+
+    // Statuses from fully filtered list
+    final statusMap = <String, String>{};
+    for (final issue in filtered) {
+      statusMap[issue.statusType] = issue.status;
+    }
+
     final teams = teamMap.entries
         .map((e) => (id: e.key, name: e.value))
         .toList()
@@ -102,11 +133,11 @@ class _IssueSearchBarState extends ConsumerState<IssueSearchBar> {
         .map((e) => (id: e.key, name: e.value))
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
-    final statuses = statusMap.entries
+    final assignees = assigneeMap.entries
         .map((e) => (id: e.key, name: e.value))
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
-    final assignees = assigneeMap.entries
+    final statuses = statusMap.entries
         .map((e) => (id: e.key, name: e.value))
         .toList()
       ..sort((a, b) => a.name.compareTo(b.name));
