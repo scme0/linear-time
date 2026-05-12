@@ -126,24 +126,23 @@ class _IssueRowState extends State<IssueRow> {
                     ),
                   ),
                 ),
-                // Add time button (in gap between ID and name)
-                if (widget.onAddTime != null && !isDeleted && _hovering)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: GestureDetector(
-                      onTap: widget.onAddTime,
-                      child: MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: Icon(
-                          CupertinoIcons.plus_circle,
-                          size: 14,
-                          color: AppColors.textTertiary(brightness),
-                        ),
-                      ),
-                    ),
-                  ),
-                if (!_hovering || isDeleted)
-                  const SizedBox(width: 4),
+                // Gap between ID and name — + button overlaid here
+                SizedBox(
+                  width: 24,
+                  child: (widget.onAddTime != null && !isDeleted && _hovering)
+                      ? GestureDetector(
+                          onTap: widget.onAddTime,
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Icon(
+                              CupertinoIcons.plus_circle,
+                              size: 14,
+                              color: AppColors.textTertiary(brightness),
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
                 // Issue title (left-aligned, fills space, min 150px)
                 Expanded(
                   child: ConstrainedBox(
