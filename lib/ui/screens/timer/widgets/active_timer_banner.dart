@@ -10,7 +10,7 @@ import '../../../../core/extensions/duration_extensions.dart';
 import '../../../../core/time_format.dart';
 import '../../../../core/theme/app_theme.dart';
 
-class ActiveTimerBanner extends StatelessWidget {
+class ActiveTimerBanner extends StatefulWidget {
   const ActiveTimerBanner({
     super.key,
     required this.activeTimer,
@@ -25,10 +25,17 @@ class ActiveTimerBanner extends StatelessWidget {
   final VoidCallback onStop;
 
   @override
+  State<ActiveTimerBanner> createState() => _ActiveTimerBannerState();
+}
+
+class _ActiveTimerBannerState extends State<ActiveTimerBanner> {
+  bool _identifierHovering = false;
+
+  @override
   Widget build(BuildContext context) {
     final brightness = MacosTheme.of(context).brightness;
 
-    return activeTimer.when(
+    return widget.activeTimer.when(
       data: (entry) {
         if (entry == null) {
           return Container(
@@ -94,12 +101,28 @@ class ActiveTimerBanner extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          entry.issueIdentifier,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary(brightness),
+                        MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          onEnter: (_) => setState(() => _identifierHovering = true),
+                          onExit: (_) => setState(() => _identifierHovering = false),
+                          child: GestureDetector(
+                            onTap: () => openInLinear(
+                              identifier: entry.issueIdentifier,
+                            ),
+                            child: Text(
+                              entry.issueIdentifier,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: _identifierHovering
+                                    ? AppColors.accent
+                                    : AppColors.textPrimary(brightness),
+                                decoration: _identifierHovering
+                                    ? TextDecoration.underline
+                                    : null,
+                                decorationColor: AppColors.accent,
+                              ),
+                            ),
                           ),
                         ),
                         if (entry.teamName != null) ...[
@@ -132,7 +155,7 @@ class ActiveTimerBanner extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  elapsed.when(
+                  widget.elapsed.when(
                     data: (d) => Text(
                       d.toHms(),
                       style: TextStyle(
@@ -152,7 +175,7 @@ class ActiveTimerBanner extends StatelessWidget {
                     ),
                     error: (_, _) => const Text('--:--:--'),
                   ),
-                  todayTotal.when(
+                  widget.todayTotal.when(
                     data: (seconds) {
                       if (seconds == 0) return const SizedBox.shrink();
                       return Text(
@@ -169,22 +192,11 @@ class ActiveTimerBanner extends StatelessWidget {
                 ],
               ),
               const SizedBox(width: 12),
-              // Open in Linear
-              MacosIconButton(
-                icon: MacosIcon(
-                  CupertinoIcons.arrow_up_right_square,
-                  size: 16,
-                  color: AppColors.textSecondary(brightness),
-                ),
-                onPressed: () => openInLinear(
-                    identifier: entry.issueIdentifier),
-              ),
-              const SizedBox(width: 8),
               // Stop button
               PushButton(
                 controlSize: ControlSize.large,
                 color: AppColors.danger,
-                onPressed: onStop,
+                onPressed: widget.onStop,
                 child: const Text('Stop'),
               ),
             ],
