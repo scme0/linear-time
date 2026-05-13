@@ -8,7 +8,9 @@ import 'weekly/weekly_view.dart';
 import 'daily/daily_view.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
-  const HistoryScreen({super.key});
+  const HistoryScreen({super.key, this.refreshNotifier});
+
+  final ValueNotifier<int>? refreshNotifier;
 
   @override
   ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
@@ -17,6 +19,23 @@ class HistoryScreen extends ConsumerStatefulWidget {
 class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   int _tabIndex = 0;
   DateTime? _selectedDay;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.refreshNotifier?.addListener(_onRefresh);
+  }
+
+  @override
+  void dispose() {
+    widget.refreshNotifier?.removeListener(_onRefresh);
+    super.dispose();
+  }
+
+  void _onRefresh() {
+    // Force rebuild so DateTime.now() re-evaluates in totals
+    setState(() {});
+  }
 
   void _navigateToDay(DateTime day) {
     setState(() {

@@ -7,7 +7,6 @@ import 'package:macos_ui/macos_ui.dart';
 import '../../../../data/database/app_database.dart';
 import '../../../../core/utils/open_in_linear.dart';
 import '../../../../core/extensions/duration_extensions.dart';
-import '../../../../core/time_format.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class ActiveTimerBanner extends StatefulWidget {
@@ -15,13 +14,11 @@ class ActiveTimerBanner extends StatefulWidget {
     super.key,
     required this.activeTimer,
     required this.elapsed,
-    required this.todayTotal,
     required this.onStop,
   });
 
   final AsyncValue<TimeEntry?> activeTimer;
   final AsyncValue<Duration> elapsed;
-  final AsyncValue<int> todayTotal;
   final VoidCallback onStop;
 
   @override
@@ -174,20 +171,6 @@ class _ActiveTimerBannerState extends State<ActiveTimerBanner> {
                       ),
                     ),
                     error: (_, _) => const Text('--:--:--'),
-                  ),
-                  widget.todayTotal.when(
-                    data: (seconds) {
-                      if (seconds == 0) return const SizedBox.shrink();
-                      return Text(
-                        'Today: ${Duration(seconds: seconds).formatted(TimeFormat.current)}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textSecondary(brightness),
-                        ),
-                      );
-                    },
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, _) => const SizedBox.shrink(),
                   ),
                 ],
               ),

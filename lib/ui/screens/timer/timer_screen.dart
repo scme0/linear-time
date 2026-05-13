@@ -8,6 +8,8 @@ import '../../../providers/repository_providers.dart';
 import '../../../providers/report_providers.dart';
 import '../../../data/database/app_database.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/extensions/duration_extensions.dart';
+import '../../../core/time_format.dart';
 import '../history/daily/widgets/time_entry_dialog.dart';
 import '../../tray/tray_manager.dart';
 import '../../../services/notification_service.dart';
@@ -163,7 +165,9 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
   Widget build(BuildContext context) {
     final activeTimer = ref.watch(activeTimerProvider);
     final elapsed = ref.watch(timerTickProvider);
-    final todayTotal = ref.watch(todayTotalForActiveIssueProvider);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final todayEntries = ref.watch(dailyEntriesProvider(today));
     final brightness = MacosTheme.of(context).brightness;
 
     return Column(
@@ -171,8 +175,15 @@ class _TimerScreenState extends ConsumerState<TimerScreen> {
         ActiveTimerBanner(
           activeTimer: activeTimer,
           elapsed: elapsed,
-          todayTotal: todayTotal,
           onStop: _onStopTimer,
+        ),
+        Container(
+          height: 1,
+          color: AppColors.border(brightness),
+        ),
+        _TodayTotalStrip(
+          todayEntries: todayEntries,
+          brightness: brightness,
         ),
         Container(
           height: 1,
@@ -258,4 +269,52 @@ class SubFilters {
       projectId == null &&
       statusType == null &&
       assigneeId == null;
+}
+
+class _TodayTotalStrip extends StatelessWidget {
+  const _TodayTotalStrip({
+    required this.todayEntries,
+    required this.brightness,
+  });
+
+  final AsyncValue<List<TimeEntry>> todayEntries;
+  final Brightness brightness;
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = todayEntries.valueOrNull;
+    if (entries == null || entries.isEmpty) return const SizedBox.shrink();
+
+    final total = entries.fold<int>(0, (sum, e) =>
+        sum + (e.durationSeconds ??
+            (e.endTime ?? DateTime.now()).difference(e.startTime).inSeconds));
+
+    if (total == 0) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      color: AppColors.surface(brightness),
+      child: Row(
+        children: [
+          Text(
+            'Today',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textSecondary(brightness),
+            ),
+          ),
+          const Spacer(),
+          Text(
+            Duration(seconds: total).formatted(TimeFormat.current),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary(brightness),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

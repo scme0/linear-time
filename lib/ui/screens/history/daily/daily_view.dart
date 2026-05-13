@@ -8,6 +8,7 @@ import 'package:macos_ui/macos_ui.dart';
 import '../../../../data/database/app_database.dart';
 import '../../../../providers/report_providers.dart';
 import '../../../../providers/database_providers.dart';
+import '../../../../providers/repository_providers.dart';
 import '../../../../core/extensions/duration_extensions.dart';
 import '../../../../core/time_format.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -101,15 +102,16 @@ class _DailyViewState extends ConsumerState<DailyView> {
     final entries = ref.watch(dailyEntriesProvider(_selectedDate));
     final dateLabel = DateFormat('EEEE, MMMM d, yyyy').format(_selectedDate);
 
-    // Compute total for nav bar
+    // Compute total for nav bar (includes running timer)
     final totalSeconds = entries.valueOrNull
-            ?.where((e) => e.endTime != null)
-            .fold<int>(
+            ?.fold<int>(
                 0,
                 (sum, e) =>
                     sum +
                     (e.durationSeconds ??
-                        e.endTime!.difference(e.startTime).inSeconds)) ??
+                        (e.endTime ?? DateTime.now())
+                            .difference(e.startTime)
+                            .inSeconds)) ??
         0;
 
     return Column(
@@ -254,12 +256,17 @@ class _DailyViewState extends ConsumerState<DailyView> {
                     );
                   }
                   final entry = entryList[index];
+                  final isRunning = entry.endTime == null;
                   return _EntryCard(
                     entry: entry,
-                    onTap: entry.endTime != null
-                        ? () => _editEntry(entry)
-                        : null,
-                    onDelete: () => _deleteEntry(entry.id),
+                    onTap: !isRunning ? () => _editEntry(entry) : null,
+                    onDelete: () {
+                      if (isRunning) {
+                        final repo = ref.read(timeTrackingRepositoryProvider);
+                        repo.stopTimer();
+                      }
+                      _deleteEntry(entry.id);
+                    },
                   );
                 },
               );
@@ -431,7 +438,34 @@ class _EntryCardState extends State<_EntryCard> {
                   size: 14,
                   color: AppColors.danger,
                 ),
-                onPressed: widget.onDelete,
+                onPressed: () async {
+                  if (widget.entry.endTime == null) {
+                    // Running entry — confirm before stop + delete
+                    final confirm = await showMacosAlertDialog<bool>(
+                      context: context,
+                      builder: (ctx) => MacosAlertDialog(
+                        appIcon: const Icon(CupertinoIcons.trash, size: 48, color: AppColors.danger),
+                        title: const Text('Delete running timer?'),
+                        message: const Text('This will stop the timer and delete the entry. This cannot be undone.'),
+                        primaryButton: PushButton(
+                          controlSize: ControlSize.large,
+                          color: AppColors.danger,
+                          onPressed: () => Navigator.of(ctx).pop(true),
+                          child: const Text('Stop & Delete'),
+                        ),
+                        secondaryButton: PushButton(
+                          controlSize: ControlSize.large,
+                          secondary: true,
+                          onPressed: () => Navigator.of(ctx).pop(false),
+                          child: const Text('Cancel'),
+                        ),
+                      ),
+                    );
+                    if (confirm == true) widget.onDelete();
+                  } else {
+                    widget.onDelete();
+                  }
+                },
               ),
             ],
           ),

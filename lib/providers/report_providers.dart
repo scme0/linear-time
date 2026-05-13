@@ -32,11 +32,10 @@ final monthlyCalendarDataProvider =
   final dayMap = <int, DayData>{};
 
   for (final entry in entries) {
-    if (entry.endTime == null) continue;
     final day = entry.startTime.day;
     final data = dayMap.putIfAbsent(day, () => DayData());
     final seconds = entry.durationSeconds ??
-        entry.endTime!.difference(entry.startTime).inSeconds;
+        (entry.endTime ?? DateTime.now()).difference(entry.startTime).inSeconds;
     data.totalSeconds += seconds;
 
     // Key by issueId for consistent color assignment
@@ -56,9 +55,8 @@ final weeklySummaryProvider =
   int grandTotal = 0;
 
   for (final entry in entries) {
-    if (entry.endTime == null) continue;
     final seconds = entry.durationSeconds ??
-        entry.endTime!.difference(entry.startTime).inSeconds;
+        (entry.endTime ?? DateTime.now()).difference(entry.startTime).inSeconds;
     grandTotal += seconds;
 
     final summary = issueMap.putIfAbsent(

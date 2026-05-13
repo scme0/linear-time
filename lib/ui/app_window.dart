@@ -36,6 +36,12 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
   final _searchFocusNotifier = ValueNotifier<int>(0);
   final _hotkeyFilterNotifier = ValueNotifier<String?>('myIssues');
   final _filterModeNotifier = ValueNotifier<IssueFilterMode?>(null);
+  final _historyRefreshNotifier = ValueNotifier<int>(0);
+
+  void _setPage(int index) {
+    setState(() => _pageIndex = index);
+    if (index == 1) _historyRefreshNotifier.value++;
+  }
   TrayManager? _trayManager;
   NotificationService? _notificationService;
   SyncService? _syncService;
@@ -61,7 +67,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
         NotificationService.instance?.onTimerStateChanged();
         return true;
       case LogicalKeyboardKey.keyF:
-        setState(() => _pageIndex = 0);
+        _setPage(0);
         Future.delayed(const Duration(milliseconds: 50), () {
           _searchFocusNotifier.value++;
         });
@@ -75,19 +81,19 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
         );
         return true;
       case LogicalKeyboardKey.keyM:
-        setState(() => _pageIndex = 0);
+        _setPage(0);
         _filterModeNotifier.value = IssueFilterMode.myIssues;
         return true;
       case LogicalKeyboardKey.keyE:
-        setState(() => _pageIndex = 0);
+        _setPage(0);
         _filterModeNotifier.value = IssueFilterMode.allIssues;
         return true;
       case LogicalKeyboardKey.keyR:
-        setState(() => _pageIndex = 0);
+        _setPage(0);
         _filterModeNotifier.value = IssueFilterMode.recentlyTracked;
         return true;
       case LogicalKeyboardKey.comma:
-        setState(() => _pageIndex = 2);
+        _setPage(2);
         return true;
       case LogicalKeyboardKey.slash:
         _showCheatsheet(context, MacosTheme.of(context).brightness);
@@ -190,7 +196,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
   void _initTray() {
     if (_trayManager != null) return;
     _trayManager = TrayManager(ref, onNavigate: (tab) {
-      setState(() => _pageIndex = tab);
+      _setPage(tab);
     });
     TrayManager.instance = _trayManager;
     _trayManager!.init();
@@ -212,7 +218,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
     // First launch: if no API key, go to Settings
     ref.read(apiKeyProvider.future).then((key) {
       if (key == null && mounted) {
-        setState(() => _pageIndex = 2); // Settings tab
+        _setPage(2); // Settings tab
       }
     });
 
@@ -245,7 +251,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
       ref.read(settingsDaoProvider).getValue(SettingsKeys.hotkeyFilter).then((val) {
         _hotkeyFilterNotifier.value = val ?? 'myIssues';
       });
-      setState(() => _pageIndex = 0);
+      _setPage(0);
       // Delay focus until after the tab switch renders
       Future.delayed(const Duration(milliseconds: 100), () {
         _searchFocusNotifier.value++;
@@ -292,7 +298,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
                     label: 'Timer',
                     isActive: _pageIndex == 0,
                     brightness: brightness,
-                    onTap: () => setState(() => _pageIndex = 0),
+                    onTap: () => _setPage(0),
                   ),
                   const SizedBox(width: 4),
                   _TabButton(
@@ -300,7 +306,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
                     label: 'History',
                     isActive: _pageIndex == 1,
                     brightness: brightness,
-                    onTap: () => setState(() => _pageIndex = 1),
+                    onTap: () => _setPage(1),
                   ),
                   const SizedBox(width: 4),
                   _TabButton(
@@ -308,7 +314,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
                     label: 'Settings',
                     isActive: _pageIndex == 2,
                     brightness: brightness,
-                    onTap: () => setState(() => _pageIndex = 2),
+                    onTap: () => _setPage(2),
                   ),
                 ],
               ),
@@ -340,7 +346,7 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
                   hotkeyFilterNotifier: _hotkeyFilterNotifier,
                   filterModeNotifier: _filterModeNotifier,
                 ),
-                const HistoryScreen(),
+                HistoryScreen(refreshNotifier: _historyRefreshNotifier),
                 const SettingsScreen(),
               ],
             ),

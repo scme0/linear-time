@@ -110,20 +110,34 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
-            children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-                .map((d) => Expanded(
-                      child: Center(
-                        child: Text(
-                          d,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary(brightness),
+            children: [
+              ...['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                  .map((d) => Expanded(
+                        child: Center(
+                          child: Text(
+                            d,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary(brightness),
+                            ),
                           ),
                         ),
-                      ),
-                    ))
-                .toList(),
+                      )),
+              SizedBox(
+                width: 44,
+                child: Center(
+                  child: Text(
+                    'Total',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary(brightness),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 4),
@@ -131,7 +145,7 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
         Expanded(
           child: calendarData.when(
             data: (dayMap) =>
-                _buildCalendarGrid(dayMap, workDaySeconds),
+                _buildCalendarGrid(dayMap, workDaySeconds, brightness),
             loading: () => const Center(child: ProgressCircle()),
             error: (e, _) => Center(child: Text('Error: $e')),
           ),
@@ -216,7 +230,8 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
     );
   }
 
-  Widget _buildCalendarGrid(Map<int, DayData> dayMap, int workDaySeconds) {
+  Widget _buildCalendarGrid(
+      Map<int, DayData> dayMap, int workDaySeconds, Brightness brightness) {
     final firstDay = DateTime(_currentMonth.year, _currentMonth.month, 1);
     final daysInMonth =
         DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
@@ -228,28 +243,56 @@ class _MonthlyViewState extends ConsumerState<MonthlyView> {
       padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
       child: Column(
         children: List.generate(rows, (row) {
+          // Compute week total for this row
+          int rowTotal = 0;
+          for (var col = 0; col < 7; col++) {
+            final dayNum = row * 7 + col - startOffset + 1;
+            if (dayNum >= 1 && dayNum <= daysInMonth) {
+              rowTotal += dayMap[dayNum]?.totalSeconds ?? 0;
+            }
+          }
+
           return Expanded(
             child: Row(
-              children: List.generate(7, (col) {
-                final cellIndex = row * 7 + col;
-                final dayNum = cellIndex - startOffset + 1;
-                if (dayNum < 1 || dayNum > daysInMonth) {
-                  return const Expanded(child: SizedBox());
-                }
-                final data = dayMap[dayNum];
-                final date = DateTime(
-                    _currentMonth.year, _currentMonth.month, dayNum);
-                final isToday = _isToday(date);
-                return Expanded(
-                  child: DayCell(
-                    day: dayNum,
-                    data: data,
-                    isToday: isToday,
-                    onTap: () => widget.onDaySelected(date),
-                    workDaySeconds: workDaySeconds,
-                  ),
-                );
-              }),
+              children: [
+                ...List.generate(7, (col) {
+                  final cellIndex = row * 7 + col;
+                  final dayNum = cellIndex - startOffset + 1;
+                  if (dayNum < 1 || dayNum > daysInMonth) {
+                    return const Expanded(child: SizedBox());
+                  }
+                  final data = dayMap[dayNum];
+                  final date = DateTime(
+                      _currentMonth.year, _currentMonth.month, dayNum);
+                  final isToday = _isToday(date);
+                  return Expanded(
+                    child: DayCell(
+                      day: dayNum,
+                      data: data,
+                      isToday: isToday,
+                      onTap: () => widget.onDaySelected(date),
+                      workDaySeconds: workDaySeconds,
+                    ),
+                  );
+                }),
+                // Week total
+                SizedBox(
+                  width: 44,
+                  child: rowTotal > 0
+                      ? Center(
+                          child: Text(
+                            Duration(seconds: rowTotal)
+                                .formatted(TimeFormat.current),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary(brightness),
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
+              ],
             ),
           );
         }),

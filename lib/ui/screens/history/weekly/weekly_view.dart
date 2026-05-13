@@ -37,6 +37,7 @@ class _WeeklyViewState extends ConsumerState<WeeklyView> {
   bool get _isCurrentWeek => _weekStart == DateTime.now().startOfWeek;
 
   Future<void> _onTapEntry(DateTime date, TimeEntry entry) async {
+    if (entry.endTime == null) return; // Can't edit running entry
     final day = DateTime(date.year, date.month, date.day);
     final result = await showMacosAlertDialog<bool>(
       context: context,
@@ -322,7 +323,7 @@ class _WeekTimeline extends ConsumerWidget {
                   children: [
                     // Day header
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
+                      padding: const EdgeInsets.only(bottom: 2),
                       child: Column(
                         children: [
                           Text(
@@ -344,6 +345,30 @@ class _WeekTimeline extends ConsumerWidget {
                                   : AppColors.textTertiary(brightness),
                             ),
                           ),
+                          // Day total
+                          Builder(builder: (_) {
+                            final totalSec = entries
+                                .fold<int>(0, (sum, e) => sum +
+                                    (e.durationSeconds ??
+                                        (e.endTime ?? DateTime.now())
+                                            .difference(e.startTime).inSeconds));
+                            if (totalSec == 0) return const SizedBox(height: 12);
+                            return SizedBox(
+                              height: 12,
+                              child: Text(
+                                Duration(seconds: totalSec).formatted(TimeFormat.current),
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w500,
+                                  color: isToday
+                                      ? AppColors.accent
+                                      : AppColors.textTertiary(brightness),
+                                  fontFeatures: const [FontFeature.tabularFigures()],
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            );
+                          }),
                         ],
                       ),
                     ),
@@ -468,13 +493,11 @@ class _DayColumnState extends State<_DayColumn> {
   /// Find entry at a given Y position, or null if empty space.
   TimeEntry? _entryAtY(double y) {
     for (final entry in widget.entries) {
-      if (entry.endTime == null) continue;
       final startMin = entry.startTime.hour * 60 +
           entry.startTime.minute -
           widget.minHour * 60;
-      final endMin = entry.endTime!.hour * 60 +
-          entry.endTime!.minute -
-          widget.minHour * 60;
+      final end = entry.endTime ?? DateTime.now();
+      final endMin = end.hour * 60 + end.minute - widget.minHour * 60;
       final top = startMin / _totalMinutes * _columnHeight;
       final bottom = endMin / _totalMinutes * _columnHeight;
       if (y >= top && y <= bottom) return entry;
@@ -621,6 +644,7 @@ class _DayColumnState extends State<_DayColumn> {
                       final bottom = (endMin / _totalMinutes * height)
                           .clamp(0.0, height);
                       final blockHeight = (bottom - top).clamp(2.0, height);
+                      final isHovered = _hoveredEntry?.id == entry.id;
 
                       return Positioned(
                         top: top,
@@ -633,9 +657,41 @@ class _DayColumnState extends State<_DayColumn> {
                                 .withValues(alpha: 0.6),
                             borderRadius: BorderRadius.circular(2),
                             border: Border.all(
-                              color: AppColors.colorForIssue(entry.issueId),
+                              color: isHovered
+                                  ? const Color(0xFFFFFFFF).withValues(alpha: 0.5)
+                                  : AppColors.colorForIssue(entry.issueId),
                               width: 1,
                             ),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
+                          child: Stack(
+                            children: [
+                              Positioned(
+                                top: 2,
+                                left: 2,
+                                child: Container(
+                                  width: 5,
+                                  height: 5,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.success,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                              if (blockHeight >= 16)
+                                Center(
+                                  child: Text(
+                                    entry.issueIdentifier,
+                                    style: const TextStyle(
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFFFFFFFF),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.clip,
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                       );
