@@ -9,6 +9,7 @@ import '../../../../data/database/app_database.dart';
 import '../../../../providers/report_providers.dart';
 import '../../../../providers/database_providers.dart';
 import '../../../../providers/repository_providers.dart';
+import '../../../../providers/settings_providers.dart';
 import '../../../../core/extensions/duration_extensions.dart';
 import '../../../../core/time_format.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -79,10 +80,16 @@ class _DailyViewState extends ConsumerState<DailyView> {
     }
   }
 
-  Future<void> _addManualEntry() async {
+  Future<void> _addManualEntry({int? startHour, int? startMinute, int? endHour, int? endMinute}) async {
     final result = await showMacosAlertDialog<bool>(
       context: context,
-      builder: (context) => TimeEntryDialog(date: _selectedDate),
+      builder: (context) => TimeEntryDialog(
+        date: _selectedDate,
+        prefilledStartHour: startHour,
+        prefilledStartMinute: startMinute,
+        prefilledEndHour: endHour,
+        prefilledEndMinute: endMinute,
+      ),
     );
     if (result == true) {
       ref.invalidate(dailyEntriesProvider(_selectedDate));
@@ -100,9 +107,11 @@ class _DailyViewState extends ConsumerState<DailyView> {
   Widget build(BuildContext context) {
     final brightness = MacosTheme.of(context).brightness;
     final entries = ref.watch(dailyEntriesProvider(_selectedDate));
+    final settingsAsync = ref.watch(appSettingsProvider);
+    final settings = settingsAsync.valueOrNull ?? const AppSettings();
     final dateLabel = DateFormat('EEEE, MMMM d, yyyy').format(_selectedDate);
 
-    // Compute total for nav bar (includes running timer)
+    // Compute total (includes running timer)
     final totalSeconds = entries.valueOrNull
             ?.fold<int>(
                 0,
@@ -134,9 +143,10 @@ class _DailyViewState extends ConsumerState<DailyView> {
                     children: [
                       Text(
                         dateLabel,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary(brightness),
                         ),
                       ),
                       if (_isToday)
@@ -186,7 +196,7 @@ class _DailyViewState extends ConsumerState<DailyView> {
             ],
           ),
         ),
-        // Entry list with Add Time at bottom
+        // Timeline
         Expanded(
           child: entries.when(
             data: (entryList) {
@@ -203,244 +213,32 @@ class _DailyViewState extends ConsumerState<DailyView> {
                       const SizedBox(height: 12),
                       PushButton(
                         controlSize: ControlSize.regular,
-                        onPressed: _addManualEntry,
+                        onPressed: () => _addManualEntry(),
                         child: const Text('Add Manual Entry'),
                       ),
                     ],
                   ),
                 );
               }
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: entryList.length + 1, // +1 for Add Time
-                itemBuilder: (context, index) {
-                  if (index == entryList.length) {
-                    // Add Time button as last list item
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: GestureDetector(
-                        onTap: _addManualEntry,
-                        child: MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10, horizontal: 12),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: AppColors.border(brightness),
-                                width: 0.5,
-                              ),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(CupertinoIcons.plus,
-                                    size: 14,
-                                    color:
-                                        AppColors.textSecondary(brightness)),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Add Time',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color:
-                                        AppColors.textSecondary(brightness),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-                  final entry = entryList[index];
-                  final isRunning = entry.endTime == null;
-                  return _EntryCard(
-                    entry: entry,
-                    onTap: !isRunning ? () => _editEntry(entry) : null,
-                    onDelete: () {
-                      if (isRunning) {
-                        final repo = ref.read(timeTrackingRepositoryProvider);
-                        repo.stopTimer();
-                      }
-                      _deleteEntry(entry.id);
-                    },
+              return _DayTimeline(
+                entries: entryList,
+                settings: settings,
+                brightness: brightness,
+                isToday: _isToday,
+                onTapEntry: (entry) {
+                  if (entry.endTime == null) return;
+                  _editEntry(entry);
+                },
+                onTapEmpty: (startMin, endMin) {
+                  _addManualEntry(
+                    startHour: startMin ~/ 60,
+                    startMinute: startMin % 60,
+                    endHour: endMin ~/ 60,
+                    endMinute: endMin % 60,
                   );
                 },
-              );
-            },
-            loading: () => const Center(child: ProgressCircle()),
-            error: (e, _) => Center(child: Text('Error: $e')),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _EntryCard extends StatefulWidget {
-  const _EntryCard({
-    required this.entry,
-    this.onTap,
-    required this.onDelete,
-  });
-
-  final TimeEntry entry;
-  final VoidCallback? onTap;
-  final VoidCallback onDelete;
-
-  @override
-  State<_EntryCard> createState() => _EntryCardState();
-}
-
-class _EntryCardState extends State<_EntryCard> {
-  bool _hovering = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final brightness = MacosTheme.of(context).brightness;
-    final timeFormat = DateFormat('HH:mm');
-    final isRunning = widget.entry.endTime == null;
-    final duration = isRunning
-        ? DateTime.now().difference(widget.entry.startTime)
-        : Duration(
-            seconds: widget.entry.durationSeconds ??
-                widget.entry.endTime!
-                    .difference(widget.entry.startTime)
-                    .inSeconds);
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovering = true),
-      onExit: (_) => setState(() => _hovering = false),
-      cursor: widget.onTap != null
-          ? SystemMouseCursors.click
-          : SystemMouseCursors.basic,
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-          margin: const EdgeInsets.only(bottom: 1),
-          decoration: BoxDecoration(
-            color: _hovering ? AppColors.hover(brightness) : null,
-            borderRadius: BorderRadius.circular(6),
-            border: Border(
-              left: BorderSide(
-                color: AppColors.colorForIssue(widget.entry.issueId),
-                width: 3,
-              ),
-            ),
-          ),
-          child: Row(
-            children: [
-              // Time range
-              SizedBox(
-                width: 110,
-                child: Text(
-                  isRunning
-                      ? '${timeFormat.format(widget.entry.startTime)} – now'
-                      : '${timeFormat.format(widget.entry.startTime)} – ${timeFormat.format(widget.entry.endTime!)}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                    color: AppColors.textSecondary(brightness),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Issue identifier
-              Text(
-                widget.entry.issueIdentifier,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Issue title
-              Expanded(
-                child: Text(
-                  widget.entry.issueTitle,
-                  style: const TextStyle(fontSize: 13),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Manual badge
-              if (widget.entry.isManual)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                  margin: const EdgeInsets.only(right: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  child: const Text(
-                    'Manual',
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: AppColors.warning,
-                    ),
-                  ),
-                ),
-              // Running indicator
-              if (isRunning)
-                Container(
-                  width: 6,
-                  height: 6,
-                  margin: const EdgeInsets.only(right: 8),
-                  decoration: const BoxDecoration(
-                    color: AppColors.success,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              // Edit hint on hover
-              if (_hovering && !isRunning)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Icon(
-                    CupertinoIcons.pencil,
-                    size: 12,
-                    color: AppColors.textTertiary(brightness),
-                  ),
-                ),
-              // Open in Linear
-              if (_hovering)
-                Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: MacosIconButton(
-                    icon: MacosIcon(
-                      CupertinoIcons.arrow_up_right_square,
-                      size: 14,
-                      color: AppColors.textTertiary(brightness),
-                    ),
-                    onPressed: () => openInLinear(
-                        identifier: widget.entry.issueIdentifier),
-                  ),
-                ),
-              // Duration
-              Text(
-                duration.formatted(TimeFormat.current),
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  fontFeatures: [FontFeature.tabularFigures()],
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Delete button
-              MacosIconButton(
-                icon: const MacosIcon(
-                  CupertinoIcons.trash,
-                  size: 14,
-                  color: AppColors.danger,
-                ),
-                onPressed: () async {
-                  if (widget.entry.endTime == null) {
-                    // Running entry — confirm before stop + delete
+                onDeleteEntry: (entry) async {
+                  if (entry.endTime == null) {
                     final confirm = await showMacosAlertDialog<bool>(
                       context: context,
                       builder: (ctx) => MacosAlertDialog(
@@ -461,16 +259,521 @@ class _EntryCardState extends State<_EntryCard> {
                         ),
                       ),
                     );
-                    if (confirm == true) widget.onDelete();
-                  } else {
-                    widget.onDelete();
+                    if (confirm != true) return;
+                    final repo = ref.read(timeTrackingRepositoryProvider);
+                    repo.stopTimer();
                   }
+                  _deleteEntry(entry.id);
                 },
-              ),
-            ],
+              );
+            },
+            loading: () => const Center(child: ProgressCircle()),
+            error: (e, _) => Center(child: Text('Error: $e')),
           ),
         ),
+      ],
+    );
+  }
+}
+
+/// Single-day timeline with hour grid, entry blocks, and hover interactions.
+class _DayTimeline extends StatefulWidget {
+  const _DayTimeline({
+    required this.entries,
+    required this.settings,
+    required this.brightness,
+    required this.isToday,
+    this.onTapEntry,
+    this.onTapEmpty,
+    this.onDeleteEntry,
+  });
+
+  final List<TimeEntry> entries;
+  final AppSettings settings;
+  final Brightness brightness;
+  final bool isToday;
+  final ValueChanged<TimeEntry>? onTapEntry;
+  final void Function(int startMin, int endMin)? onTapEmpty;
+  final ValueChanged<TimeEntry>? onDeleteEntry;
+
+  @override
+  State<_DayTimeline> createState() => _DayTimelineState();
+}
+
+class _DayTimelineState extends State<_DayTimeline> {
+  double? _hoverY;
+  double _columnHeight = 1;
+  TimeEntry? _hoveredEntry;
+
+  int get _minHour => _hourRange.$1;
+  int get _maxHour => _hourRange.$2;
+  int get _totalMinutes => (_maxHour - _minHour) * 60;
+
+  late (int, int) _hourRange;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _hourRange = _computeHourRange();
+  }
+
+  @override
+  void didUpdateWidget(_DayTimeline oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _hourRange = _computeHourRange();
+  }
+
+  (int, int) _computeHourRange() {
+    var minH = widget.settings.officeStartHour;
+    var maxH = widget.settings.officeEndHour;
+    for (final entry in widget.entries) {
+      final startH = entry.startTime.hour;
+      final end = entry.endTime ?? DateTime.now();
+      final endH = end.minute > 0 ? end.hour + 1 : end.hour;
+      if (startH < minH) minH = startH;
+      if (endH > maxH) maxH = endH;
+    }
+    return (minH.clamp(0, 23), maxH.clamp(minH + 1, 24));
+  }
+
+  TimeEntry? _entryAtY(double y) {
+    for (final entry in widget.entries) {
+      final startMin = entry.startTime.hour * 60 +
+          entry.startTime.minute - _minHour * 60;
+      final end = entry.endTime ?? DateTime.now();
+      final endMin = end.hour * 60 + end.minute - _minHour * 60;
+      final top = startMin / _totalMinutes * _columnHeight;
+      final bottom = endMin / _totalMinutes * _columnHeight;
+      if (y >= top && y <= bottom) return entry;
+    }
+    return null;
+  }
+
+  static const _slotMinutes = 15;
+
+  (int, int) _slotAtY(double y) {
+    final minuteOffset = (y / _columnHeight * _totalMinutes).round();
+    final snapped = (minuteOffset ~/ _slotMinutes) * _slotMinutes;
+    final startMin = _minHour * 60 + snapped;
+    final endMin = startMin + _slotMinutes;
+    return (startMin, endMin);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final totalHours = _maxHour - _minHour;
+    final brightness = widget.brightness;
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Hour labels
+          SizedBox(
+            width: 44,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final height = constraints.maxHeight;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: List.generate(totalHours + 1, (i) {
+                      final hour = _minHour + i;
+                      if (hour > 23) return const SizedBox.shrink();
+                      final adjustedHeight = height - 12;
+                      final y = i / totalHours * adjustedHeight;
+                      return Positioned(
+                        top: y - 5,
+                        left: 0,
+                        right: 4,
+                        child: Text(
+                          '${hour.toString().padLeft(2, '0')}:00',
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            fontSize: 9,
+                            color: AppColors.textTertiary(brightness),
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                );
+              },
+            ),
+          ),
+          // Timeline column
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                _columnHeight = constraints.maxHeight;
+                final height = _columnHeight;
+
+                return MouseRegion(
+                  onHover: (event) => setState(() {
+                    _hoverY = event.localPosition.dy;
+                    _hoveredEntry = _entryAtY(_hoverY!);
+                  }),
+                  onExit: (_) => setState(() {
+                    _hoverY = null;
+                    _hoveredEntry = null;
+                  }),
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTapUp: (details) {
+                      final y = details.localPosition.dy;
+                      final entry = _entryAtY(y);
+                      if (entry != null) {
+                        widget.onTapEntry?.call(entry);
+                      } else {
+                        final slot = _slotAtY(y);
+                        widget.onTapEmpty?.call(slot.$1, slot.$2);
+                      }
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.surface(brightness),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: widget.isToday
+                              ? AppColors.accent.withValues(alpha: 0.4)
+                              : AppColors.border(brightness),
+                          width: widget.isToday ? 1.0 : 0.5,
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(3.5),
+                        child: Stack(
+                          children: [
+                            // Hour grid lines
+                            ...List.generate(totalHours - 1, (i) {
+                              final y = (i + 1) / totalHours * height;
+                              return Positioned(
+                                top: y,
+                                left: 0,
+                                right: 0,
+                                child: Container(
+                                  height: 0.5,
+                                  color: AppColors.border(brightness)
+                                      .withValues(alpha: 0.5),
+                                ),
+                              );
+                            }),
+                            // Hover preview (ghost block)
+                            if (_hoverY != null && _entryAtY(_hoverY!) == null)
+                              _buildHoverPreview(height),
+                            // Entry blocks
+                            ...widget.entries.map((entry) {
+                              final isRunning = entry.endTime == null;
+                              final startMin = entry.startTime.hour * 60 +
+                                  entry.startTime.minute - _minHour * 60;
+                              final end = entry.endTime ?? DateTime.now();
+                              final endMin = end.hour * 60 +
+                                  end.minute - _minHour * 60;
+
+                              final top = (startMin / _totalMinutes * height)
+                                  .clamp(0.0, height);
+                              final bottom = (endMin / _totalMinutes * height)
+                                  .clamp(0.0, height);
+                              final blockHeight = (bottom - top).clamp(2.0, height);
+                              final isHovered = _hoveredEntry?.id == entry.id;
+                              final baseColor = AppColors.colorForIssue(entry.issueId);
+
+                              return Positioned(
+                                top: top,
+                                left: 1,
+                                right: 1,
+                                height: blockHeight,
+                                child: _EntryBlock(
+                                  entry: entry,
+                                  blockHeight: blockHeight,
+                                  isHovered: isHovered,
+                                  isRunning: isRunning,
+                                  baseColor: baseColor,
+                                  brightness: brightness,
+                                  onDelete: widget.onDeleteEntry != null
+                                      ? () => widget.onDeleteEntry!(entry)
+                                      : null,
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildHoverPreview(double height) {
+    final hoverMin = (_hoverY! / height * _totalMinutes).round();
+    final snappedMin = (hoverMin ~/ _slotMinutes) * _slotMinutes;
+    final top = (snappedMin / _totalMinutes * height).clamp(0.0, height);
+    final bottom =
+        ((snappedMin + _slotMinutes) / _totalMinutes * height).clamp(0.0, height);
+    final blockHeight = (bottom - top).clamp(2.0, height);
+
+    return Positioned(
+      top: top,
+      left: 1,
+      right: 1,
+      height: blockHeight,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.accent.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(2),
+          border: Border.all(
+            color: AppColors.accent.withValues(alpha: 0.4),
+            width: 1,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Icon(
+          CupertinoIcons.plus,
+          size: 10,
+          color: AppColors.accent.withValues(alpha: 0.6),
+        ),
+      ),
+    );
+  }
+}
+
+/// A single entry block in the timeline with inline details.
+class _EntryBlock extends StatelessWidget {
+  const _EntryBlock({
+    required this.entry,
+    required this.blockHeight,
+    required this.isHovered,
+    required this.isRunning,
+    required this.baseColor,
+    required this.brightness,
+    this.onDelete,
+  });
+
+  final TimeEntry entry;
+  final double blockHeight;
+  final bool isHovered;
+  final bool isRunning;
+  final Color baseColor;
+  final Brightness brightness;
+  final VoidCallback? onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final timeFormat = DateFormat('HH:mm');
+    final duration = isRunning
+        ? DateTime.now().difference(entry.startTime)
+        : Duration(
+            seconds: entry.durationSeconds ??
+                entry.endTime!.difference(entry.startTime).inSeconds);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isRunning
+            ? baseColor.withValues(alpha: 0.6)
+            : isHovered
+                ? baseColor
+                : baseColor.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(2),
+        border: isHovered
+            ? Border.all(
+                color: const Color(0xFFFFFFFF).withValues(alpha: 0.5),
+                width: 1,
+              )
+            : isRunning
+                ? Border.all(color: baseColor, width: 1)
+                : null,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      child: Stack(
+        children: [
+          // Green dot for running entry
+          if (isRunning)
+            Positioned(
+              top: 2,
+              left: 0,
+              child: Container(
+                width: 5,
+                height: 5,
+                decoration: const BoxDecoration(
+                  color: AppColors.success,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          // Content
+          if (blockHeight >= 40)
+            _buildTwoLineContent(timeFormat, duration)
+          else if (blockHeight >= 20)
+            _buildSingleLineContent(timeFormat, duration)
+          else if (blockHeight >= 12)
+            Center(
+              child: Text(
+                entry.issueIdentifier,
+                style: const TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFFFFFFFF),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.clip,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTwoLineContent(DateFormat timeFormat, Duration duration) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Line 1: ID + title
+        Row(
+          children: [
+            if (isRunning) const SizedBox(width: 10),
+            Text(
+              entry.issueIdentifier,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFFFFFFFF),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                entry.issueTitle,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: const Color(0xFFFFFFFF).withValues(alpha: 0.85),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        // Line 2: time range + duration + badges + actions
+        Row(
+          children: [
+            if (isRunning) const SizedBox(width: 10),
+            Text(
+              isRunning
+                  ? '${timeFormat.format(entry.startTime)} – now'
+                  : '${timeFormat.format(entry.startTime)} – ${timeFormat.format(entry.endTime!)}',
+              style: TextStyle(
+                fontSize: 10,
+                color: const Color(0xFFFFFFFF).withValues(alpha: 0.7),
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              duration.formatted(TimeFormat.current),
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFFFFFFFF),
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+            ),
+            if (entry.isManual) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 0),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFFFF).withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+                child: const Text(
+                  'Manual',
+                  style: TextStyle(
+                    fontSize: 8,
+                    color: Color(0xFFFFFFFF),
+                  ),
+                ),
+              ),
+            ],
+            const Spacer(),
+            // Hover actions
+            if (isHovered) ...[
+              if (!isRunning)
+                GestureDetector(
+                  onTap: () => openInLinear(identifier: entry.issueIdentifier),
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: Icon(
+                      CupertinoIcons.arrow_up_right_square,
+                      size: 12,
+                      color: const Color(0xFFFFFFFF).withValues(alpha: 0.7),
+                    ),
+                  ),
+                ),
+              const SizedBox(width: 6),
+              if (onDelete != null)
+                GestureDetector(
+                  onTap: onDelete,
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: Icon(
+                      CupertinoIcons.trash,
+                      size: 12,
+                      color: const Color(0xFFFFFFFF).withValues(alpha: 0.7),
+                    ),
+                  ),
+                ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSingleLineContent(DateFormat timeFormat, Duration duration) {
+    return Row(
+      children: [
+        if (isRunning) const SizedBox(width: 10),
+        Text(
+          entry.issueIdentifier,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFFFFFFFF),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            entry.issueTitle,
+            style: TextStyle(
+              fontSize: 10,
+              color: const Color(0xFFFFFFFF).withValues(alpha: 0.85),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          duration.formatted(TimeFormat.current),
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFFFFFFFF),
+            fontFeatures: [FontFeature.tabularFigures()],
+          ),
+        ),
+      ],
     );
   }
 }
