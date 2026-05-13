@@ -14,4 +14,9 @@ class MainFlutterWindow: NSWindow {
 
     super.awakeFromNib()
   }
+
+  override func close() {
+    // Hide instead of close so the app stays alive in the menu bar tray
+    self.orderOut(nil)
+  }
 }

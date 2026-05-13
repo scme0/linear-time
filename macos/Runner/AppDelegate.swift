@@ -13,7 +13,7 @@ class AppDelegate: FlutterAppDelegate {
   private var registeredModifiers: NSEvent.ModifierFlags = []
 
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-    return true
+    return false
   }
 
   override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
