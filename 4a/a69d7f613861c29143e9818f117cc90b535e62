@@ -1,0 +1,24 @@
+macos/Podfile
+  s_e566e07a427358::t_86568bd95a96e2 41-43
+macos/Runner/OverlayWindow.swift
+  s_e566e07a427358::t_73e493adb54790 50
+macos/Runner/AppDelegate.swift
+  s_e566e07a427358::t_286f7e9ae30ac2 55
+  s_e566e07a427358::t_77dcb8f3c76d6d 30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "4aa69d7f613861c29143e9818f117cc90b535e62",
+  "prompts": {},
+  "sessions": {
+    "s_e566e07a427358": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "824b63f2-5dff-4cbf-b1fe-1fc4f6654e92",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
