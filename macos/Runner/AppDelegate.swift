@@ -52,9 +52,12 @@ class AppDelegate: FlutterAppDelegate {
 
       case "bringToFront":
         NSApp.setActivationPolicy(.regular)
-        self?.mainFlutterWindow?.orderFrontRegardless()
-        NSApp.activate()
-        self?.mainFlutterWindow?.makeKeyAndOrderFront(nil)
+        // Small delay to let activation policy take effect
+        DispatchQueue.main.async {
+          self?.mainFlutterWindow?.makeKeyAndOrderFront(nil)
+          self?.mainFlutterWindow?.orderFrontRegardless()
+          NSApp.activate(ignoringOtherApps: true)
+        }
         result(nil)
 
       case "showOverlay":
