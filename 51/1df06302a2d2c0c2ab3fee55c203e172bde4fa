@@ -1,0 +1,55 @@
+lib/ui/screens/timer/timer_screen.dart
+  s_e566e07a427358::t_27bbd97116797e 273-275,277-279,281-284,291-320
+  s_e566e07a427358::t_364ee9eb189c35 276,280,285-290
+  s_e566e07a427358::t_d39cf647801ca9 11-12
+  s_e566e07a427358::t_fe11869f99324f 168-170
+  s_e566e07a427358::t_c009fee46ca2c0 184,186
+  s_e566e07a427358::t_045c3db75b13a6 185
+lib/ui/screens/history/weekly/weekly_view.dart
+  s_e566e07a427358::t_c368a86339f1f1 499-500
+  s_e566e07a427358::t_992cada468bc72 647,660-662,666
+  s_e566e07a427358::t_c29bd2782be909 326,348-352,355-371
+  s_e566e07a427358::t_03575935079b12 353-354
+  s_e566e07a427358::t_bb4913e422b6a4 40
+  s_e566e07a427358::t_e371bf14a6515a 667-688,690-695
+  s_e566e07a427358::t_3c8a50b067dc6a 689
+lib/ui/screens/history/daily/daily_view.dart
+  s_e566e07a427358::t_09b2120ddf5b96 105,107,112-114
+  s_e566e07a427358::t_548c60fd9c3c4d 11
+  s_e566e07a427358::t_135b538048a6c7 259,262
+  s_e566e07a427358::t_e2c108b10e102c 263-269
+  s_e566e07a427358::t_f77bc3d03ab3db 441-468
+lib/ui/app_window.dart
+  s_e566e07a427358::t_7abd9ba294003d 96,221,317
+  s_e566e07a427358::t_26930a2f9e8002 40-44
+  s_e566e07a427358::t_e02fd392691e0a 349
+  s_e566e07a427358::t_37d4976462a9ef 70,84,88,92,254,301
+  s_e566e07a427358::t_293cc778c3f103 199
+  s_e566e07a427358::t_92bf370e98151b 39
+  s_e566e07a427358::t_5cfa0fb2216c1d 309
+lib/providers/report_providers.dart
+  s_e566e07a427358::t_35c508e0eb5538 38
+  s_e566e07a427358::t_7f6beab7ffe510 59
+lib/ui/screens/history/history_screen.dart
+  s_e566e07a427358::t_123134d5ede8e9 11-13,23-38
+lib/ui/screens/history/monthly/monthly_view.dart
+  s_e566e07a427358::t_13287498bdaf6c 148
+  s_e566e07a427358::t_514b204b3589a6 113-123,126-140
+  s_e566e07a427358::t_4337df9ca00a71 233-234,246-254,257-295
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "511df06302a2d2c0c2ab3fee55c203e172bde4fa",
+  "prompts": {},
+  "sessions": {
+    "s_e566e07a427358": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "824b63f2-5dff-4cbf-b1fe-1fc4f6654e92",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
