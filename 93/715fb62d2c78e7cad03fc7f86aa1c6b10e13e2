@@ -1,0 +1,20 @@
+run
+  s_e566e07a427358::t_5bebbcd8dfe5ef 59-66,69-74
+  s_e566e07a427358::t_480f2abccc3413 13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "93715fb62d2c78e7cad03fc7f86aa1c6b10e13e2",
+  "prompts": {},
+  "sessions": {
+    "s_e566e07a427358": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "824b63f2-5dff-4cbf-b1fe-1fc4f6654e92",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
