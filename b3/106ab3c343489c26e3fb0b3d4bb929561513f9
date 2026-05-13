@@ -1,0 +1,19 @@
+macos/Runner/Base.lproj/MainMenu.xib
+  s_ffc54d5be7e279::t_74923b56d931c5 25,27,29,43,61,333
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "b3106ab3c343489c26e3fb0b3d4bb929561513f9",
+  "prompts": {},
+  "sessions": {
+    "s_ffc54d5be7e279": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dafed9ba-3677-473d-83a6-6689228e4c48",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
