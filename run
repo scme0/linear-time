@@ -10,7 +10,7 @@
 #   codegen-watch    Run build_runner in watch mode
 #   analyze          Run flutter analyze
 #   test             Run all tests
-#   install          Build release and copy to /Applications
+#   install          Build release, copy to /Applications (auto-relaunches if running)
 #   clean            Delete build artefacts
 #   help             Show this message
 
@@ -56,9 +56,22 @@ case "$cmd" in
     COMMIT_SHA=$(git rev-parse --short HEAD)
     $FLUTTER build macos --release --dart-define=COMMIT_SHA="$COMMIT_SHA" "$@"
     APP="build/macos/Build/Products/Release/Linear Time.app"
+    # Check if running, stop if so
+    WAS_RUNNING=false
+    if pgrep -x "Linear Time" >/dev/null 2>&1; then
+      WAS_RUNNING=true
+      echo "Stopping Linear Time..."
+      pkill -x "Linear Time" || true
+      sleep 1
+    fi
     rm -rf "/Applications/Linear Time.app"
     cp -R "$APP" "/Applications/Linear Time.app"
-    echo "Installed to /Applications/Linear Time.app"
+    echo "Installed to /Applications/Linear Time.app (${COMMIT_SHA})"
+    # Relaunch if it was running
+    if $WAS_RUNNING; then
+      echo "Relaunching Linear Time..."
+      open "/Applications/Linear Time.app"
+    fi
     ;;
 
   clean)
