@@ -36,7 +36,7 @@ class TrayManager {
 
     await _systemTray.initSystemTray(
       title: '',
-      iconPath: 'assets/icons/tray_icon.png',
+      iconPath: '',
       toolTip: 'Linear Time',
     );
 
@@ -173,13 +173,17 @@ class TrayManager {
     final activeEntry = _ref.read(activeTimerProvider).valueOrNull;
     if (activeEntry != null) {
       final elapsed = DateTime.now().difference(activeEntry.startTime);
-      await _systemTray.setTitle(
-          '${activeEntry.issueIdentifier} ${elapsed.formatted(TimeFormat.current)}');
-      await _systemTray.setToolTip(
-          'Linear Time — ${activeEntry.issueIdentifier} ${elapsed.formatted(TimeFormat.current)}');
+      await _systemTray.setSystemTrayInfo(
+        title: '${activeEntry.issueIdentifier} ${elapsed.formatted(TimeFormat.current)}',
+        iconPath: '',
+        toolTip: 'Linear Time — ${activeEntry.issueIdentifier} ${elapsed.formatted(TimeFormat.current)}',
+      );
     } else {
-      await _systemTray.setTitle('');
-      await _systemTray.setToolTip('Linear Time');
+      await _systemTray.setSystemTrayInfo(
+        title: 'No Issue',
+        iconPath: '',
+        toolTip: 'Linear Time',
+      );
     }
   }
 
