@@ -1,3 +1,6 @@
+/// Build commit SHA, injected via --dart-define at build time.
+const kCommitSha = String.fromEnvironment('COMMIT_SHA', defaultValue: 'dev');
+
 /// Linear API endpoint.
 const kLinearApiUrl = 'https://api.linear.app/graphql';
 

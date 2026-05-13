@@ -555,7 +555,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(
-              'Linear Time v0.0.1',
+              'Linear Time v0.0.1+$kCommitSha',
               style: TextStyle(
                 fontSize: 11,
                 color: AppColors.textTertiary(brightness),

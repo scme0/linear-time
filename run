@@ -10,6 +10,7 @@
 #   codegen-watch    Run build_runner in watch mode
 #   analyze          Run flutter analyze
 #   test             Run all tests
+#   install          Build release and copy to /Applications
 #   clean            Delete build artefacts
 #   help             Show this message
 
@@ -30,8 +31,9 @@ case "$cmd" in
     ;;
 
   build)
-    $FLUTTER build macos --release "$@"
-    echo "Built: build/macos/Build/Products/Release/linear_time.app"
+    COMMIT_SHA=$(git rev-parse --short HEAD)
+    $FLUTTER build macos --release --dart-define=COMMIT_SHA="$COMMIT_SHA" "$@"
+    echo "Built: build/macos/Build/Products/Release/Linear Time.app (${COMMIT_SHA})"
     ;;
 
   codegen)
@@ -48,6 +50,15 @@ case "$cmd" in
 
   test)
     $FLUTTER test "$@"
+    ;;
+
+  install)
+    COMMIT_SHA=$(git rev-parse --short HEAD)
+    $FLUTTER build macos --release --dart-define=COMMIT_SHA="$COMMIT_SHA" "$@"
+    APP="build/macos/Build/Products/Release/Linear Time.app"
+    rm -rf "/Applications/Linear Time.app"
+    cp -R "$APP" "/Applications/Linear Time.app"
+    echo "Installed to /Applications/Linear Time.app"
     ;;
 
   clean)
