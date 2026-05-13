@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +13,7 @@ import '../core/constants.dart';
 import '../core/theme/app_theme.dart';
 import '../core/time_format.dart';
 import '../providers/settings_providers.dart';
+import 'package:intl/intl.dart';
 import '../services/hotkey_service.dart';
 import '../services/notification_service.dart';
 import '../services/sync_service.dart';
@@ -277,32 +280,51 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
     return MacosWindow(
       titleBar: TitleBar(
         height: 52,
-        centerTitle: true,
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
+        centerTitle: false,
+        title: Stack(
           children: [
-            _TabButton(
-              icon: CupertinoIcons.timer,
-              label: 'Timer',
-              isActive: _pageIndex == 0,
-              brightness: brightness,
-              onTap: () => setState(() => _pageIndex = 0),
+            Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _TabButton(
+                    icon: CupertinoIcons.timer,
+                    label: 'Timer',
+                    isActive: _pageIndex == 0,
+                    brightness: brightness,
+                    onTap: () => setState(() => _pageIndex = 0),
+                  ),
+                  const SizedBox(width: 4),
+                  _TabButton(
+                    icon: CupertinoIcons.chart_bar_square,
+                    label: 'History',
+                    isActive: _pageIndex == 1,
+                    brightness: brightness,
+                    onTap: () => setState(() => _pageIndex = 1),
+                  ),
+                  const SizedBox(width: 4),
+                  _TabButton(
+                    icon: CupertinoIcons.gear_alt,
+                    label: 'Settings',
+                    isActive: _pageIndex == 2,
+                    brightness: brightness,
+                    onTap: () => setState(() => _pageIndex = 2),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(width: 4),
-            _TabButton(
-              icon: CupertinoIcons.chart_bar_square,
-              label: 'History',
-              isActive: _pageIndex == 1,
-              brightness: brightness,
-              onTap: () => setState(() => _pageIndex = 1),
-            ),
-            const SizedBox(width: 4),
-            _TabButton(
-              icon: CupertinoIcons.gear_alt,
-              label: 'Settings',
-              isActive: _pageIndex == 2,
-              brightness: brightness,
-              onTap: () => setState(() => _pageIndex = 2),
+            Positioned(
+              right: 8,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: _SnoozeIndicator(
+                  brightness: brightness,
+                  onUnsnooze: () {
+                    NotificationService.instance?.unsnooze();
+                  },
+                ),
+              ),
             ),
           ],
         ),
@@ -396,6 +418,99 @@ class _TabButtonState extends State<_TabButton> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SnoozeIndicator extends StatefulWidget {
+  const _SnoozeIndicator({
+    required this.brightness,
+    required this.onUnsnooze,
+  });
+
+  final Brightness brightness;
+  final VoidCallback onUnsnooze;
+
+  @override
+  State<_SnoozeIndicator> createState() => _SnoozeIndicatorState();
+}
+
+class _SnoozeIndicatorState extends State<_SnoozeIndicator> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Update when snooze expires
+    _timer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) setState(() {});
+    });
+    // Update immediately when snooze state changes
+    NotificationService.instance?.snoozeNotifier.addListener(_onSnoozeChanged);
+  }
+
+  void _onSnoozeChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    NotificationService.instance?.snoozeNotifier.removeListener(_onSnoozeChanged);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ns = NotificationService.instance;
+    if (ns == null || !ns.isSnoozed) return const SizedBox.shrink();
+
+    final until = ns.snoozedUntil!;
+    final isIndefinite = until.year >= 2099;
+    final label = isIndefinite
+        ? 'Snoozed'
+        : 'Snoozed until ${DateFormat('h:mm a').format(until)}';
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 12),
+      child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColors.warning.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                CupertinoIcons.bell_slash_fill,
+                size: 12,
+                color: AppColors.warning,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.warning,
+                ),
+              ),
+              const SizedBox(width: 4),
+              GestureDetector(
+                onTap: widget.onUnsnooze,
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: Icon(
+                    CupertinoIcons.xmark_circle_fill,
+                    size: 14,
+                    color: AppColors.warning.withValues(alpha: 0.6),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
     );
   }
 }

@@ -38,5 +38,5 @@ abstract class SettingsKeys {
   static const globalHotkey = 'global_hotkey'; // e.g. "ctrl+shift+17"
   static const hotkeyFilter = 'hotkey_filter'; // "myIssues" or "allIssues"
   static const notificationStyle = 'notification_style'; // "native" or "overlay"
-  static const presentationMode = 'presentation_mode'; // "true" or "false"
+  static const snoozedUntil = 'snoozed_until'; // ISO8601 datetime or empty
 }

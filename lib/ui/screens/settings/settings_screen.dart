@@ -17,6 +17,8 @@ import '../../../core/constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/csv_utils.dart';
 import '../../../services/hotkey_service.dart';
+import '../../../services/notification_service.dart';
+import 'package:intl/intl.dart';
 import 'widgets/settings_section.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -259,15 +261,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           SettingsSection(
             title: 'Notifications',
             children: [
-              SettingRow(
-                label: 'Presentation mode',
-                description: 'Mute all notifications (also in tray menu)',
-                control: MacosSwitch(
-                  value: settings.presentationMode,
-                  onChanged: (v) =>
-                      saveBool(ref, SettingsKeys.presentationMode, v),
-                ),
-              ),
+              _SnoozeSettingRow(),
               SettingRow(
                 label: 'Notification style',
                 description: 'How reminders are shown',
@@ -1016,6 +1010,69 @@ class _HotkeySettingRowState extends ConsumerState<_HotkeySettingRow> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SnoozeSettingRow extends StatefulWidget {
+  @override
+  State<_SnoozeSettingRow> createState() => _SnoozeSettingRowState();
+}
+
+class _SnoozeSettingRowState extends State<_SnoozeSettingRow> {
+  @override
+  void initState() {
+    super.initState();
+    NotificationService.instance?.snoozeNotifier.addListener(_onChanged);
+  }
+
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    NotificationService.instance?.snoozeNotifier.removeListener(_onChanged);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ns = NotificationService.instance;
+    final snoozed = ns?.isSnoozed ?? false;
+
+    if (!snoozed) {
+      return SettingRow(
+        label: 'Snooze notifications',
+        description: 'Mute via the tray menu or snooze options in notifications',
+        control: Text(
+          'Not snoozed',
+          style: TextStyle(
+            fontSize: 13,
+            color: AppColors.textSecondary(MacosTheme.of(context).brightness),
+          ),
+        ),
+      );
+    }
+
+    final until = ns!.snoozedUntil!;
+    final isIndefinite = until.year >= 2099;
+    final label = isIndefinite
+        ? 'Until unsnoozed'
+        : 'Until ${DateFormat('h:mm a').format(until)}';
+
+    return SettingRow(
+      label: 'Snooze notifications',
+      description: label,
+      control: PushButton(
+        controlSize: ControlSize.regular,
+        secondary: true,
+        onPressed: () {
+          ns.unsnooze();
+          setState(() {});
+        },
+        child: const Text('Unsnooze'),
       ),
     );
   }

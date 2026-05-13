@@ -7,12 +7,11 @@ import 'package:system_tray/system_tray.dart';
 import '../../providers/timer_providers.dart';
 import '../../providers/issue_providers.dart';
 import '../../providers/repository_providers.dart';
-import '../../providers/settings_providers.dart';
-import '../../providers/database_providers.dart';
-import '../../core/constants.dart';
 import '../../core/extensions/duration_extensions.dart';
 import '../../core/time_format.dart';
 import '../../services/hotkey_service.dart';
+import '../../services/notification_service.dart';
+import 'package:intl/intl.dart';
 
 /// Manages the system tray icon and menu.
 class TrayManager {
@@ -144,18 +143,52 @@ class TrayManager {
     ));
     menuItems.add(MenuSeparator());
 
-    // Presentation mode toggle
-    final settings = _ref.read(appSettingsProvider).valueOrNull;
-    final presentationMode = settings?.presentationMode ?? false;
-    menuItems.add(MenuItem(
-      label: presentationMode ? '● Presentation Mode (on)' : 'Presentation Mode',
-      onClicked: () async {
-        final dao = _ref.read(settingsDaoProvider);
-        await dao.setValue(SettingsKeys.presentationMode, (!presentationMode).toString());
-        _ref.invalidate(appSettingsProvider);
-        updateMenu();
-      },
-    ));
+    // Snooze submenu
+    final ns = NotificationService.instance;
+    final snoozed = ns?.isSnoozed ?? false;
+    if (snoozed) {
+      final until = ns!.snoozedUntil!;
+      final isIndefinite = until.year >= 2099;
+      final label = isIndefinite
+          ? '● Snoozed (until unsnoozed)'
+          : '● Snoozed until ${DateFormat('h:mm a').format(until)}';
+      menuItems.add(MenuItem(
+        label: label,
+        enabled: false,
+      ));
+      menuItems.add(MenuItem(
+        label: 'Unsnooze',
+        onClicked: () {
+          ns.unsnooze();
+        },
+      ));
+    } else {
+      menuItems.add(SubMenu(
+        label: 'Snooze Notifications',
+        children: [
+          MenuItem(
+            label: '30 minutes',
+            onClicked: () => ns?.snooze(const Duration(minutes: 30)),
+          ),
+          MenuItem(
+            label: '1 hour',
+            onClicked: () => ns?.snooze(const Duration(hours: 1)),
+          ),
+          MenuItem(
+            label: '2 hours',
+            onClicked: () => ns?.snooze(const Duration(hours: 2)),
+          ),
+          MenuItem(
+            label: '4 hours',
+            onClicked: () => ns?.snooze(const Duration(hours: 4)),
+          ),
+          MenuItem(
+            label: 'Until I unsnooze',
+            onClicked: () => ns?.snooze(),
+          ),
+        ],
+      ));
+    }
     menuItems.add(MenuSeparator());
 
     // Quit
@@ -171,16 +204,19 @@ class TrayManager {
 
   Future<void> updateTitle() async {
     final activeEntry = _ref.read(activeTimerProvider).valueOrNull;
+    final snoozed = NotificationService.instance?.isSnoozed ?? false;
+    final prefix = snoozed ? '🔕 ' : '';
+
     if (activeEntry != null) {
       final elapsed = DateTime.now().difference(activeEntry.startTime);
       await _systemTray.setSystemTrayInfo(
-        title: '${activeEntry.issueIdentifier} ${elapsed.formatted(TimeFormat.current)}',
+        title: '$prefix${activeEntry.issueIdentifier} ${elapsed.formatted(TimeFormat.current)}',
         iconPath: '',
         toolTip: 'Linear Time — ${activeEntry.issueIdentifier} ${elapsed.formatted(TimeFormat.current)}',
       );
     } else {
       await _systemTray.setSystemTrayInfo(
-        title: 'No Issue',
+        title: '${prefix}No Issue',
         iconPath: '',
         toolTip: 'Linear Time',
       );

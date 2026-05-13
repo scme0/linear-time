@@ -1,16 +1,20 @@
 import 'dart:async';
 
 import 'package:drift/drift.dart' as drift;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/database/app_database.dart';
 import '../providers/timer_providers.dart';
 import 'hotkey_service.dart';
+import '../ui/tray/tray_manager.dart';
 import '../providers/settings_providers.dart';
 import '../providers/repository_providers.dart';
+import '../core/constants.dart';
 import '../core/extensions/duration_extensions.dart';
 import '../core/time_format.dart';
+import '../providers/database_providers.dart';
 
 /// Manages idle detection and forgotten timer notifications.
 class NotificationService {
@@ -21,14 +25,76 @@ class NotificationService {
   static const _channel = MethodChannel('com.lineartime/system');
   Timer? _checkTimer;
   bool _initialized = false;
-  bool _idleNotificationSent = false;
-  bool _forgottenNotificationSent = false;
+  DateTime? _lastIdleNotification;
+  DateTime? _lastForgottenNotification;
+  static const _notificationCooldown = Duration(minutes: 5);
   DateTime? _lastTimerStopTime;
   DateTime? _idleStartTime;
+
+  /// Snooze state — null or in the past means not snoozed.
+  DateTime? _snoozedUntil;
+
+  /// Notifies listeners when snooze state changes.
+  final snoozeNotifier = ValueNotifier<int>(0);
+
+  /// Whether notifications are currently snoozed.
+  bool get isSnoozed =>
+      _snoozedUntil != null && DateTime.now().isBefore(_snoozedUntil!);
+
+  /// When the snooze expires, or null if not snoozed.
+  DateTime? get snoozedUntil => isSnoozed ? _snoozedUntil : null;
+
+  /// Snooze for a duration. Pass null for indefinite (until manually unsnoozed).
+  void snooze([Duration? duration]) {
+    if (duration != null) {
+      _snoozedUntil = DateTime.now().add(duration);
+    } else {
+      // Far future = indefinite
+      _snoozedUntil = DateTime(2099);
+    }
+    _persistSnooze();
+    snoozeNotifier.value++;
+    TrayManager.instance?.updateMenu();
+  }
+
+  /// Cancel snooze.
+  void unsnooze() {
+    _snoozedUntil = null;
+    _persistSnooze();
+    snoozeNotifier.value++;
+    TrayManager.instance?.updateMenu();
+  }
+
+  void _persistSnooze() {
+    final dao = _ref.read(settingsDaoProvider);
+    if (_snoozedUntil != null) {
+      dao.setValue(SettingsKeys.snoozedUntil, _snoozedUntil!.toIso8601String());
+    } else {
+      dao.setValue(SettingsKeys.snoozedUntil, '');
+    }
+  }
+
+  Future<void> _loadSnooze() async {
+    final dao = _ref.read(settingsDaoProvider);
+    final val = await dao.getValue(SettingsKeys.snoozedUntil);
+    if (val != null && val.isNotEmpty) {
+      final dt = DateTime.tryParse(val);
+      if (dt != null && dt.isAfter(DateTime.now())) {
+        _snoozedUntil = dt;
+        snoozeNotifier.value++;
+      } else {
+        // Expired — clear it
+        dao.setValue(SettingsKeys.snoozedUntil, '');
+      }
+    }
+  }
 
   Future<void> init() async {
     if (_initialized) return;
     _initialized = true;
+
+    // Load persisted snooze state
+    await _loadSnooze();
 
     // Request notification permission
     try {
@@ -57,7 +123,7 @@ class NotificationService {
   Future<void> _check() async {
     final settings = _ref.read(appSettingsProvider).valueOrNull;
     if (settings == null) return;
-    if (settings.presentationMode) return;
+    if (isSnoozed) return;
 
     if (settings.officeHoursEnabled && !_isInOfficeHours(settings)) return;
 
@@ -67,7 +133,7 @@ class NotificationService {
     if (settings.idleDetectionEnabled && activeTimer != null) {
       await _checkIdle(settings);
     } else {
-      _idleNotificationSent = false;
+      _lastIdleNotification = null;
       _idleStartTime = null;
     }
 
@@ -75,13 +141,16 @@ class NotificationService {
     if (settings.forgottenTimerEnabled && activeTimer == null) {
       _checkForgottenTimer(settings);
     } else {
-      _forgottenNotificationSent = false;
+      _lastForgottenNotification = null;
       _lastTimerStopTime = null;
     }
   }
 
   Future<void> _checkIdle(AppSettings settings) async {
-    if (_idleNotificationSent) return;
+    if (_lastIdleNotification != null &&
+        DateTime.now().difference(_lastIdleNotification!) < _notificationCooldown) {
+      return;
+    }
 
     try {
       final idleSeconds =
@@ -89,7 +158,7 @@ class NotificationService {
       final delaySeconds = settings.idleDelayMinutes * 60;
 
       if (idleSeconds >= delaySeconds) {
-        _idleNotificationSent = true;
+        _lastIdleNotification = DateTime.now();
         _idleStartTime = DateTime.now().subtract(Duration(seconds: idleSeconds));
 
         final idleDur = Duration(seconds: idleSeconds).formatted(TimeFormat.current);
@@ -102,6 +171,8 @@ class NotificationService {
               'Keep all time',
               'Trim idle time',
               'Stop timer',
+              'Snooze 30m',
+              'Snooze 1h',
             ],
           );
         } else {
@@ -116,12 +187,15 @@ class NotificationService {
   }
 
   void _checkForgottenTimer(AppSettings settings) {
-    if (_forgottenNotificationSent) return;
+    if (_lastForgottenNotification != null &&
+        DateTime.now().difference(_lastForgottenNotification!) < _notificationCooldown) {
+      return;
+    }
 
     _lastTimerStopTime ??= DateTime.now();
     final elapsed = DateTime.now().difference(_lastTimerStopTime!);
     if (elapsed.inMinutes >= settings.forgottenTimerDelayMinutes) {
-      _forgottenNotificationSent = true;
+      _lastForgottenNotification = DateTime.now();
 
       final dur = elapsed.formatted(TimeFormat.current);
 
@@ -131,6 +205,8 @@ class NotificationService {
           message: 'No timer has been running for $dur.',
           actions: [
             'Open Linear Time',
+            'Snooze 30m',
+            'Snooze 1h',
             'Dismiss',
           ],
         );
@@ -184,6 +260,12 @@ class NotificationService {
       case 'Open Linear Time':
         _channel.invokeMethod('bringToFront');
         break;
+      case 'Snooze 30m':
+        snooze(const Duration(minutes: 30));
+        break;
+      case 'Snooze 1h':
+        snooze(const Duration(hours: 1));
+        break;
       case 'Dismiss':
         // Do nothing
         break;
@@ -228,8 +310,8 @@ class NotificationService {
   }
 
   void onTimerStateChanged() {
-    _forgottenNotificationSent = false;
-    _idleNotificationSent = false;
+    _lastForgottenNotification = null;
+    _lastIdleNotification = null;
     _lastTimerStopTime = null;
     _idleStartTime = null;
   }
