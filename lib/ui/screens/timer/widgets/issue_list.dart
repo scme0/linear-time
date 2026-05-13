@@ -4,6 +4,7 @@ import 'package:macos_ui/macos_ui.dart';
 
 import '../../../../data/database/app_database.dart';
 import '../../../../providers/issue_providers.dart';
+import '../../../../providers/database_providers.dart';
 import '../../../../providers/repository_providers.dart';
 import '../../../../providers/timer_providers.dart';
 import '../timer_screen.dart';
@@ -208,6 +209,7 @@ class _IssueListState extends ConsumerState<IssueList> {
 
   Widget _buildRecentIssues() {
     final recentAsync = ref.watch(recentTrackedIssuesProvider);
+    final todayTotals = ref.watch(todayTotalsProvider).valueOrNull ?? {};
 
     return recentAsync.when(
       data: (entries) {
@@ -222,25 +224,49 @@ class _IssueListState extends ConsumerState<IssueList> {
         }
 
         return ListView.builder(
+          itemExtent: 52,
           itemCount: entries.length,
           itemBuilder: (context, index) {
             final entry = entries[index];
-            return _RecentEntryRow(
-              entry: entry,
-              isActive: entry.issueId == widget.activeIssueId,
-              onTap: () {
-                // Create a minimal CachedIssue from the time entry data
-                // to start the timer
-                final repo = ref.read(timeTrackingRepositoryProvider);
-                repo.startTimer(
-                  issueId: entry.issueId,
-                  issueIdentifier: entry.issueIdentifier,
-                  issueTitle: entry.issueTitle,
-                  teamName: entry.teamName,
-                  projectName: entry.projectName,
-                  teamColor: entry.teamColor,
+            return FutureBuilder<CachedIssue?>(
+              future: ref.read(cachedIssueDaoProvider).getIssueById(entry.issueId),
+              builder: (context, snapshot) {
+                final cachedIssue = snapshot.data;
+                if (cachedIssue == null) {
+                  // Fallback: minimal row while loading or if not cached
+                  return IssueRow(
+                    issue: CachedIssue(
+                      issueId: entry.issueId,
+                      identifier: entry.issueIdentifier,
+                      title: entry.issueTitle,
+                      teamName: entry.teamName,
+                      teamColor: entry.teamColor,
+                      projectName: entry.projectName,
+                      status: '',
+                      statusType: '',
+                      priority: 0,
+                      url: '',
+                      isDeleted: false,
+                      isAssigned: false,
+                      lastSynced: DateTime.now(),
+                    ),
+                    isActive: entry.issueId == widget.activeIssueId,
+                    todaySeconds: todayTotals[entry.issueId] ?? 0,
+                    onTap: () => _startTimerFromEntry(entry),
+                    onAddTime: widget.onAddTime != null
+                        ? () => widget.onAddTime!(cachedIssue ?? _cachedIssueFromEntry(entry))
+                        : null,
+                  );
+                }
+                return IssueRow(
+                  issue: cachedIssue,
+                  isActive: entry.issueId == widget.activeIssueId,
+                  todaySeconds: todayTotals[entry.issueId] ?? 0,
+                  onTap: () => widget.onIssueSelected(cachedIssue),
+                  onAddTime: widget.onAddTime != null
+                      ? () => widget.onAddTime!(cachedIssue)
+                      : null,
                 );
-                ref.invalidate(recentTrackedIssuesProvider);
               },
             );
           },
@@ -248,6 +274,37 @@ class _IssueListState extends ConsumerState<IssueList> {
       },
       loading: () => const Center(child: ProgressCircle()),
       error: (e, _) => Center(child: Text('Error: $e')),
+    );
+  }
+
+  void _startTimerFromEntry(TimeEntry entry) {
+    final repo = ref.read(timeTrackingRepositoryProvider);
+    repo.startTimer(
+      issueId: entry.issueId,
+      issueIdentifier: entry.issueIdentifier,
+      issueTitle: entry.issueTitle,
+      teamName: entry.teamName,
+      projectName: entry.projectName,
+      teamColor: entry.teamColor,
+    );
+    ref.invalidate(recentTrackedIssuesProvider);
+  }
+
+  CachedIssue _cachedIssueFromEntry(TimeEntry entry) {
+    return CachedIssue(
+      issueId: entry.issueId,
+      identifier: entry.issueIdentifier,
+      title: entry.issueTitle,
+      teamName: entry.teamName,
+      teamColor: entry.teamColor,
+      projectName: entry.projectName,
+      status: '',
+      statusType: '',
+      priority: 0,
+      url: '',
+      isDeleted: false,
+      isAssigned: false,
+      lastSynced: DateTime.now(),
     );
   }
 
@@ -279,76 +336,3 @@ class _IssueListState extends ConsumerState<IssueList> {
   }
 }
 
-class _RecentEntryRow extends StatelessWidget {
-  const _RecentEntryRow({
-    required this.entry,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  final TimeEntry entry;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final brightness = MacosTheme.of(context).brightness;
-    final isDark = brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTap: isActive ? null : onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: isActive
-              ? (isDark ? const Color(0xFF1A2E1A) : const Color(0xFFE8F5E9))
-              : null,
-          border: Border(
-            bottom: BorderSide(
-              color: AppColors.border(brightness),
-              width: 0.5,
-            ),
-          ),
-        ),
-        child: Row(
-          children: [
-            if (isActive)
-              Container(
-                width: 6,
-                height: 6,
-                margin: const EdgeInsets.only(right: 8),
-                decoration: const BoxDecoration(
-                  color: AppColors.success,
-                  shape: BoxShape.circle,
-                ),
-              ),
-            Text(
-              entry.issueIdentifier,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                entry.issueTitle,
-                style: const TextStyle(fontSize: 13),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            if (entry.teamName != null)
-              Text(
-                entry.teamName!,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: AppColors.textSecondary(brightness),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
