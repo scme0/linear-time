@@ -1,0 +1,19 @@
+lib/ui/screens/history/daily/daily_view.dart
+  s_e566e07a427358::t_b8f37493971adf 12,83,86-92,110-111,114,146,149,199,216,223-258,262-264,266,279-288,291-297,300,303-360,364-404,407-505,507-608,611-620,622,624,626-627,629-649,651-658,660-696,698-702,705-715,717-718,722-733,736-751,754-776
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "a4df183c8ea17606a950bc4facc0c72144988c13",
+  "prompts": {},
+  "sessions": {
+    "s_e566e07a427358": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "824b63f2-5dff-4cbf-b1fe-1fc4f6654e92",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
