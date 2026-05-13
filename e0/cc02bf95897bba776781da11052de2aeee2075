@@ -1,0 +1,19 @@
+macos/Runner/AppDelegate.swift
+  s_e566e07a427358::t_52857979c12f3e 55-60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "e0cc02bf95897bba776781da11052de2aeee2075",
+  "prompts": {},
+  "sessions": {
+    "s_e566e07a427358": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "824b63f2-5dff-4cbf-b1fe-1fc4f6654e92",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
