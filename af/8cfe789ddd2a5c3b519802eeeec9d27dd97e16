@@ -1,0 +1,26 @@
+run
+  s_ffc54d5be7e279::t_efcc2d1a707e88 55,58-63
+  s_ffc54d5be7e279::t_6a4a119e61e923 34-36
+  s_ffc54d5be7e279::t_2dbf23b0242737 13
+  s_ffc54d5be7e279::t_5dbc4f988e803e 56-57
+lib/ui/screens/settings/settings_screen.dart
+  s_ffc54d5be7e279::t_4181853fe94d7d 558
+lib/core/constants.dart
+  s_ffc54d5be7e279::t_6048e94ee6f299 1-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "af8cfe789ddd2a5c3b519802eeeec9d27dd97e16",
+  "prompts": {},
+  "sessions": {
+    "s_ffc54d5be7e279": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dafed9ba-3677-473d-83a6-6689228e4c48",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
