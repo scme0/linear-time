@@ -119,6 +119,17 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
         .get();
   }
 
+  /// Watch all entries for a specific day (reactive).
+  Stream<List<TimeEntry>> watchEntriesForDay(DateTime day) {
+    final start = DateTime(day.year, day.month, day.day);
+    final end = start.add(const Duration(days: 1));
+    return (select(timeEntries)
+          ..where(
+              (t) => t.startTime.isBiggerOrEqualValue(start) & t.startTime.isSmallerThanValue(end))
+          ..orderBy([(t) => OrderingTerm.asc(t.startTime)]))
+        .watch();
+  }
+
   /// Get all entries for a week (Monday start).
   Future<List<TimeEntry>> getEntriesForWeek(DateTime weekStart) {
     final end = weekStart.add(const Duration(days: 7));
@@ -128,6 +139,17 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
               t.startTime.isSmallerThanValue(end))
           ..orderBy([(t) => OrderingTerm.asc(t.startTime)]))
         .get();
+  }
+
+  /// Watch all entries for a week (reactive).
+  Stream<List<TimeEntry>> watchEntriesForWeek(DateTime weekStart) {
+    final end = weekStart.add(const Duration(days: 7));
+    return (select(timeEntries)
+          ..where((t) =>
+              t.startTime.isBiggerOrEqualValue(weekStart) &
+              t.startTime.isSmallerThanValue(end))
+          ..orderBy([(t) => OrderingTerm.asc(t.startTime)]))
+        .watch();
   }
 
   /// Get all entries for a month.
@@ -140,6 +162,18 @@ class TimeEntryDao extends DatabaseAccessor<AppDatabase>
               t.startTime.isSmallerThanValue(end))
           ..orderBy([(t) => OrderingTerm.asc(t.startTime)]))
         .get();
+  }
+
+  /// Watch all entries for a month (reactive).
+  Stream<List<TimeEntry>> watchEntriesForMonth(int year, int month) {
+    final start = DateTime(year, month);
+    final end = DateTime(year, month + 1);
+    return (select(timeEntries)
+          ..where((t) =>
+              t.startTime.isBiggerOrEqualValue(start) &
+              t.startTime.isSmallerThanValue(end))
+          ..orderBy([(t) => OrderingTerm.asc(t.startTime)]))
+        .watch();
   }
 
   /// Get the last N distinct issues that had time tracked.

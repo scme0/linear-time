@@ -3,25 +3,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/database/app_database.dart';
 import 'database_providers.dart';
 
-/// Provider family for entries in a given month.
+/// Provider family for entries in a given month (reactive).
 final monthlyEntriesProvider =
-    FutureProvider.family<List<TimeEntry>, DateTime>((ref, month) async {
+    StreamProvider.family<List<TimeEntry>, DateTime>((ref, month) {
   final dao = ref.watch(timeEntryDaoProvider);
-  return dao.getEntriesForMonth(month.year, month.month);
+  return dao.watchEntriesForMonth(month.year, month.month);
 });
 
-/// Provider family for entries in a given week (pass Monday date).
+/// Provider family for entries in a given week (pass Monday date, reactive).
 final weeklyEntriesProvider =
-    FutureProvider.family<List<TimeEntry>, DateTime>((ref, weekStart) async {
+    StreamProvider.family<List<TimeEntry>, DateTime>((ref, weekStart) {
   final dao = ref.watch(timeEntryDaoProvider);
-  return dao.getEntriesForWeek(weekStart);
+  return dao.watchEntriesForWeek(weekStart);
 });
 
-/// Provider family for entries on a given day.
+/// Provider family for entries on a given day (reactive).
 final dailyEntriesProvider =
-    FutureProvider.family<List<TimeEntry>, DateTime>((ref, day) async {
+    StreamProvider.family<List<TimeEntry>, DateTime>((ref, day) {
   final dao = ref.watch(timeEntryDaoProvider);
-  return dao.getEntriesForDay(day);
+  return dao.watchEntriesForDay(day);
 });
 
 /// Aggregate monthly data: per-day totals with issue breakdown.

@@ -26,7 +26,10 @@ final timerTickProvider = StreamProvider<Duration>((ref) {
 });
 
 /// Today's totals for all issues (single batch query).
+/// Re-fetches when the active timer changes (start/stop/switch).
 final todayTotalsProvider = FutureProvider<Map<String, int>>((ref) async {
+  // Watch active timer so totals refresh on start/stop/switch
+  ref.watch(activeTimerProvider);
   final repo = ref.watch(timeTrackingRepositoryProvider);
   return repo.timeEntryDao.getTodayTotalsForAllIssues();
 });
