@@ -47,7 +47,7 @@ class OverlayWindow {
     }
 
     // Bring to front
-    NSApp.activate(ignoringOtherApps: true)
+    NSApp.activate()
   }
 
   private func handleAction(_ action: String) {

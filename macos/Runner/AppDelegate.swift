@@ -27,7 +27,7 @@ class AppDelegate: FlutterAppDelegate {
     if running.count > 1 {
       // Another instance exists — activate it and terminate this one
       for app in running where app != NSRunningApplication.current {
-        app.activate(options: .activateIgnoringOtherApps)
+        app.activate()
       }
       NSApp.terminate(nil)
       return
@@ -52,7 +52,7 @@ class AppDelegate: FlutterAppDelegate {
 
       case "bringToFront":
         NSApp.setActivationPolicy(.regular)
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.activate()
         self?.mainFlutterWindow?.makeKeyAndOrderFront(nil)
         result(nil)
 
