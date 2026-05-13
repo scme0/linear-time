@@ -38,7 +38,6 @@ class AppSettings {
     this.officeEndHour = kDefaultOfficeEndHour,
     this.officeDays = const [1, 2, 3, 4, 5],
     this.launchAtLogin = false,
-    this.showInDock = true,
     this.timeDisplayFormat = 'human',
     this.minEntryDurationSeconds = kDefaultMinEntryDurationSeconds,
     this.themeMode = 'system',
@@ -57,7 +56,6 @@ class AppSettings {
   final int officeEndHour;
   final List<int> officeDays;
   final bool launchAtLogin;
-  final bool showInDock;
   final String timeDisplayFormat;
   final int minEntryDurationSeconds;
   final String themeMode;
@@ -83,7 +81,6 @@ class AppSettings {
       officeEndHour: _int(m, SettingsKeys.officeEndHour, kDefaultOfficeEndHour),
       officeDays: _intList(m, SettingsKeys.officeDays, [1, 2, 3, 4, 5]),
       launchAtLogin: _bool(m, SettingsKeys.launchAtLogin, false),
-      showInDock: _bool(m, SettingsKeys.showInDock, true),
       timeDisplayFormat: m[SettingsKeys.timeDisplayFormat] ?? 'human',
       minEntryDurationSeconds: _int(m, SettingsKeys.minEntryDurationSeconds, kDefaultMinEntryDurationSeconds),
       themeMode: m[SettingsKeys.themeMode] ?? 'system',

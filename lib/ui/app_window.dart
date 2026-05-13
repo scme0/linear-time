@@ -213,13 +213,6 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
       }
     });
 
-    // Apply Show in Dock setting
-    ref.read(settingsDaoProvider).getValue(SettingsKeys.showInDock).then((val) {
-      if (val == 'false') {
-        const MethodChannel('com.lineartime/system')
-            .invokeMethod('setShowInDock', {'show': false});
-      }
-    });
   }
 
   void _stopTimerOnExit() {

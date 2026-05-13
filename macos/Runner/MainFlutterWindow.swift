@@ -18,5 +18,7 @@ class MainFlutterWindow: NSWindow {
   override func close() {
     // Hide instead of close so the app stays alive in the menu bar tray
     self.orderOut(nil)
+    // Hide dock icon when window is hidden
+    NSApp.setActivationPolicy(.accessory)
   }
 }

@@ -123,13 +123,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  Future<void> _setShowInDock(bool show) async {
-    try {
-      await _platform.invokeMethod('setShowInDock', {'show': show});
-    } on PlatformException {
-      // Fallback
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -443,17 +436,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   onChanged: (v) async {
                     await saveBool(ref, SettingsKeys.launchAtLogin, v);
                     await _setLaunchAtLogin(v);
-                  },
-                ),
-              ),
-              SettingRow(
-                label: 'Show in Dock',
-                description: 'When off, app only appears in menubar',
-                control: MacosSwitch(
-                  value: settings.showInDock,
-                  onChanged: (v) async {
-                    await saveBool(ref, SettingsKeys.showInDock, v);
-                    await _setShowInDock(v);
                   },
                 ),
               ),

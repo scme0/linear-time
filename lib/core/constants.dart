@@ -32,7 +32,6 @@ abstract class SettingsKeys {
   static const officeEndHour = 'office_end_hour';
   static const officeDays = 'office_days'; // comma-separated: "1,2,3,4,5"
   static const launchAtLogin = 'launch_at_login';
-  static const showInDock = 'show_in_dock';
   static const timeDisplayFormat = 'time_display_format'; // "hms" or "decimal"
   static const minEntryDurationSeconds = 'min_entry_duration_seconds';
   static const themeMode = 'theme_mode'; // "system", "light", "dark"
