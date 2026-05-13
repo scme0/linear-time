@@ -1,0 +1,28 @@
+lib/ui/screens/settings/settings_screen.dart
+  s_ffc54d5be7e279::t_4181853fe94d7d 558
+run
+  s_ffc54d5be7e279::t_fc14b5e18b9fee 58-61
+  s_ffc54d5be7e279::t_5dbc4f988e803e 56-57
+  s_ffc54d5be7e279::t_942f048be2dd7c 36
+  s_ffc54d5be7e279::t_efcc2d1a707e88 55,62-63
+  s_ffc54d5be7e279::t_2dbf23b0242737 13
+  s_ffc54d5be7e279::t_6a4a119e61e923 34-35
+lib/core/constants.dart
+  s_ffc54d5be7e279::t_6048e94ee6f299 1-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "2b8649249773a300200f6857dfa2c8908aa02aeb",
+  "prompts": {},
+  "sessions": {
+    "s_ffc54d5be7e279": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dafed9ba-3677-473d-83a6-6689228e4c48",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": null
+    }
+  }
+}
