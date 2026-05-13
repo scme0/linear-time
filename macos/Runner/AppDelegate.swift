@@ -52,6 +52,7 @@ class AppDelegate: FlutterAppDelegate {
 
       case "bringToFront":
         NSApp.setActivationPolicy(.regular)
+        self?.mainFlutterWindow?.orderFrontRegardless()
         NSApp.activate()
         self?.mainFlutterWindow?.makeKeyAndOrderFront(nil)
         result(nil)
