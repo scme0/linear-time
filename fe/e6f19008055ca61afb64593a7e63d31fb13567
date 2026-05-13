@@ -1,0 +1,21 @@
+macos/Runner/AppDelegate.swift
+  s_ffc54d5be7e279::t_a803d7e23416d3 16
+macos/Runner/MainFlutterWindow.swift
+  s_ffc54d5be7e279::t_775fa71431eaff 17-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "fee6f19008055ca61afb64593a7e63d31fb13567",
+  "prompts": {},
+  "sessions": {
+    "s_ffc54d5be7e279": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dafed9ba-3677-473d-83a6-6689228e4c48",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
