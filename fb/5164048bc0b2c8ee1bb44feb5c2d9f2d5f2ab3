@@ -1,0 +1,20 @@
+lib/ui/screens/timer/widgets/issue_list.dart
+  s_e566e07a427358::t_0e63a8b0967284 7
+  s_e566e07a427358::t_fc53793bb168a6 212,227,231-268,280-307
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.7",
+  "base_commit_sha": "fb5164048bc0b2c8ee1bb44feb5c2d9f2d5f2ab3",
+  "prompts": {},
+  "sessions": {
+    "s_e566e07a427358": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "824b63f2-5dff-4cbf-b1fe-1fc4f6654e92",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "scme0 <scott.merchant@octopus.com>"
+    }
+  }
+}
