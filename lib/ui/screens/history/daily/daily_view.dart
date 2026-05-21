@@ -329,19 +329,36 @@ class _DayTimelineState extends State<_DayTimeline> {
     for (final entry in widget.entries) {
       final startH = entry.startTime.hour;
       final end = entry.endTime ?? DateTime.now();
-      final endH = end.minute > 0 ? end.hour + 1 : end.hour;
+      final endH = _endsAfterStartDay(entry, end)
+          ? 24
+          : (end.minute > 0 ? end.hour + 1 : end.hour);
       if (startH < minH) minH = startH;
       if (endH > maxH) maxH = endH;
     }
     return (minH.clamp(0, 23), maxH.clamp(minH + 1, 24));
   }
 
+  /// Whether [end] falls on a later calendar day than the entry's start.
+  /// This happens for midnight-split entries whose endTime is 00:00 next day.
+  bool _endsAfterStartDay(TimeEntry entry, DateTime end) {
+    return DateTime(end.year, end.month, end.day)
+        .isAfter(DateTime(entry.startTime.year, entry.startTime.month, entry.startTime.day));
+  }
+
+  /// Effective end-minute offset for an entry within this timeline.
+  int _endMinFor(TimeEntry entry) {
+    final end = entry.endTime ?? DateTime.now();
+    if (_endsAfterStartDay(entry, end)) {
+      return 24 * 60 - _minHour * 60;
+    }
+    return end.hour * 60 + end.minute - _minHour * 60;
+  }
+
   TimeEntry? _entryAtY(double y) {
     for (final entry in widget.entries) {
       final startMin = entry.startTime.hour * 60 +
           entry.startTime.minute - _minHour * 60;
-      final end = entry.endTime ?? DateTime.now();
-      final endMin = end.hour * 60 + end.minute - _minHour * 60;
+      final endMin = _endMinFor(entry);
       final top = startMin / _totalMinutes * _columnHeight;
       final bottom = endMin / _totalMinutes * _columnHeight;
       if (y >= top && y <= bottom) return entry;
@@ -469,9 +486,7 @@ class _DayTimelineState extends State<_DayTimeline> {
                               final isRunning = entry.endTime == null;
                               final startMin = entry.startTime.hour * 60 +
                                   entry.startTime.minute - _minHour * 60;
-                              final end = entry.endTime ?? DateTime.now();
-                              final endMin = end.hour * 60 +
-                                  end.minute - _minHour * 60;
+                              final endMin = _endMinFor(entry);
 
                               final top = (startMin / _totalMinutes * height)
                                   .clamp(0.0, height);

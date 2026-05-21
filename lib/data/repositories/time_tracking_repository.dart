@@ -56,6 +56,36 @@ class TimeTrackingRepository {
     }
   }
 
+  /// Stop the current timer at a specific time (e.g., when idle started).
+  /// Discards if below minimum duration. Auto-splits at midnight boundaries.
+  Future<void> stopTimerAt(DateTime endTime) async {
+    final active = await timeEntryDao.getActiveEntry();
+    if (active == null) return;
+
+    final duration = endTime.difference(active.startTime).inSeconds;
+    await timeEntryDao.updateEntry(
+      active.id,
+      TimeEntriesCompanion(
+        endTime: Value(endTime),
+        durationSeconds: Value(duration),
+      ),
+    );
+
+    // Check minimum duration
+    final minSeconds = await _getMinDurationSeconds();
+    if (duration < minSeconds) {
+      await timeEntryDao.deleteEntry(active.id);
+      return;
+    }
+
+    // Refetch for finalization (midnight split)
+    final entries = await timeEntryDao.getEntriesForDay(active.startTime);
+    final stopped = entries.where((e) => e.id == active.id).firstOrNull;
+    if (stopped != null && stopped.endTime != null) {
+      await _finalizeEntry(stopped);
+    }
+  }
+
   /// Switch timer to a new issue (atomic stop + start).
   Future<int> switchTimer({
     required String issueId,

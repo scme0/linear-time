@@ -1,11 +1,9 @@
 import 'dart:async';
 
-import 'package:drift/drift.dart' as drift;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../data/database/app_database.dart';
 import '../providers/timer_providers.dart';
 import 'hotkey_service.dart';
 import '../ui/tray/tray_manager.dart';
@@ -226,31 +224,9 @@ class NotificationService {
         // Do nothing — timer keeps running
         break;
       case 'Trim idle time':
-        // Stop timer at when idle started, then restart
         if (_idleStartTime != null) {
           final repo = _ref.read(timeTrackingRepositoryProvider);
-          final active = _ref.read(activeTimerProvider).valueOrNull;
-          if (active != null) {
-            // Stop at idle start time and restart now
-            repo.stopTimer();
-            // The entry will have endTime = now, but we want idleStartTime
-            // We'll adjust via the DAO
-            _ref.read(timeTrackingRepositoryProvider).timeEntryDao
-                .getEntriesForDay(DateTime.now())
-                .then((entries) {
-              final last = entries.where((e) => e.issueId == active.issueId).lastOrNull;
-              if (last != null && _idleStartTime != null) {
-                final duration = _idleStartTime!.difference(last.startTime).inSeconds;
-                repo.timeEntryDao.updateEntry(
-                  last.id,
-                  TimeEntriesCompanion(
-                    endTime: drift.Value(_idleStartTime!),
-                    durationSeconds: drift.Value(duration),
-                  ),
-                );
-              }
-            });
-          }
+          repo.stopTimerAt(_idleStartTime!);
         }
         break;
       case 'Stop timer':
