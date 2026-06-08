@@ -123,7 +123,7 @@ class NotificationService {
     if (settings == null) return;
     if (isSnoozed) return;
 
-    if (settings.officeHoursEnabled && !_isInOfficeHours(settings)) return;
+    if (settings.officeHoursEnabled && !isInOfficeHours(settings)) return;
 
     final activeTimer = _ref.read(activeTimerProvider).valueOrNull;
 
@@ -249,12 +249,20 @@ class NotificationService {
     _idleStartTime = null;
   }
 
-  bool _isInOfficeHours(AppSettings settings) {
+  bool isInOfficeHours(AppSettings settings) {
     final now = DateTime.now();
     final hour = now.hour;
     final weekday = now.weekday;
     if (!settings.officeDays.contains(weekday)) return false;
     return hour >= settings.officeStartHour && hour < settings.officeEndHour;
+  }
+
+  /// True when office hours are enabled and current time is outside them.
+  bool get isOutsideOfficeHours {
+    final settings = _ref.read(appSettingsProvider).valueOrNull;
+    if (settings == null) return false;
+    if (!settings.officeHoursEnabled) return false;
+    return !isInOfficeHours(settings);
   }
 
   Future<void> _showOverlay({

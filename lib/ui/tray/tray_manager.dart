@@ -204,8 +204,11 @@ class TrayManager {
 
   Future<void> updateTitle() async {
     final activeEntry = _ref.read(activeTimerProvider).valueOrNull;
-    final snoozed = NotificationService.instance?.isSnoozed ?? false;
-    final prefix = snoozed ? '🔕 ' : '';
+    final ns = NotificationService.instance;
+    final snoozed = ns?.isSnoozed ?? false;
+    final offHours = ns?.isOutsideOfficeHours ?? false;
+    final prefix = '${snoozed ? '🔕' : ''}${offHours ? '💤' : ''}'
+        '${(snoozed || offHours) ? ' ' : ''}';
 
     if (activeEntry != null) {
       final elapsed = DateTime.now().difference(activeEntry.startTime);

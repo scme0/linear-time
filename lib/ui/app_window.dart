@@ -324,11 +324,17 @@ class _AppWindowState extends ConsumerState<AppWindow> with WidgetsBindingObserv
               top: 0,
               bottom: 0,
               child: Center(
-                child: _SnoozeIndicator(
-                  brightness: brightness,
-                  onUnsnooze: () {
-                    NotificationService.instance?.unsnooze();
-                  },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _OfficeHoursIndicator(brightness: brightness),
+                    _SnoozeIndicator(
+                      brightness: brightness,
+                      onUnsnooze: () {
+                        NotificationService.instance?.unsnooze();
+                      },
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -422,6 +428,76 @@ class _TabButtonState extends State<_TabButton> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OfficeHoursIndicator extends ConsumerStatefulWidget {
+  const _OfficeHoursIndicator({required this.brightness});
+
+  final Brightness brightness;
+
+  @override
+  ConsumerState<_OfficeHoursIndicator> createState() =>
+      _OfficeHoursIndicatorState();
+}
+
+class _OfficeHoursIndicatorState extends ConsumerState<_OfficeHoursIndicator> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = ref.watch(appSettingsProvider).valueOrNull;
+    if (settings == null || !settings.officeHoursEnabled) {
+      return const SizedBox.shrink();
+    }
+    final inOffice =
+        NotificationService.instance?.isInOfficeHours(settings) ?? true;
+    if (inOffice) return const SizedBox.shrink();
+
+    final fg = AppColors.textSecondary(widget.brightness);
+    return Padding(
+      padding: const EdgeInsets.only(left: 12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.surface2(widget.brightness),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: AppColors.border(widget.brightness),
+            width: 0.5,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(CupertinoIcons.moon_zzz_fill, size: 12, color: fg),
+            const SizedBox(width: 4),
+            Text(
+              'Off hours',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: fg,
+              ),
+            ),
+          ],
         ),
       ),
     );
